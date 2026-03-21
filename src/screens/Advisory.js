@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
-import { Card, Text, IconButton } from 'react-native-paper';
+import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { Surface, Text, IconButton, Divider } from 'react-native-paper';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { advisory } from '../mockData';
 
 export default function Advisory() {
@@ -8,54 +9,60 @@ export default function Advisory() {
     {
       id: 'irrigation',
       title: advisory.irrigation.titleEn,
+      subtitle: advisory.irrigation.title,
       text: advisory.irrigation.textEn,
-      color: '#2196F3', // Blue for irrigation
-      icon: 'water',
+      hiText: advisory.irrigation.text,
+      color: '#2196F3',
+      icon: 'water-sync',
     },
     {
       id: 'nutrients',
       title: advisory.nutrients.titleEn,
+      subtitle: advisory.nutrients.title,
       text: advisory.nutrients.textEn,
-      color: '#FF9800', // Orange for nutrients
-      icon: 'leaf',
+      hiText: advisory.nutrients.text,
+      color: '#FB8C00',
+      icon: 'leaf-circle',
     },
     {
       id: 'nextCrop',
       title: advisory.nextCrop.titleEn,
+      subtitle: advisory.nextCrop.title,
       text: advisory.nextCrop.textEn,
-      color: '#4CAF50', // Green for next crop
-      icon: 'sprout',
+      hiText: advisory.nextCrop.text,
+      color: '#43A047',
+      icon: 'sprout-outline',
     },
   ];
 
-  const handlePlayAudio = (id) => {
-    // In a real app, play the audioUrl here
-    console.log(`Speaker icon clicked for ${id}`);
-  };
-
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <Text style={styles.topInfo}>Daily Agricultural Advisory</Text>
+      
       {cards.map((item) => (
-        <Card key={item.id} style={[styles.card, { borderLeftColor: item.color, borderLeftWidth: 6 }]}>
-          <Card.Title 
-            title={item.title}
-            titleStyle={[styles.cardTitle, { color: item.color }]}
-            left={(props) => <IconButton {...props} icon={item.icon} iconColor={item.color} />}
-            right={(props) => (
-              <IconButton 
-                {...props} 
-                icon="volume-high" 
-                iconColor="#333" 
-                size={28}
-                onPress={() => handlePlayAudio(item.id)} 
-              />
-            )}
-          />
-          <Card.Content>
-            <Text style={styles.cardText}>{item.text}</Text>
-          </Card.Content>
-        </Card>
+        <Surface key={item.id} style={styles.surface}>
+          <View style={styles.cardHeader}>
+            <View style={[styles.iconBox, { backgroundColor: item.color + '20' }]}>
+              <MaterialCommunityIcons name={item.icon} size={28} color={item.color} />
+            </View>
+            <View style={styles.titleBox}>
+              <Text style={styles.titleEn}>{item.title}</Text>
+              <Text style={styles.titleHi}>{item.subtitle}</Text>
+            </View>
+            <TouchableOpacity style={styles.audioAction} onPress={() => console.log('play audio')}>
+              <MaterialCommunityIcons name="volume-high" size={26} color="#455A64" />
+            </TouchableOpacity>
+          </View>
+          
+          <Divider style={styles.divider} />
+          
+          <View style={styles.textBox}>
+            <Text style={styles.textEn}>{item.text}</Text>
+            <Text style={styles.textHi}>{item.hiText}</Text>
+          </View>
+        </Surface>
       ))}
+      <View style={{ height: 40 }} />
     </ScrollView>
   );
 }
@@ -63,23 +70,80 @@ export default function Advisory() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#F8F9FA',
   },
-  card: {
+  content: {
+    padding: 20,
+  },
+  topInfo: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#90A4AE',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 16,
+    marginLeft: 4,
+  },
+  surface: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
     marginBottom: 20,
     elevation: 4,
-    borderRadius: 8,
-    backgroundColor: '#FFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
   },
-  cardTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 14,
   },
-  cardText: {
+  iconBox: {
+    width: 50,
+    height: 50,
+    borderRadius: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  titleBox: {
+    flex: 1,
+    marginLeft: 15,
+  },
+  titleEn: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#263238',
+  },
+  titleHi: {
+    fontSize: 14,
+    color: '#78909C',
+    fontWeight: '600',
+  },
+  audioAction: {
+    padding: 10,
+    backgroundColor: '#ECEFF1',
+    borderRadius: 30,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#F1F8E9',
+    marginBottom: 14,
+  },
+  textBox: {
+    paddingLeft: 4,
+  },
+  textEn: {
     fontSize: 16,
-    lineHeight: 24,
-    color: '#333',
-    paddingTop: 8,
+    lineHeight: 22,
+    color: '#455A64',
+    marginBottom: 10,
+  },
+  textHi: {
+    fontSize: 16,
+    lineHeight: 22,
+    color: '#546E7A',
+    fontWeight: '500',
   },
 });
