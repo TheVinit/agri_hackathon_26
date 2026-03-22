@@ -1,67 +1,57 @@
+// src/screens/Advisory.js
 import React from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { Surface, Text, IconButton, Divider } from 'react-native-paper';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { View, StyleSheet, ScrollView } from 'react-native';
+import { Text } from 'react-native-paper';
+
+import AdvisoryCard from '../components/AdvisoryCard';
 import { advisory } from '../mockData';
 
 export default function Advisory() {
-  const cards = [
-    {
-      id: 'irrigation',
-      title: advisory.irrigation.titleEn,
-      subtitle: advisory.irrigation.title,
-      text: advisory.irrigation.textEn,
-      hiText: advisory.irrigation.text,
-      color: '#2196F3',
-      icon: 'water-sync',
-    },
-    {
-      id: 'nutrients',
-      title: advisory.nutrients.titleEn,
-      subtitle: advisory.nutrients.title,
-      text: advisory.nutrients.textEn,
-      hiText: advisory.nutrients.text,
-      color: '#FB8C00',
-      icon: 'leaf-circle',
-    },
-    {
-      id: 'nextCrop',
-      title: advisory.nextCrop.titleEn,
-      subtitle: advisory.nextCrop.title,
-      text: advisory.nextCrop.textEn,
-      hiText: advisory.nextCrop.text,
-      color: '#43A047',
-      icon: 'sprout-outline',
-    },
-  ];
-
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.topInfo}>Daily Agricultural Advisory</Text>
-      
-      {cards.map((item) => (
-        <Surface key={item.id} style={styles.surface}>
-          <View style={styles.cardHeader}>
-            <View style={[styles.iconBox, { backgroundColor: item.color + '20' }]}>
-              <MaterialCommunityIcons name={item.icon} size={28} color={item.color} />
-            </View>
-            <View style={styles.titleBox}>
-              <Text style={styles.titleEn}>{item.title}</Text>
-              <Text style={styles.titleHi}>{item.subtitle}</Text>
-            </View>
-            <TouchableOpacity style={styles.audioAction} onPress={() => console.log('play audio')}>
-              <MaterialCommunityIcons name="volume-high" size={26} color="#455A64" />
-            </TouchableOpacity>
-          </View>
-          
-          <Divider style={styles.divider} />
-          
-          <View style={styles.textBox}>
-            <Text style={styles.textEn}>{item.text}</Text>
-            <Text style={styles.textHi}>{item.hiText}</Text>
-          </View>
-        </Surface>
-      ))}
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Screen title */}
+      <View style={styles.titleWrapper}>
+        <Text style={styles.screenTitleHi}>आज की सलाह</Text>
+        <Text style={styles.screenTitleEn}>Today's Advisory</Text>
+      </View>
+
+      {/* Card 1 — Irrigation */}
+      <AdvisoryCard
+        title={advisory.irrigation.title}
+        titleEn={advisory.irrigation.titleEn}
+        text={advisory.irrigation.text}
+        textEn={advisory.irrigation.textEn}
+        bgColour="#E3F2FD"
+        headerColour="#1565C0"
+        onAudioPress={() => console.log('play audio — Person 4 wires this')}
+      />
+
+      {/* Card 2 — Nutrients */}
+      <AdvisoryCard
+        title={advisory.nutrients.title}
+        titleEn={advisory.nutrients.titleEn}
+        text={advisory.nutrients.text}
+        textEn={advisory.nutrients.textEn}
+        bgColour="#FFF3E0"
+        headerColour="#E65100"
+        onAudioPress={() => console.log('play audio — Person 4 wires this')}
+      />
+
+      {/* Card 3 — Next Crop */}
+      <AdvisoryCard
+        title={advisory.nextCrop.title}
+        titleEn={advisory.nextCrop.titleEn}
+        text={advisory.nextCrop.text}
+        textEn={advisory.nextCrop.textEn}
+        bgColour="#E8F5E9"
+        headerColour="#2E7D32"
+        onAudioPress={() => console.log('play audio — Person 4 wires this')}
+      />
+
       <View style={{ height: 40 }} />
     </ScrollView>
   );
@@ -74,76 +64,25 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
+    paddingTop: 24,
   },
-  topInfo: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#90A4AE',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 16,
-    marginLeft: 4,
-  },
-  surface: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 20,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 14,
-  },
-  iconBox: {
-    width: 50,
-    height: 50,
-    borderRadius: 15,
-    justifyContent: 'center',
+  titleWrapper: {
+    marginBottom: 24,
     alignItems: 'center',
   },
-  titleBox: {
-    flex: 1,
-    marginLeft: 15,
+  screenTitleHi: {
+    fontSize: 26,
+    fontWeight: '900',
+    color: '#1B5E20',
+    textAlign: 'center',
+    letterSpacing: 0.3,
   },
-  titleEn: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#263238',
-  },
-  titleHi: {
-    fontSize: 14,
-    color: '#78909C',
+  screenTitleEn: {
+    fontSize: 16,
     fontWeight: '600',
-  },
-  audioAction: {
-    padding: 10,
-    backgroundColor: '#ECEFF1',
-    borderRadius: 30,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#F1F8E9',
-    marginBottom: 14,
-  },
-  textBox: {
-    paddingLeft: 4,
-  },
-  textEn: {
-    fontSize: 16,
-    lineHeight: 22,
-    color: '#455A64',
-    marginBottom: 10,
-  },
-  textHi: {
-    fontSize: 16,
-    lineHeight: 22,
-    color: '#546E7A',
-    fontWeight: '500',
+    color: '#78909C',
+    textAlign: 'center',
+    marginTop: 4,
+    letterSpacing: 0.5,
   },
 });
