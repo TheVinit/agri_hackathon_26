@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "C:\agri_hackathon\agri_hackathon_26\predict.py", line 346, in <module>
+    run_demo()
+  File "C:\agri_hackathon\agri_hackathon_26\predict.py", line 230, in run_demo
+    print("\n" + separator)
+  File "C:\Users\Pawan\AppData\Local\Programs\Python\Python310\lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+UnicodeEncodeError: 'charmap' codec can't encode characters in position 2-73: character maps to <undefined>
