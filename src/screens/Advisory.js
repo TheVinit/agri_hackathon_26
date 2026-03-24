@@ -1,12 +1,56 @@
 // src/screens/Advisory.js
-import React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
-import { Text } from 'react-native-paper';
+import React, { useEffect, useState } from 'react';
+import { View, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import { Text, Button, useTheme } from 'react-native-paper';
 
 import AdvisoryCard from '../components/AdvisoryCard';
-import { advisory } from '../mockData';
+import { getTodayAdvisory } from '../services/api';
+import { playAdvisory, AUDIO_URLS } from '../services/tts';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function Advisory() {
+  const theme = useTheme();
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
+
+  const fetchAdvisory = async () => {
+    setLoading(true);
+    const { data: advisoryData, error: apiError } = await getTodayAdvisory('farm_001');
+    if (apiError) {
+      setError(apiError);
+    } else {
+      setData(advisoryData);
+      setError(null);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchAdvisory();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text style={{ marginTop: 10 }}>सलाह लोड हो रही है (Loading advisory...)</Text>
+      </View>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <View style={styles.centered}>
+        <MaterialCommunityIcons name="alert-circle-outline" size={48} color={theme.colors.error} />
+        <Text style={styles.errorText}>सर्वर से सलाह नहीं मिल पाई (Error fetching advisory)</Text>
+        <Button mode="contained" onPress={fetchAdvisory} style={{ marginTop: 20 }}>
+          Retry
+        </Button>
+      </View>
+    );
+  }
+
   return (
     <ScrollView
       style={styles.container}
@@ -21,35 +65,35 @@ export default function Advisory() {
 
       {/* Card 1 — Irrigation */}
       <AdvisoryCard
-        title={advisory.irrigation.title}
-        titleEn={advisory.irrigation.titleEn}
-        text={advisory.irrigation.text}
-        textEn={advisory.irrigation.textEn}
+        title="सिंचाई (Irrigation)"
+        titleEn="Irrigation"
+        text={data.irrigation.textHindi}
+        textEn={data.irrigation.decision === 'irrigate_now' ? "Irrigate now for 45 mins." : "Irrigation not needed today."}
         bgColour="#E3F2FD"
         headerColour="#1565C0"
-        onAudioPress={() => console.log('play audio — Person 4 wires this')}
+        onAudioPress={() => playAdvisory(AUDIO_URLS.mainAdvisory)}
       />
 
       {/* Card 2 — Nutrients */}
       <AdvisoryCard
-        title={advisory.nutrients.title}
-        titleEn={advisory.nutrients.titleEn}
-        text={advisory.nutrients.text}
-        textEn={advisory.nutrients.textEn}
+        title="पोषक तत्व (Nutrients)"
+        titleEn="Nutrients"
+        text={data.nutrients.textHindi}
+        textEn={`Status: ${data.nutrients.status}. Apply DAP/Urea as recommended.`}
         bgColour="#FFF3E0"
         headerColour="#E65100"
-        onAudioPress={() => console.log('play audio — Person 4 wires this')}
+        onAudioPress={() => playAdvisory(AUDIO_URLS.critical)}
       />
 
       {/* Card 3 — Next Crop */}
       <AdvisoryCard
-        title={advisory.nextCrop.title}
-        titleEn={advisory.nextCrop.titleEn}
-        text={advisory.nextCrop.text}
-        textEn={advisory.nextCrop.textEn}
+        title="अगली फसल (Next Crop)"
+        titleEn="Next Crop"
+        text={data.nextCrop.textHindi}
+        textEn={`Recommended: ${data.nextCrop.crop}. Soil pH is ideal.`}
         bgColour="#E8F5E9"
         headerColour="#2E7D32"
-        onAudioPress={() => console.log('play audio — Person 4 wires this')}
+        onAudioPress={() => playAdvisory(AUDIO_URLS.allGood)}
       />
 
       <View style={{ height: 40 }} />
@@ -65,6 +109,18 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
     paddingTop: 24,
+  },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#D32F2F',
+    textAlign: 'center',
+    marginTop: 10,
   },
   titleWrapper: {
     marginBottom: 24,
@@ -86,3 +142,4 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
 });
+

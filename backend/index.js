@@ -168,12 +168,12 @@ app.use((req, res) => {
 });
 
 // ─── START SERVER ─────────────────────────────────────────────
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log('╔══════════════════════════════════════════════╗');
   console.log('║        🌾  AgriPulse Backend API  🌾         ║');
   console.log('╠══════════════════════════════════════════════╣');
   console.log(`║  ✅  Server running on port : ${PORT}           ║`);
-  console.log(`║  🌐  Base URL : http://localhost:${PORT}        ║`);
+  console.log(`║  🌐  Base URL : http://127.0.0.1:${PORT}        ║`);
   console.log('╠══════════════════════════════════════════════╣');
   console.log('║  Available Endpoints:                        ║');
   console.log(`║  GET  /health                                ║`);
@@ -182,5 +182,6 @@ app.listen(PORT, () => {
   console.log(`║  POST /api/farms/farm_001/npk-readings       ║`);
   console.log('╚══════════════════════════════════════════════╝');
 });
+
 
 module.exports = app;

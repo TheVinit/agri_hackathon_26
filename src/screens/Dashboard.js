@@ -1,13 +1,53 @@
-import React from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
-import { Text, Avatar, useTheme } from 'react-native-paper';
-import { sensorNodes, npkValues } from '../mockData';
+import React, { useEffect, useState } from 'react';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import { Text, Avatar, useTheme, Button } from 'react-native-paper';
+import { getDashboard } from '../services/api';
 import NodeCard from '../components/NodeCard';
 import NPKBar from '../components/NPKBar';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function Dashboard({ navigation }) {
   const theme = useTheme();
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
+
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    const { data: dashboardData, error: apiError } = await getDashboard('farm_001');
+    if (apiError) {
+      setError(apiError);
+    } else {
+      setData(dashboardData);
+      setError(null);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text style={{ marginTop: 10 }}>लोड हो रहा है (Loading data...)</Text>
+      </View>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <View style={styles.centered}>
+        <MaterialCommunityIcons name="alert-circle-outline" size={48} color={theme.colors.error} />
+        <Text style={styles.errorText}>सर्वर से कनेक्ट नहीं हो सका (Connection Error)</Text>
+        <Button mode="contained" onPress={fetchDashboardData} style={{ marginTop: 20 }}>
+          दोबारा प्रयास करें (Retry)
+        </Button>
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container}>
@@ -15,7 +55,7 @@ export default function Dashboard({ navigation }) {
         <View style={styles.headerTop}>
           <View>
             <Text style={styles.welcomeText}>नमस्कार, (Welcome back)</Text>
-            <Text style={styles.farmName}>रामराव शिंदे की खेत</Text>
+            <Text style={styles.farmName}>{data.farmerName || 'Farmer'}</Text>
             <View style={styles.statusIndicator}>
               <View style={styles.liveDot} />
               <Text style={styles.statusText}>सभी सेंसर चालू हैं (All systems active)</Text>
@@ -44,13 +84,25 @@ export default function Dashboard({ navigation }) {
           <Text style={styles.viewMap} onPress={() => navigation.navigate('Farm Map')}>View Map</Text>
         </View>
         <View style={styles.gridContainer}>
-          {sensorNodes.map((node) => (
+          {data.nodes.map((node) => (
             <NodeCard key={node.id} node={node} />
           ))}
         </View>
 
         <Text style={styles.sectionTitle}>NPK Summary (Soil Profile)</Text>
-        <NPKBar npkValues={npkValues} />
+        <NPKBar npkValues={{
+          N: data.lastNPK.N,
+          P: data.lastNPK.P,
+          K: data.lastNPK.K,
+          pH: data.lastNPK.pH
+        }} />
+        
+        {data.alerts && data.alerts.length > 0 && (
+          <View style={styles.alertBox}>
+            <MaterialCommunityIcons name="alert-decagram" size={24} color="#C62828" />
+            <Text style={styles.alertText}>{data.alerts[0].message}</Text>
+          </View>
+        )}
       </View>
     </ScrollView>
   );
@@ -60,6 +112,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F8F9FA',
+  },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#D32F2F',
+    textAlign: 'center',
+    marginTop: 10,
   },
   headerGradient: {
     padding: 24,
@@ -167,4 +231,22 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 24,
   },
+  alertBox: {
+    flexDirection: 'row',
+    backgroundColor: '#FFEBEE',
+    padding: 15,
+    borderRadius: 12,
+    marginTop: 10,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FFCDD2',
+  },
+  alertText: {
+    flex: 1,
+    marginLeft: 10,
+    color: '#C62828',
+    fontSize: 14,
+    fontWeight: '500',
+  },
 });
+

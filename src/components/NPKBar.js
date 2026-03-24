@@ -2,7 +2,18 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Surface, Text } from 'react-native-paper';
 
+const DEFAULT_THRESHOLDS = {
+  N: { min: 50 },
+  P: { min: 25 },
+  K: { min: 50 },
+  pH: { min: 6.0, max: 7.5 },
+};
+
 export default function NPKBar({ npkValues }) {
+  const getThreshold = (nutrient) => {
+    return npkValues.thresholds?.[nutrient] || DEFAULT_THRESHOLDS[nutrient];
+  };
+
   const npkStatusColor = (val, thresholdMin, thresholdMax) => {
     if (thresholdMax) {
       return (val >= thresholdMin && val <= thresholdMax) ? '#4CAF50' : '#E53935';
@@ -10,27 +21,34 @@ export default function NPKBar({ npkValues }) {
     return val >= thresholdMin ? '#4CAF50' : '#E53935';
   };
 
-  const renderItem = (label, value, min, max) => (
-    <View style={styles.npkItem}>
-      <View style={[styles.indicator, { backgroundColor: npkStatusColor(value, min, max) }]} />
-      <Text style={styles.npkLabel}>{label}</Text>
-      <Text style={[styles.npkValue, { color: npkStatusColor(value, min, max) }]}>
-        {value}
-      </Text>
-    </View>
-  );
+  const renderItem = (label, value, nutrient) => {
+    const thresh = getThreshold(nutrient);
+    const min = thresh.min;
+    const max = thresh.max;
+    
+    return (
+      <View style={styles.npkItem}>
+        <View style={[styles.indicator, { backgroundColor: npkStatusColor(value, min, max) }]} />
+        <Text style={styles.npkLabel}>{label}</Text>
+        <Text style={[styles.npkValue, { color: npkStatusColor(value, min, max) }]}>
+          {value || 0}
+        </Text>
+      </View>
+    );
+  };
 
   return (
     <Surface style={styles.npkCard}>
       <View style={styles.npkRow}>
-        {renderItem('Nitrogen', npkValues.N, npkValues.thresholds.N.min)}
-        {renderItem('Phos.', npkValues.P, npkValues.thresholds.P.min)}
-        {renderItem('Potas.', npkValues.K, npkValues.thresholds.K.min)}
-        {renderItem('pH', npkValues.pH, npkValues.thresholds.pH.min, npkValues.thresholds.pH.max)}
+        {renderItem('Nitrogen', npkValues.N, 'N')}
+        {renderItem('Phos.', npkValues.P, 'P')}
+        {renderItem('Potas.', npkValues.K, 'K')}
+        {renderItem('pH', npkValues.pH, 'pH')}
       </View>
     </Surface>
   );
 }
+
 
 const styles = StyleSheet.create({
   npkCard: {

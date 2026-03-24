@@ -6,12 +6,15 @@ import {
   ScrollView,
   Animated,
   TouchableOpacity,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
-import { Text, Surface } from 'react-native-paper';
+import { Text, Surface, useTheme } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 
 import NPKResultBox from '../components/NPKResultBox';
 import { sensorNodes, npkValues } from '../mockData';
+import { postNPKReading } from '../services/api';
 
 // Helper: determine overall soil status badge text
 function getSummaryLabel() {
@@ -28,11 +31,13 @@ function getSummaryLabel() {
 
 export default function NPKTest() {
   const navigation = useNavigation();
+  const theme = useTheme();
 
   // step: 1 = start screen, 2 = countdown, 3 = results
   const [step, setStep] = useState(1);
   const [currentNode, setCurrentNode] = useState(1); // 1-based index
   const [countdown, setCountdown] = useState(3);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Animated value for spring on countdown number
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -78,15 +83,29 @@ export default function NPKTest() {
   }
 
   // ── Advance to next spot or finish ───────────────────────────
-  function handleNext() {
+  const handleNext = async () => {
     if (isLastNode) {
-      // Navigate to Advisory tab after finishing all nodes
-      navigation.navigate('Advisory');
+      setIsSubmitting(true);
+      const payload = {
+        nitrogen: npkValues.N,
+        phosphorus: npkValues.P,
+        potassium: npkValues.K,
+        pH: npkValues.pH
+      };
+      
+      const { error } = await postNPKReading('farm_001', payload);
+      setIsSubmitting(false);
+
+      if (error) {
+        Alert.alert("Submission Failed", "Could not save NPK data to server. Please check connection.");
+      } else {
+        navigation.navigate('Advisory');
+      }
     } else {
       setCurrentNode((prev) => prev + 1);
       setStep(1);
     }
-  }
+  };
 
   // ── Progress dots ─────────────────────────────────────────────
   function ProgressDots() {
@@ -241,19 +260,21 @@ export default function NPKTest() {
         style={[styles.nextBtn, isLastNode && styles.doneBtn]}
         onPress={handleNext}
         activeOpacity={0.85}
+        disabled={isSubmitting}
       >
-        <Text style={styles.nextBtnText}>
-          {isLastNode ? 'DONE — View Advisory' : `NEXT SPOT ›`}
-        </Text>
+        {isSubmitting ? (
+          <ActivityIndicator color="#FFFFFF" />
+        ) : (
+          <Text style={styles.nextBtnText}>
+            {isLastNode ? 'DONE — View Advisory' : `NEXT SPOT ›`}
+          </Text>
+        )}
       </TouchableOpacity>
 
       <View style={{ height: 40 }} />
     </ScrollView>
   );
 }
-
-// ── Summary screen (after all 4 nodes) is handled by navigating
-// to Advisory tab in handleNext when isLastNode is true.
 
 const styles = StyleSheet.create({
   container: {
@@ -432,3 +453,4 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
   },
 });
+

@@ -3,12 +3,15 @@ import axios from "axios";
 // ─── Axios Instance ──────────────────────────────────────────────────────────
 
 const api = axios.create({
-  baseURL: process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000",
+  baseURL: "https://agrihackathon26-production.up.railway.app", // Production Backend on Railway
   timeout: 15000,
   headers: {
     "Content-Type": "application/json",
   },
 });
+
+
+
 
 // ─── Request Interceptor ─────────────────────────────────────────────────────
 
