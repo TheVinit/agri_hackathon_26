@@ -2,13 +2,13 @@ import axios from "axios";
 
 // ─── Configuration ───────────────────────────────────────────────────────────
 
-const PROD_URL = "https://agrihackathon26-production.up.railway.app/";
-const DEV_URL  = "http://10.0.1.56:3000/"; // Your current local machine IP
+const PROD_URL = "https://divine-wind-cf72.crazything344.workers.dev/";
+const DEV_URL  = "https://divine-wind-cf72.crazything344.workers.dev/"; // Cloudflare Worker endpoint
 
 const isDev = typeof __DEV__ !== 'undefined' && __DEV__;
 
 const api = axios.create({
-  // Forced to PROD_URL so your phone can reach the backend regardless of Wi-Fi issues
+  // Using Cloudflare Worker for reliable cross-device functionality
   baseURL: PROD_URL, 
   timeout: 15000, 
   headers: {
