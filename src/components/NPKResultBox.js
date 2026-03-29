@@ -1,95 +1,109 @@
-// src/components/NPKResultBox.js
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Text } from 'react-native-paper';
+import { Text, Surface } from 'react-native-paper';
+import { COLORS, SHADOWS, GAPS, FONTS } from '../theme';
 
-/**
- * NPKResultBox
- * Props:
- *   nutrient   – string  e.g. "N", "P", "K", "pH"
- *   value      – number
- *   threshold  – { min: number, max?: number }
- *   unit       – string  e.g. "kg/ha", ""
- */
 export default function NPKResultBox({ nutrient, value, threshold, unit }) {
   const isLow = value < threshold.min;
   const isHigh = threshold.max !== undefined && value > threshold.max;
   const isAlert = isLow || isHigh;
 
-  const bgColor = isAlert ? '#FFEBEE' : '#E8F5E9';
-  const textColor = isAlert ? '#C62828' : '#1B5E20';
-  const borderColor = isAlert ? '#EF9A9A' : '#A5D6A7';
-  const badgeColor = isAlert ? '#C62828' : '#2E7D32';
+  const bgColor = isAlert ? '#FFF5F5' : '#F1F8E9';
+  const textColor = isAlert ? COLORS.error : COLORS.primary;
+  const borderColor = isAlert ? '#FFCDD2' : '#C8E6C9';
+  const badgeColor = isAlert ? COLORS.error : COLORS.accent;
   const badgeLabel = isLow ? 'LOW' : isHigh ? 'HIGH' : 'OK';
 
   return (
-    <View style={[styles.box, { backgroundColor: bgColor, borderColor }]}>
-      {/* Badge top-right */}
+    <Surface style={[styles.box, { backgroundColor: bgColor, borderColor }]}>
       <View style={[styles.badge, { backgroundColor: badgeColor }]}>
         <Text style={styles.badgeText}>{badgeLabel}</Text>
       </View>
 
-      {/* Big nutrient letter */}
-      <Text style={[styles.nutrientLetter, { color: textColor }]}>
-        {nutrient}
-      </Text>
+      <View style={styles.header}>
+        <Text style={[styles.nutrientLetter, { color: textColor }]}>
+          {nutrient}
+        </Text>
+        <View style={styles.idBadge}>
+           <Text style={styles.idBadgeText}>SENSOR-0{nutrient.length}</Text>
+        </View>
+      </View>
 
-      {/* Value */}
-      <Text style={[styles.valueText, { color: textColor }]}>
-        {value}
-      </Text>
-
-      {/* Unit */}
-      {unit ? (
-        <Text style={[styles.unitText, { color: textColor }]}>{unit}</Text>
-      ) : null}
-    </View>
+      <View style={styles.valueContainer}>
+        <Text style={[styles.valueText, { color: textColor, fontFamily: FONTS.mono }]}>
+          {value}
+        </Text>
+        {unit ? (
+          <Text style={[styles.unitText, { color: textColor }]}>{unit}</Text>
+        ) : null}
+      </View>
+    </Surface>
   );
 }
 
 const styles = StyleSheet.create({
   box: {
-    minWidth: 120,
-    minHeight: 120,
     flex: 1,
-    margin: 6,
-    borderRadius: 18,
+    margin: 8,
+    borderRadius: 8,
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 18,
-    paddingHorizontal: 10,
-    position: 'relative',
-    elevation: 3,
+    paddingVertical: 24,
+    paddingHorizontal: 12,
+    ...SHADOWS.technical,
   },
   badge: {
     position: 'absolute',
-    top: 10,
-    right: 10,
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    top: 0,
+    right: 0,
+    borderBottomLeftRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
   },
   badgeText: {
     color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 0.5,
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 1,
+    fontFamily: FONTS.mono,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 10,
   },
   nutrientLetter: {
-    fontSize: 38,
+    fontSize: 40,
+    fontWeight: '900',
+    letterSpacing: -2,
+  },
+  idBadge: {
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginTop: 4,
+  },
+  idBadgeText: {
+    fontSize: 7,
+    fontFamily: FONTS.mono,
+    color: COLORS.textSecondary,
+    fontWeight: '800',
+  },
+  valueContainer: {
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  valueText: {
+    fontSize: 32,
     fontWeight: '900',
     letterSpacing: -1,
   },
-  valueText: {
-    fontSize: 28,
-    fontWeight: '800',
-    marginTop: 2,
-  },
   unitText: {
-    fontSize: 12,
-    fontWeight: '600',
-    marginTop: 4,
-    opacity: 0.8,
+    fontSize: 10,
+    fontWeight: '800',
+    opacity: 0.7,
+    marginTop: -2,
+    textTransform: 'uppercase',
   },
 });

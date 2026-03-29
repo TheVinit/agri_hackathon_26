@@ -1,4 +1,3 @@
-// src/screens/NPKTest.js
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
@@ -11,12 +10,14 @@ import {
 } from 'react-native';
 import { Text, Surface, useTheme } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import NPKResultBox from '../components/NPKResultBox';
 import { sensorNodes, npkValues } from '../mockData';
 import { postNPKReading } from '../services/api';
+import { COLORS, SHADOWS, GAPS } from '../theme';
 
-// Helper: determine overall soil status badge text
 function getSummaryLabel() {
   const { N, P, K, pH, thresholds } = npkValues;
   const nOk = N >= thresholds.N.min;
@@ -25,39 +26,32 @@ function getSummaryLabel() {
   const hOk = pH >= thresholds.pH.min && pH <= thresholds.pH.max;
   const total = [nOk, pOk, kOk, hOk].filter(Boolean).length;
   if (total === 4) return '✅ All nutrients within range';
-  if (total >= 2) return `⚠️  ${4 - total} nutrient(s) need attention`;
-  return `🚨 ${4 - total} nutrient(s) critically low`;
+  if (total >= 2) return `⚠️  ${4 - total} nutrients need attention`;
+  return `🚨 ${4 - total} nutrients critically low`;
 }
 
 export default function NPKTest() {
   const navigation = useNavigation();
-  const theme = useTheme();
-
-  // step: 1 = start screen, 2 = countdown, 3 = results
   const [step, setStep] = useState(1);
-  const [currentNode, setCurrentNode] = useState(1); // 1-based index
+  const [currentNode, setCurrentNode] = useState(1);
   const [countdown, setCountdown] = useState(3);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Animated value for spring on countdown number
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   const node = sensorNodes[currentNode - 1];
   const isLastNode = currentNode === sensorNodes.length;
 
-  // ── Countdown logic ─────────────────────────────────────────
   useEffect(() => {
     if (step !== 2) return;
 
-    // Trigger spring animation every tick change
     Animated.spring(scaleAnim, {
-      toValue: 1.4,
-      friction: 3,
-      tension: 80,
+      toValue: 1.6,
+      friction: 2,
+      tension: 100,
       useNativeDriver: true,
     }).start(() => {
       Animated.spring(scaleAnim, {
-        toValue: 1,
+        toValue: 1.2,
         friction: 4,
         tension: 60,
         useNativeDriver: true,
@@ -76,13 +70,11 @@ export default function NPKTest() {
     return () => clearInterval(interval);
   }, [step, countdown]);
 
-  // ── Start test for current spot ──────────────────────────────
   function startTest() {
     setCountdown(3);
     setStep(2);
   }
 
-  // ── Advance to next spot or finish ───────────────────────────
   const handleNext = async () => {
     if (isLastNode) {
       setIsSubmitting(true);
@@ -107,7 +99,6 @@ export default function NPKTest() {
     }
   };
 
-  // ── Progress dots ─────────────────────────────────────────────
   function ProgressDots() {
     return (
       <View style={styles.dotsRow}>
@@ -129,328 +120,135 @@ export default function NPKTest() {
     );
   }
 
-  // ────────────────────────────────────────────────────────────
-  // STEP 1 — Start screen
-  // ────────────────────────────────────────────────────────────
   if (step === 1) {
     return (
       <View style={styles.container}>
-        <ScrollView
-          contentContainerStyle={styles.centerContent}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Heading */}
-          <Text style={styles.spotHeading}>
-            Spot {currentNode} of {sensorNodes.length}
-          </Text>
-          <Text style={styles.spotLabel}>
-            {node.labelLine1}
-            {'\n'}
-            {node.labelLine2}
-          </Text>
-
-          {/* Progress indicator */}
+        <LinearGradient colors={[COLORS.primary, COLORS.accent]} style={styles.header}>
+          <Text style={styles.headerTitle}>Soil Analysis Step</Text>
           <ProgressDots />
+        </LinearGradient>
 
-          {/* Instruction */}
+        <ScrollView contentContainerStyle={styles.stepContent}>
+          <Text style={styles.spotHeading}>Spot {currentNode} of {sensorNodes.length}</Text>
+          <Text style={styles.spotLabel}>{node.labelLine1}{'\n'}{node.labelLine2}</Text>
+
           <Surface style={styles.instructCard}>
+            <MaterialCommunityIcons name="information" size={32} color={COLORS.primary} />
             <Text style={styles.instructText}>
-              Insert the NPK probe firmly into the soil at this spot, then press{' '}
-              <Text style={{ fontWeight: '800', color: '#2E7D32' }}>
-                START TEST
-              </Text>{' '}
-              to begin reading.
+              Insert the NPK probe firmly into the soil at this marked spot.
             </Text>
           </Surface>
 
-          {/* Large green START TEST button */}
-          <TouchableOpacity
-            style={styles.startBtn}
-            onPress={startTest}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.startBtnText}>START TEST</Text>
+          <TouchableOpacity style={styles.startBtn} onPress={startTest} activeOpacity={0.9}>
+            <LinearGradient colors={[COLORS.primary, COLORS.accent]} style={styles.btnGradient}>
+              <Text style={styles.startBtnText}>START READING</Text>
+              <MaterialCommunityIcons name="play-circle" size={24} color="#FFF" />
+            </LinearGradient>
           </TouchableOpacity>
         </ScrollView>
       </View>
     );
   }
 
-  // ────────────────────────────────────────────────────────────
-  // STEP 2 — Countdown
-  // ────────────────────────────────────────────────────────────
   if (step === 2) {
     return (
-      <View style={[styles.container, styles.countdownBg]}>
-        <Text style={styles.countdownSpotText}>
-          Spot {currentNode} of {sensorNodes.length} — {node.labelLine1}
-        </Text>
+      <LinearGradient colors={[COLORS.primary, COLORS.accent]} style={styles.countdownContainer}>
+        <View style={styles.countdownHeader}>
+          <Text style={styles.countdownSpotText}>Analyzing Soil Sample</Text>
+          <Text style={styles.countdownSubSpot}>{node.labelLine1}</Text>
+        </View>
 
-        <Animated.Text
-          style={[styles.countdownNumber, { transform: [{ scale: scaleAnim }] }]}
-        >
-          {countdown > 0 ? countdown : ''}
-        </Animated.Text>
+        <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+          <Text style={styles.countdownNumber}>{countdown > 0 ? countdown : '...'}</Text>
+        </Animated.View>
 
-        <Text style={styles.countdownSubText}>Reading soil sample...</Text>
+        <View style={styles.loadingWrapper}>
+          <ActivityIndicator color={COLORS.white} size="large" />
+          <Text style={styles.loadingLabel}>Processing Sensor Data...</Text>
+        </View>
 
         <ProgressDots />
-      </View>
+      </LinearGradient>
     );
   }
 
-  // ────────────────────────────────────────────────────────────
-  // STEP 3 — Results
-  // ────────────────────────────────────────────────────────────
-  const { thresholds } = npkValues;
-
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.resultsContent}
-    >
-      {/* Header */}
-      <Text style={styles.resultsHeading}>
-        Results — {node.labelLine1}
-      </Text>
-      <Text style={styles.resultsSubHeading}>{node.labelLine2}</Text>
+    <ScrollView style={styles.container} contentContainerStyle={styles.resultsContent}>
+      <LinearGradient colors={[COLORS.primary, COLORS.accent]} style={styles.headerSmall}>
+        <Text style={styles.headerTitleSmall}>Spot {currentNode} Results</Text>
+        <ProgressDots />
+      </LinearGradient>
 
-      {/* Progress dots */}
-      <ProgressDots />
-
-      {/* 2×2 Grid of NPKResultBox */}
       <View style={styles.grid}>
         <View style={styles.gridRow}>
-          <NPKResultBox
-            nutrient="N"
-            value={npkValues.N}
-            threshold={{ min: thresholds.N.min }}
-            unit={thresholds.N.unit}
-          />
-          <NPKResultBox
-            nutrient="P"
-            value={npkValues.P}
-            threshold={{ min: thresholds.P.min }}
-            unit={thresholds.P.unit}
-          />
+          <NPKResultBox nutrient="N" value={npkValues.N} threshold={{ min: npkValues.thresholds.N.min }} unit="mg/kg" />
+          <NPKResultBox nutrient="P" value={npkValues.P} threshold={{ min: npkValues.thresholds.P.min }} unit="mg/kg" />
         </View>
         <View style={styles.gridRow}>
-          <NPKResultBox
-            nutrient="K"
-            value={npkValues.K}
-            threshold={{ min: thresholds.K.min }}
-            unit={thresholds.K.unit}
-          />
-          <NPKResultBox
-            nutrient="pH"
-            value={npkValues.pH}
-            threshold={{ min: thresholds.pH.min, max: thresholds.pH.max }}
-            unit={thresholds.pH.unit}
-          />
+          <NPKResultBox nutrient="K" value={npkValues.K} threshold={{ min: npkValues.thresholds.K.min }} unit="mg/kg" />
+          <NPKResultBox nutrient="pH" value={npkValues.pH} threshold={{ min: npkValues.thresholds.pH.min, max: npkValues.thresholds.pH.max }} unit="pH" />
         </View>
       </View>
 
-      {/* Summary badge */}
-      <View style={styles.summaryBadge}>
+      <Surface style={styles.summaryBadge}>
         <Text style={styles.summaryText}>{getSummaryLabel()}</Text>
-      </View>
+      </Surface>
 
-      {/* NEXT SPOT / DONE button */}
       <TouchableOpacity
         style={[styles.nextBtn, isLastNode && styles.doneBtn]}
         onPress={handleNext}
         activeOpacity={0.85}
         disabled={isSubmitting}
       >
-        {isSubmitting ? (
-          <ActivityIndicator color="#FFFFFF" />
-        ) : (
-          <Text style={styles.nextBtnText}>
-            {isLastNode ? 'DONE — View Advisory' : `NEXT SPOT ›`}
-          </Text>
-        )}
+        <LinearGradient
+          colors={isLastNode ? ['#1565C0', '#0D47A1'] : [COLORS.primary, COLORS.accent]}
+          style={styles.nextBtnGradient}
+        >
+          {isSubmitting ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <Text style={styles.nextBtnText}>
+              {isLastNode ? 'COMPLETE ANALYSIS' : 'NEXT SPOT ›'}
+            </Text>
+          )}
+        </LinearGradient>
       </TouchableOpacity>
-
-      <View style={{ height: 40 }} />
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8F9FA',
-  },
-
-  // ── Step 1 ──
-  centerContent: {
-    flexGrow: 1,
-    padding: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  spotHeading: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: '#1B5E20',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  spotLabel: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#2E7D32',
-    textAlign: 'center',
-    lineHeight: 28,
-    marginBottom: 20,
-  },
-  dotsRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginVertical: 16,
-    gap: 10,
-  },
-  dot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#C8E6C9',
-  },
-  dotActive: {
-    backgroundColor: '#2E7D32',
-    width: 28,
-    borderRadius: 6,
-  },
-  dotDone: {
-    backgroundColor: '#66BB6A',
-  },
-  instructCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 20,
-    marginBottom: 30,
-    width: '100%',
-    elevation: 3,
-  },
-  instructText: {
-    fontSize: 16,
-    color: '#455A64',
-    lineHeight: 24,
-    textAlign: 'center',
-  },
-  startBtn: {
-    backgroundColor: '#2E7D32',
-    borderRadius: 18,
-    paddingVertical: 20,
-    paddingHorizontal: 50,
-    width: '100%',
-    alignItems: 'center',
-    elevation: 5,
-    shadowColor: '#1B5E20',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-  },
-  startBtnText: {
-    color: '#FFFFFF',
-    fontSize: 20,
-    fontWeight: '900',
-    letterSpacing: 2,
-  },
-
-  // ── Step 2 countdown ──
-  countdownBg: {
-    backgroundColor: '#1B5E20',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  countdownSpotText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#C8E6C9',
-    marginBottom: 20,
-    textAlign: 'center',
-    paddingHorizontal: 20,
-  },
-  countdownNumber: {
-    fontSize: 140,
-    fontWeight: '900',
-    color: '#FFFFFF',
-    textAlign: 'center',
-    lineHeight: 160,
-    minHeight: 160,
-  },
-  countdownSubText: {
-    fontSize: 20,
-    color: '#A5D6A7',
-    fontWeight: '600',
-    marginTop: 12,
-    textAlign: 'center',
-    letterSpacing: 0.5,
-  },
-
-  // ── Step 3 results ──
-  resultsContent: {
-    padding: 20,
-    paddingTop: 24,
-  },
-  resultsHeading: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#1B5E20',
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  resultsSubHeading: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#66BB6A',
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  grid: {
-    marginTop: 8,
-    marginBottom: 16,
-  },
-  gridRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  summaryBadge: {
-    backgroundColor: '#E8F5E9',
-    borderRadius: 14,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#A5D6A7',
-    alignItems: 'center',
-  },
-  summaryText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#2E7D32',
-    textAlign: 'center',
-  },
-  nextBtn: {
-    backgroundColor: '#2E7D32',
-    borderRadius: 18,
-    paddingVertical: 18,
-    alignItems: 'center',
-    elevation: 4,
-    shadowColor: '#1B5E20',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-  },
-  doneBtn: {
-    backgroundColor: '#1565C0',
-  },
-  nextBtnText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '800',
-    letterSpacing: 1.2,
-  },
+  container: { flex: 1, backgroundColor: COLORS.background },
+  header: { padding: 40, paddingTop: 50, borderBottomLeftRadius: 40, borderBottomRightRadius: 40, alignItems: 'center', ...SHADOWS.medium },
+  headerSmall: { padding: 24, paddingTop: 30, borderBottomLeftRadius: 30, borderBottomRightRadius: 30, alignItems: 'center', marginBottom: 20 },
+  headerTitle: { fontSize: 24, fontWeight: '900', color: COLORS.white, marginBottom: 12 },
+  headerTitleSmall: { fontSize: 18, fontWeight: '800', color: COLORS.white, marginBottom: 8 },
+  stepContent: { padding: 30, alignItems: 'center' },
+  spotHeading: { fontSize: 16, fontWeight: '800', color: COLORS.textSecondary, textTransform: 'uppercase', marginBottom: 10 },
+  spotLabel: { fontSize: 28, fontWeight: '900', color: COLORS.primary, textAlign: 'center', marginBottom: 30 },
+  dotsRow: { flexDirection: 'row', gap: 8 },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.4)' },
+  dotActive: { backgroundColor: COLORS.white, width: 20 },
+  dotDone: { backgroundColor: '#A5D6A7' },
+  instructCard: { padding: 24, borderRadius: 24, backgroundColor: COLORS.white, marginBottom: 40, width: '100%', alignItems: 'center', ...SHADOWS.soft },
+  instructText: { fontSize: 18, color: COLORS.text, fontWeight: '600', textAlign: 'center', lineHeight: 28, marginTop: 12 },
+  startBtn: { width: '100%', ...SHADOWS.premium },
+  btnGradient: { borderRadius: 20, paddingVertical: 20, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 10 },
+  startBtnText: { color: COLORS.white, fontSize: 18, fontWeight: '900', letterSpacing: 2 },
+  countdownContainer: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  countdownHeader: { position: 'absolute', top: 60, alignItems: 'center' },
+  countdownSpotText: { fontSize: 22, fontWeight: '900', color: COLORS.white },
+  countdownSubSpot: { fontSize: 16, color: 'rgba(255,255,255,0.7)', fontWeight: '600', marginTop: 4 },
+  countdownNumber: { fontSize: 160, fontWeight: '900', color: COLORS.white },
+  loadingWrapper: { marginBottom: 40, alignItems: 'center' },
+  loadingLabel: { color: COLORS.white, fontSize: 16, fontWeight: '600', marginTop: 15 },
+  resultsContent: { paddingBottom: 40 },
+  grid: { padding: 15 },
+  gridRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  summaryBadge: { marginHorizontal: 20, paddingVertical: 15, borderRadius: 16, backgroundColor: COLORS.white, alignItems: 'center', marginBottom: 20, ...SHADOWS.soft },
+  summaryText: { fontSize: 16, fontWeight: '800', color: COLORS.primary },
+  nextBtn: { marginHorizontal: 20, borderRadius: 20, overflow: 'hidden', ...SHADOWS.medium },
+  nextBtnGradient: { paddingVertical: 18, alignItems: 'center' },
+  nextBtnText: { color: COLORS.white, fontSize: 18, fontWeight: '900', letterSpacing: 1 },
+  doneBtn: {},
 });
-
