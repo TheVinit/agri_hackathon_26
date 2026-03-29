@@ -1,60 +1,77 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Card, Text } from 'react-native-paper';
+import { Card, Text, Surface } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { COLORS, SHADOWS, GAPS, FONTS } from '../theme';
 
 export default function NodeCard({ node }) {
   const getStatusColor = (status) => {
     switch (status) {
-      case 'green': return '#4CAF50';
-      case 'amber': return '#FFB300';
-      case 'red': return '#E53935';
-      default: return '#9E9E9E';
+      case 'green': return COLORS.accent;
+      case 'amber': return COLORS.warning;
+      case 'red': return COLORS.error;
+      default: return COLORS.ledOff;
     }
   };
 
+  const statusColor = getStatusColor(node.status);
+
   return (
-    <Card style={[styles.card, { borderTopColor: getStatusColor(node.status) }]}>
+    <Card style={styles.card}>
       <Card.Content style={styles.cardContent}>
         <View style={styles.cardHeader}>
-          <View>
-            <Text style={styles.nodeLabel}>{node.labelLine1}</Text>
-            <Text style={styles.nodeLabelSub}>{node.labelLine2}</Text>
+          <View style={styles.headerTitleGroup}>
+            <Text style={styles.nodeName}>{node.label || node.labelLine1 || 'Unknown Node'}</Text>
+            <View style={styles.idBadge}>
+              <Text style={styles.nodeId}>ID-{node.id?.slice(-3).toUpperCase() || 'NODE'}</Text>
+            </View>
           </View>
-          <MaterialCommunityIcons 
-            name="checkbox-blank-circle" 
-            size={12} 
-            color={getStatusColor(node.status)} 
-          />
+          <View style={[styles.ledRing, { borderColor: statusColor + '30' }]}>
+            <View style={[styles.ledDot, { backgroundColor: statusColor }]} />
+          </View>
         </View>
 
-        <View style={styles.dataRow}>
-          <MaterialCommunityIcons name="water-percent" size={20} color="#2196F3" />
-          <View style={styles.labelCol}>
-            <Text style={styles.nodeTextEn}>Moisture</Text>
-            <Text style={styles.nodeTextHi}>नमी</Text>
+        <View style={styles.divider} />
+
+        <View style={styles.grid}>
+          <View style={styles.dataBlock}>
+            <View style={styles.labelRow}>
+              <MaterialCommunityIcons name="water-percent" size={14} color={COLORS.secondary} />
+              <Text style={styles.metricLabel}>MOISTURE</Text>
+            </View>
+            <Text style={styles.metricValue}>{node.moisture}%</Text>
           </View>
-          <Text style={styles.valueText}>{node.moisture}%</Text>
+
+          <View style={[styles.dataBlock, styles.borderLeft]}>
+            <View style={styles.labelRow}>
+              <MaterialCommunityIcons name="lightning-bolt" size={14} color={COLORS.warning} />
+              <Text style={styles.metricLabel}>SOIL EC</Text>
+            </View>
+            <Text style={styles.metricValue}>{node.ec}</Text>
+          </View>
         </View>
 
-        <View style={styles.dataRow}>
-          <MaterialCommunityIcons name="lightning-bolt-outline" size={20} color="#FFB300" />
-          <View style={styles.labelCol}>
-            <Text style={styles.nodeTextEn}>Soil EC</Text>
-            <Text style={styles.nodeTextHi}>ईसी (नमक)</Text>
+        <View style={[styles.grid, styles.borderTop]}>
+          <View style={styles.dataBlock}>
+            <View style={styles.labelRow}>
+              <MaterialCommunityIcons name="thermometer" size={14} color={COLORS.error} />
+              <Text style={styles.metricLabel}>TEMP(°C)</Text>
+            </View>
+            <Text style={styles.metricValue}>{node.temperature}°</Text>
           </View>
-          <Text style={styles.valueText}>{node.ec}</Text>
-        </View>
 
-        <View style={styles.dataRow}>
-          <MaterialCommunityIcons name="thermometer" size={20} color="#F44336" />
-          <View style={styles.labelCol}>
-            <Text style={styles.nodeTextEn}>Temp.</Text>
-            <Text style={styles.nodeTextHi}>तापमान</Text>
+          <View style={[styles.dataBlock, styles.borderLeft]}>
+            <View style={styles.labelRow}>
+              <MaterialCommunityIcons name="broadcast" size={14} color={COLORS.textSecondary} />
+              <Text style={styles.metricLabel}>STATUS</Text>
+            </View>
+            <Text style={[styles.metricValue, { color: statusColor, fontSize: 13, textTransform: 'uppercase' }]}>
+              {node.status === 'green' ? 'STABLE' : node.status === 'amber' ? 'WARNING' : 'ALERT'}
+            </Text>
           </View>
-          <Text style={styles.valueText}>{node.temperature}°C</Text>
         </View>
       </Card.Content>
+      <View style={[styles.bottomBar, { backgroundColor: statusColor }]} />
     </Card>
   );
 }
@@ -62,53 +79,102 @@ export default function NodeCard({ node }) {
 const styles = StyleSheet.create({
   card: {
     width: '48%',
-    marginBottom: 16,
-    elevation: 4,
-    backgroundColor: '#fff',
-    borderTopWidth: 4,
-    borderRadius: 12,
+    marginBottom: GAPS.md,
+    backgroundColor: COLORS.surface,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E0E7E5',
+    overflow: 'hidden',
+    ...SHADOWS.technical,
   },
   cardContent: {
-    padding: 12,
+    padding: 14,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'baseline',
+    alignItems: 'flex-start',
     marginBottom: 10,
   },
-  nodeLabel: {
-    fontSize: 16,
+  headerTitleGroup: {
+    flex: 1,
+  },
+  nodeName: {
+    fontSize: 15,
+    fontWeight: '900',
+    color: COLORS.primary,
+    letterSpacing: -0.5,
+    textTransform: 'uppercase',
+  },
+  idBadge: {
+    backgroundColor: '#F0F4F3',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    alignSelf: 'flex-start',
+    marginTop: 4,
+  },
+  nodeId: {
+    fontSize: 9,
+    fontFamily: FONTS.mono,
+    color: COLORS.textSecondary,
     fontWeight: '700',
-    color: '#37474F',
   },
-  nodeLabelSub: {
-    fontSize: 12,
-    color: '#78909C',
+  ledRing: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 3,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  dataRow: {
+  ledDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#F0F4F3',
+    marginVertical: 12,
+  },
+  grid: {
+    flexDirection: 'row',
+  },
+  dataBlock: {
+    flex: 1,
+    paddingVertical: 10,
+  },
+  borderLeft: {
+    borderLeftWidth: 1,
+    borderColor: '#F0F4F3',
+    paddingLeft: 10,
+  },
+  borderTop: {
+    borderTopWidth: 1,
+    borderColor: '#F0F4F3',
+  },
+  labelRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 10,
-    justifyContent: 'space-between',
+    marginBottom: 6,
   },
-  labelCol: {
-    flex: 1,
-    marginLeft: 8,
-  },
-  nodeTextEn: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#546E7A',
-  },
-  nodeTextHi: {
-    fontSize: 11,
-    color: '#78909C',
-    marginTop: -2,
-  },
-  valueText: {
-    fontSize: 16,
+  metricLabel: {
+    fontSize: 9,
     fontWeight: '800',
-    color: '#263238',
+    color: COLORS.textSecondary,
+    marginLeft: 6,
+    letterSpacing: 0.5,
+  },
+  metricValue: {
+    fontSize: 20,
+    fontFamily: FONTS.mono,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  bottomBar: {
+    height: 3,
+    width: '100%',
+    opacity: 0.8,
   },
 });

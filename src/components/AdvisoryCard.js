@@ -1,19 +1,10 @@
-// src/components/AdvisoryCard.js
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Text, Surface } from 'react-native-paper';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { COLORS, SHADOWS, GAPS } from '../theme';
 
-/**
- * AdvisoryCard
- * Props:
- *   title        – string (Hindi)
- *   titleEn      – string (English)
- *   text         – string (Hindi body)
- *   textEn       – string (English body)
- *   bgColour     – string (card background hex)
- *   headerColour – string (header bar background hex)
- *   onAudioPress – function
- */
 export default function AdvisoryCard({
   title,
   titleEn,
@@ -23,31 +14,52 @@ export default function AdvisoryCard({
   headerColour,
   onAudioPress,
 }) {
+  const getIcon = (type) => {
+    switch (String(type).toUpperCase()) {
+      case 'HYDRATION_MATRIX':
+      case 'IRRIGATION':
+        return 'water-pump';
+      case 'NUTRIENT_OPTIMIZATION':
+      case 'NUTRIENTS':
+        return 'flask-outline';
+      case 'CROP_ROTATION_INTEL':
+      case 'NEXT CROP':
+        return 'leaf';
+      default:
+        return 'information-outline';
+    }
+  };
+
   return (
-    <Surface style={[styles.card, { backgroundColor: bgColour }]}>
-      {/* Coloured header bar */}
-      <View style={[styles.header, { backgroundColor: headerColour }]}>
+    <Surface style={[styles.card, { backgroundColor: bgColour || COLORS.white }]}>
+      <LinearGradient
+        colors={[headerColour, headerColour + 'DD']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.header}
+      >
+        <MaterialCommunityIcons name={getIcon(titleEn)} size={30} color="#FFF" style={styles.headerIcon} />
         <View style={styles.headerTitles}>
           <Text style={styles.headerTitleHi}>{title}</Text>
           <Text style={styles.headerTitleEn}>{titleEn}</Text>
         </View>
-        {/* Speaker button top-right */}
         <TouchableOpacity
           style={styles.audioBtn}
           onPress={onAudioPress}
           activeOpacity={0.7}
-          accessibilityLabel="Play audio advisory"
         >
-          <Text style={styles.speakerIcon}>🔊</Text>
+          <MaterialCommunityIcons name="volume-high" size={24} color="#FFF" />
         </TouchableOpacity>
-      </View>
+      </LinearGradient>
 
-      {/* Body */}
       <View style={styles.body}>
-        {/* Hindi text – 18px */}
         <Text style={styles.bodyHindi}>{text}</Text>
-        {/* English text – 14px grey */}
-        <Text style={styles.bodyEnglish}>{textEn}</Text>
+        <View style={styles.englishWrapper}>
+          <View style={{ marginTop: 2 }}>
+            <MaterialCommunityIcons name="translate" size={18} color={COLORS.textSecondary} />
+          </View>
+          <Text style={styles.bodyEnglish}>{textEn}</Text>
+        </View>
       </View>
     </Surface>
   );
@@ -55,63 +67,77 @@ export default function AdvisoryCard({
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 20,
-    marginBottom: 20,
+    borderRadius: 32, // Increased from 24
+    marginBottom: 24, // Increased from 20
     overflow: 'hidden',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
+    ...SHADOWS.medium,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 18,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+  },
+  headerIcon: {
+    marginRight: 14,
   },
   headerTitles: {
     flex: 1,
+    paddingRight: 12,
+    justifyContent: 'center',
   },
   headerTitleHi: {
     fontSize: 20,
-    fontWeight: '800',
+    fontWeight: '900',
     color: '#FFFFFF',
-    letterSpacing: 0.2,
+    letterSpacing: 0.5,
   },
   headerTitleEn: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: 'rgba(255,255,255,0.85)',
-    marginTop: 2,
+    fontSize: 10,
+    fontWeight: '800',
+    color: 'rgba(255,255,255,0.8)',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+    marginTop: 4,
   },
   audioBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: 'rgba(255,255,255,0.25)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 12,
-  },
-  speakerIcon: {
-    fontSize: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.5)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   body: {
-    padding: 18,
-    paddingTop: 16,
+    padding: 20,
   },
   bodyHindi: {
     fontSize: 18,
     lineHeight: 28,
-    color: '#212121',
-    fontWeight: '500',
-    marginBottom: 12,
+    color: COLORS.text,
+    fontWeight: '600',
+    marginBottom: 16,
+  },
+  englishWrapper: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: 'rgba(0,0,0,0.04)',
+    padding: 14,
+    borderRadius: 12,
   },
   bodyEnglish: {
-    fontSize: 14,
+    flex: 1,
+    fontSize: 13,
     lineHeight: 22,
-    color: '#616161',
-    fontWeight: '400',
+    color: COLORS.textSecondary,
+    fontWeight: '500',
+    marginLeft: 8,
   },
 });
