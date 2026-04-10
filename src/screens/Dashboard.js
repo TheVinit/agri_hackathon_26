@@ -503,8 +503,8 @@ export default function Dashboard({ navigation }) {
               <TouchableOpacity style={styles.langBtn} onPress={toggleLang}>
                 <Text style={styles.langTxt}>{lang.toUpperCase()}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.adminBtn} onPress={() => navigation.navigate('__ADMIN__')}>
-                <MaterialCommunityIcons name="menu" size={24} color={COLORS.textSecondary} />
+              <TouchableOpacity style={styles.adminBtn} onPress={() => navigation.navigate('__TOGGLE_DRAWER__')}>
+                <MaterialCommunityIcons name="dots-vertical" size={26} color={COLORS.textSecondary} />
               </TouchableOpacity>
               <TouchableOpacity style={styles.logoutBtn} onPress={() => navigation.navigate('__LOGOUT__')}>
                 <MaterialCommunityIcons name="logout" size={16} color={COLORS.danger} />

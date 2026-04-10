@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Platform, TouchableOpacity, Text } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createDrawerNavigator } from '@react-navigation/drawer';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS } from '../theme';
 import { useLang } from '../context/LanguageContext';
@@ -13,7 +13,7 @@ import FarmMap     from '../screens/FarmMap';
 import AdminScreen from '../screens/AdminScreen';
 import LoginScreen from '../screens/LoginScreen';
 
-const Tab = createBottomTabNavigator();
+const Drawer = createDrawerNavigator();
 
 let adminTapCount = 0;
 let adminTapTimer = null;
@@ -37,63 +37,54 @@ export default function AppNavigator() {
 
   return (
     <NavigationContainer>
-      <Tab.Navigator
+      <Drawer.Navigator
         screenOptions={({ route }) => ({
           headerShown: false,
-          tabBarIcon: ({ focused, color }) => {
+          drawerPosition: 'right', // "safe open drawer nav bar on the right side"
+          drawerType: 'front',
+          drawerStyle: {
+            backgroundColor: COLORS.surface,
+            width: 250,
+          },
+          drawerActiveTintColor: COLORS.primary,
+          drawerInactiveTintColor: COLORS.textMuted,
+          drawerIcon: ({ focused, color, size }) => {
             let iconName;
             if (route.name === 'Home')     iconName = focused ? 'home'                     : 'home-outline';
             if (route.name === 'Advisory') iconName = focused ? 'book-open-variant'         : 'book-open-page-variant-outline';
             if (route.name === 'NPKTest')  iconName = focused ? 'flask-round-bottom'        : 'flask-round-bottom-outline';
             if (route.name === 'Map')      iconName = focused ? 'map-marker-radius'         : 'map-marker-radius-outline';
-            return <MaterialCommunityIcons name={iconName} size={focused ? 28 : 24} color={color} />;
+            return <MaterialCommunityIcons name={iconName} size={size} color={color} />;
           },
-          tabBarActiveTintColor: COLORS.primary,
-          tabBarInactiveTintColor: COLORS.textMuted,
-          tabBarStyle: styles.tabBar,
-          tabBarLabelStyle: styles.tabLabel,
-          tabBarItemStyle: styles.tabItem,
         })}
       >
-        <Tab.Screen
+        <Drawer.Screen
           name="Home"
           options={{ title: t('होम', 'Home', 'मुख्यपृष्ठ') }}
-          listeners={{
-            tabLongPress: () => {
-              adminTapCount++;
-              clearTimeout(adminTapTimer);
-              adminTapTimer = setTimeout(() => { adminTapCount = 0; }, 2000);
-              if (adminTapCount >= 3) {
-                adminTapCount = 0;
-                setIsAdminMode(true);
-              }
-            },
-          }}
         >
           {(props) => (
             <DashboardWrapper
               {...props}
               onLogout={handleLogout}
               onAdmin={() => setIsAdminMode(true)}
+              onToggleDrawer={() => props.navigation.toggleDrawer()}
             />
           )}
-        </Tab.Screen>
+        </Drawer.Screen>
 
-        <Tab.Screen name="Advisory" component={Advisory} options={{ title: t('सलाह', 'Advisory', 'सल्ला') }} />
-        <Tab.Screen name="NPKTest"  component={NPKTest}  options={{ title: t('मिट्टी जाँच', 'Soil Test', 'माती परीक्षण') }} />
-        <Tab.Screen name="Map"      component={FarmMap}  options={{ title: t('नक्शा', 'Map', 'नकाशा') }} />
-      </Tab.Navigator>
+        <Drawer.Screen name="Advisory" component={Advisory} options={{ title: t('सलाह', 'Advisory', 'सल्ला') }} />
+        <Drawer.Screen name="NPKTest"  component={NPKTest}  options={{ title: t('मिट्टी जाँच', 'Soil Test', 'माती परीक्षण') }} />
+        <Drawer.Screen name="Map"      component={FarmMap}  options={{ title: t('नक्शा', 'Map', 'नकाशा') }} />
+      </Drawer.Navigator>
     </NavigationContainer>
   );
 }
 
-// ─── Wrapper: intercepts __LOGOUT__ and __ADMIN__ navigation from Dashboard ──
-function DashboardWrapper({ navigation, route, onLogout, onAdmin }) {
-  // Listen for the special route signals
+// ─── Wrapper: intercepts __LOGOUT__, __ADMIN__, and __TOGGLE_DRAWER__ from Dashboard ──
+function DashboardWrapper({ navigation, route, onLogout, onAdmin, onToggleDrawer }) {
   React.useEffect(() => {
     const unsubscribe = navigation.addListener('state', () => {});
 
-    // Patch navigation to intercept __LOGOUT__ and __ADMIN__
     const origNavigate = navigation.navigate.bind(navigation);
     navigation.navigate = (name, params) => {
       if (name === '__LOGOUT__') {
@@ -104,36 +95,18 @@ function DashboardWrapper({ navigation, route, onLogout, onAdmin }) {
         onAdmin();
         return;
       }
+      if (name === '__TOGGLE_DRAWER__') {
+        onToggleDrawer();
+        return;
+      }
       origNavigate(name, params);
     };
 
     return () => {
-      // Restore
       navigation.navigate = origNavigate;
       unsubscribe();
     };
-  }, [navigation, onLogout, onAdmin]);
+  }, [navigation, onLogout, onAdmin, onToggleDrawer]);
 
   return <Dashboard navigation={navigation} route={route} />;
 }
-
-const styles = StyleSheet.create({
-  tabBar: {
-    height: Platform.OS === 'ios' ? 90 : 75,
-    backgroundColor: COLORS.surface,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.glassBorder,
-    paddingBottom: Platform.OS === 'ios' ? 25 : 12,
-    paddingTop: 10,
-    position: 'absolute',
-    elevation: 0,
-  },
-  tabLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    marginTop: 4,
-  },
-  tabItem: {
-    paddingTop: 4,
-  },
-});
