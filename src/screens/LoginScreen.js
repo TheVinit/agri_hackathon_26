@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
-  Image, KeyboardAvoidingView, Platform, ScrollView,
+  KeyboardAvoidingView, Platform, ScrollView,
   ActivityIndicator, StatusBar
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -16,62 +16,72 @@ export default function LoginScreen({ onLogin }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleLogin = () => {
+  const handleLogin = (isQuickAdmin = false) => {
     setLoading(true);
     setError('');
     
-    // Simulate API call
     setTimeout(() => {
-      if (farmerId === 'farm_001' && password === 'agri123') {
+      if (isQuickAdmin) {
+        // Handle quick admin if needed, but for now just farmer
+        onLogin({ id: 'farm_001', name: 'रामराव शिंदे' });
+      } else if (farmerId === 'farm_001' && password === 'agri123') {
         onLogin({ id: 'farm_001', name: 'रामराव शिंदे' });
       } else {
         setError(t('गलत आईडी या पासवर्ड', 'Invalid ID or Password', 'चुकीचा आयडी किंवा पासवर्ड'));
       }
       setLoading(false);
-    }, 1500);
+    }, 1200);
   };
 
-  const LangButton = ({ code, label }) => (
+  const LangTab = ({ code, label, icon }) => (
     <TouchableOpacity 
-      style={[styles.langBtn, lang === code && styles.langBtnActive]}
+      style={[styles.tab, lang === code && styles.tabActive]}
       onPress={() => setLanguage(code)}
+      activeOpacity={0.7}
     >
-      <Text style={[styles.langBtnText, lang === code && styles.langBtnTextActive]}>{label}</Text>
+      <MaterialCommunityIcons 
+        name={icon} 
+        size={18} 
+        color={lang === code ? COLORS.primary : COLORS.textMuted} 
+        style={{ marginBottom: 4 }}
+      />
+      <Text style={[styles.tabText, lang === code && styles.tabTextActive]}>{label}</Text>
+      {lang === code && <View style={styles.tabIndicator} />}
     </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-      >
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          
           <View style={styles.header}>
-            <View style={styles.logoWrap}>
-              <MaterialCommunityIcons name="leaf" size={40} color={COLORS.primary} />
+            <View style={styles.logoContainer}>
+              <View style={styles.logoCircle}>
+                <MaterialCommunityIcons name="leaf" size={42} color={COLORS.primary} />
+              </View>
+              <Text style={styles.brandName}>AgriPulse</Text>
+              <Text style={styles.brandTag}>Smart Farming Assistant</Text>
             </View>
-            <Text style={styles.title}>AgriPulse</Text>
-            <Text style={styles.subtitle}>Digital Farmer Assistant</Text>
+
+            {/* Premium 3-Tab Language Selector */}
+            <View style={styles.tabBar}>
+              <LangTab code="hi" label="हिंदी" icon="translate" />
+              <LangTab code="en" label="English" icon="alphabetical" />
+              <LangTab code="mr" label="मराठी" icon="script-text" />
+            </View>
           </View>
 
-          <View style={styles.langSelector}>
-            <LangButton code="hi" label="हिंदी" />
-            <LangButton code="en" label="English" />
-            <LangButton code="mr" label="मराठी" />
-          </View>
-
-          <View style={styles.formCard}>
-            <Text style={styles.loginTitle}>{t('लॉगिन करें', 'Welcome Back', 'लॉगिन करा')}</Text>
+          <View style={styles.card}>
+            <Text style={styles.welcomeText}>{t('लॉगिन करें', 'Welcome Back', 'लॉगिन करा')}</Text>
             
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>{t('किसान आईडी', 'Farmer ID', 'शेतकरी आयडी')}</Text>
-              <View style={styles.inputWrap}>
-                <MaterialCommunityIcons name="account-outline" size={20} color={COLORS.textSecondary} />
+            <View style={styles.inputBox}>
+              <Text style={styles.inputLabel}>{t('किसान आईडी', 'Farmer ID', 'शेतकरी आयडी')}</Text>
+              <View style={styles.inputField}>
+                <MaterialCommunityIcons name="account" size={20} color={COLORS.textMuted} />
                 <TextInput 
-                  style={styles.input}
-                  placeholder="e.g. farm_001"
+                  style={styles.textInput}
                   value={farmerId}
                   onChangeText={setFarmerId}
                   autoCapitalize="none"
@@ -79,13 +89,12 @@ export default function LoginScreen({ onLogin }) {
               </View>
             </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>{t('पासवर्ड', 'Password', 'पासवर्ड')}</Text>
-              <View style={styles.inputWrap}>
-                <MaterialCommunityIcons name="lock-outline" size={20} color={COLORS.textSecondary} />
+            <View style={styles.inputBox}>
+              <Text style={styles.inputLabel}>{t('पासवर्ड', 'Password', 'पासवर्ड')}</Text>
+              <View style={styles.inputField}>
+                <MaterialCommunityIcons name="lock" size={20} color={COLORS.textMuted} />
                 <TextInput 
-                  style={styles.input}
-                  placeholder="••••••••"
+                  style={styles.textInput}
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry
@@ -93,33 +102,40 @@ export default function LoginScreen({ onLogin }) {
               </View>
             </View>
 
-            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+            {error ? <Text style={styles.errTxt}>{error}</Text> : null}
 
             <TouchableOpacity 
-              style={styles.loginBtn}
-              onPress={handleLogin}
+              style={styles.mainBtn}
+              onPress={() => handleLogin(false)}
               disabled={loading}
-              activeOpacity={0.8}
+              activeOpacity={0.9}
             >
               <LinearGradient
                 colors={[COLORS.primary, COLORS.primaryLight]}
-                style={styles.loginGradient}
+                style={styles.btnGradient}
                 start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
               >
-                {loading ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={styles.loginBtnText}>{t('प्रवेश करें', 'Login Now', 'प्रवेश करा')}</Text>
+                {loading ? <ActivityIndicator color="#fff" /> : (
+                  <Text style={styles.btnTxt}>{t('प्रवेश करें', 'Sign In', 'प्रवेश करा')}</Text>
                 )}
               </LinearGradient>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.easyBtn} 
+              onPress={() => handleLogin(true)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.easyBtnTitle}>{t('डेमो के लिए क्लिक करें', 'Quick Demo Access', 'डेमोसाठी येथे टिचकी मारा')}</Text>
+              <MaterialCommunityIcons name="arrow-right" size={16} color={COLORS.primary} />
             </TouchableOpacity>
           </View>
 
           <View style={styles.footer}>
-            <Text style={styles.footerText}>
-              {t('मदद चाहिए? अपने ग्राम केंद्र से संपर्क करें', 'Need help? Contact local center', 'मदत हवी आहे? स्थानिक केंद्राशी संपर्क साधा')}
-            </Text>
+            <Text style={styles.version}>Project AgriPulse v1.2</Text>
+            <Text style={styles.footerHelp}>{t('मदद चाहिए? 1800-AGRI-SAFE', 'Need help? 1800-AGRI-SAFE', 'मदत हवी आहे? १८००-AGRI-SAFE')}</Text>
           </View>
+
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -128,48 +144,62 @@ export default function LoginScreen({ onLogin }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  scrollContent: { padding: 24, paddingBottom: 40, justifyContent: 'center', minHeight: '100%' },
+  scrollContent: { padding: 24, paddingBottom: 60, flexGrow: 1, justifyContent: 'center' },
   
-  header: { alignItems: 'center', marginBottom: 40, marginTop: 20 },
-  logoWrap: { 
-    width: 80, height: 80, borderRadius: 24, 
+  header: { alignItems: 'center', marginBottom: 30 },
+  logoContainer: { alignItems: 'center', marginBottom: 40 },
+  logoCircle: { 
+    width: 90, height: 90, borderRadius: 30, 
     backgroundColor: COLORS.surface, 
     justifyContent: 'center', alignItems: 'center',
-    marginBottom: 16, ...SHADOWS.soft
-  },
-  title: { fontSize: 32, fontWeight: '900', color: COLORS.text, letterSpacing: -0.5 },
-  subtitle: { fontSize: 16, color: COLORS.textSecondary, fontWeight: '500' },
-
-  langSelector: { flexDirection: 'row', justifyContent: 'center', marginBottom: 30, gap: 10 },
-  langBtn: { 
-    paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, 
-    backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.divider
-  },
-  langBtnActive: { backgroundColor: COLORS.primaryPale, borderColor: COLORS.primary },
-  langBtnText: { color: COLORS.textSecondary, fontWeight: '600' },
-  langBtnTextActive: { color: COLORS.primary },
-
-  formCard: { 
-    backgroundColor: COLORS.surface, borderRadius: 32, padding: 30, 
-    ...SHADOWS.premium, borderWidth: 1, borderColor: COLORS.divider
-  },
-  loginTitle: { fontSize: 24, fontWeight: '800', color: COLORS.text, marginBottom: 24 },
-  
-  inputGroup: { marginBottom: 20 },
-  label: { fontSize: 14, fontWeight: '700', color: COLORS.textSecondary, marginBottom: 8, marginLeft: 4 },
-  inputWrap: { 
-    flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.surfaceLight,
-    borderRadius: 16, paddingHorizontal: 16, paddingVertical: 12,
+    marginBottom: 16, ...SHADOWS.premium,
     borderWidth: 1, borderColor: COLORS.divider
   },
-  input: { flex: 1, marginLeft: 10, fontSize: 16, color: COLORS.text },
-  
-  errorText: { color: COLORS.danger, fontSize: 14, fontWeight: '600', marginBottom: 15, textAlign: 'center' },
+  brandName: { fontSize: 34, fontWeight: '900', color: COLORS.text, letterSpacing: -1 },
+  brandTag: { fontSize: 16, color: COLORS.textMuted, fontWeight: '600', marginTop: 2 },
 
-  loginBtn: { borderRadius: 16, overflow: 'hidden', marginTop: 10, ...SHADOWS.glass },
-  loginGradient: { paddingVertical: 18, alignItems: 'center' },
-  loginBtnText: { color: '#fff', fontSize: 18, fontWeight: '800' },
+  tabBar: { 
+    flexDirection: 'row', backgroundColor: COLORS.surface, 
+    borderRadius: 20, padding: 4, width: '100%',
+    borderWidth: 1, borderColor: COLORS.divider, ...SHADOWS.soft
+  },
+  tab: { flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: 16 },
+  tabActive: { backgroundColor: COLORS.primaryPale },
+  tabText: { fontSize: 13, fontWeight: '700', color: COLORS.textMuted },
+  tabTextActive: { color: COLORS.primary },
+  tabIndicator: { 
+    position: 'absolute', bottom: 6, width: 20, height: 3, 
+    backgroundColor: COLORS.primary, borderRadius: 2 
+  },
+
+  card: { 
+    backgroundColor: COLORS.surface, borderRadius: 36, padding: 32, 
+    ...SHADOWS.premium, borderWidth: 1, borderColor: COLORS.divider
+  },
+  welcomeText: { fontSize: 22, fontWeight: '800', color: COLORS.text, marginBottom: 28 },
+  
+  inputBox: { marginBottom: 20 },
+  inputLabel: { fontSize: 13, fontWeight: '800', color: COLORS.textSecondary, marginBottom: 8, marginLeft: 4, textTransform: 'uppercase' },
+  inputField: { 
+    flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.surfaceLight,
+    borderRadius: 18, paddingHorizontal: 18, paddingVertical: 14,
+    borderWidth: 1.5, borderColor: COLORS.divider
+  },
+  textInput: { flex: 1, marginLeft: 12, fontSize: 16, color: COLORS.text, fontWeight: '600' },
+  
+  errTxt: { color: COLORS.danger, fontSize: 14, fontWeight: '700', marginBottom: 15, textAlign: 'center' },
+
+  mainBtn: { borderRadius: 18, overflow: 'hidden', marginTop: 10, ...SHADOWS.glass },
+  btnGradient: { paddingVertical: 20, alignItems: 'center' },
+  btnTxt: { color: '#fff', fontSize: 18, fontWeight: '800', letterSpacing: 0.5 },
+
+  easyBtn: { 
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', 
+    marginTop: 25, gap: 8, paddingVertical: 10
+  },
+  easyBtnTitle: { color: COLORS.primary, fontWeight: '700', fontSize: 15 },
 
   footer: { marginTop: 40, alignItems: 'center' },
-  footerText: { fontSize: 13, color: COLORS.textMuted, textAlign: 'center', lineHeight: 20 }
+  version: { fontSize: 12, color: COLORS.textMuted, fontWeight: '700', marginBottom: 6 },
+  footerHelp: { fontSize: 13, color: COLORS.textMuted, fontWeight: '500' }
 });

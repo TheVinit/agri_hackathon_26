@@ -114,78 +114,81 @@ export default function AdminScreen({ onExitAdmin }) {
   if (loginMode) {
     return (
       <View style={styles.loginContainer}>
-        <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
-        <LinearGradient colors={[COLORS.primary, '#0D3E23']} style={styles.loginGradient}>
-          <MaterialCommunityIcons name="shield-lock" size={64} color={COLORS.accent} />
+        <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+        <View style={styles.loginContent}>
+          <View style={styles.shieldWrap}>
+            <MaterialCommunityIcons name="shield-lock" size={64} color={COLORS.primary} />
+          </View>
           <Text style={styles.loginTitle}>Admin Portal</Text>
           <Text style={styles.loginSub}>AgriPulse Management System</Text>
 
           <View style={styles.loginCard}>
-            <Text style={styles.loginLabel}>Enter Admin Password</Text>
-            <TextInput
-              style={styles.loginInput}
-              placeholder="Password"
-              placeholderTextColor={COLORS.textLight}
-              secureTextEntry
-              value={password}
-              onChangeText={setPassword}
-              onSubmitEditing={handleLogin}
-            />
+            <Text style={styles.loginLabel}>Admin Security Check</Text>
+            <View style={styles.inputShadowWrap}>
+              <MaterialCommunityIcons name="lock-outline" size={20} color={COLORS.textSecondary} style={styles.inputIcon} />
+              <TextInput
+                style={styles.loginInput}
+                placeholder="Enter password"
+                placeholderTextColor={COLORS.textMuted}
+                secureTextEntry
+                value={password}
+                onChangeText={setPassword}
+                onSubmitEditing={handleLogin}
+              />
+            </View>
             {loginError ? <Text style={styles.loginError}>{loginError}</Text> : null}
-            <TouchableOpacity style={styles.loginBtn} onPress={handleLogin} activeOpacity={0.85}>
-              <LinearGradient colors={[COLORS.primaryLight, COLORS.primary]} style={styles.loginBtnGrad}>
-                <Text style={styles.loginBtnText}>Login</Text>
-                <MaterialCommunityIcons name="arrow-right" size={20} color="#fff" />
+            
+            <TouchableOpacity style={styles.loginBtn} onPress={handleLogin} activeOpacity={0.8}>
+              <LinearGradient colors={[COLORS.primary, COLORS.primaryLight]} style={styles.loginBtnGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+                <Text style={styles.loginBtnText}>Access Admin Dashboard</Text>
               </LinearGradient>
             </TouchableOpacity>
+            
             <TouchableOpacity onPress={onExitAdmin} style={styles.exitLink}>
               <Text style={styles.exitLinkText}>← Back to Farmer App</Text>
             </TouchableOpacity>
           </View>
-        </LinearGradient>
+        </View>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
 
-      {/* Header */}
-      <LinearGradient colors={[COLORS.primary, '#0D4A28']} style={styles.header}>
+      <View style={styles.header}>
         <View style={styles.headerRow}>
           <View>
             <Text style={styles.headerTitle}>Admin Dashboard</Text>
-            <Text style={styles.headerSub}>{farmers.length} farmers registered</Text>
+            <Text style={styles.headerSub}>{farmers.length} active registrations</Text>
           </View>
           <TouchableOpacity onPress={onExitAdmin} style={styles.exitBtn}>
-            <MaterialCommunityIcons name="logout" size={20} color={COLORS.accent} />
-            <Text style={styles.exitBtnText}>Exit</Text>
+            <Text style={styles.exitBtnText}>Exit Admin</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Stats row */}
         <View style={styles.statsRow}>
           <StatPill
             icon="account-group"
-            label="Total Farmers"
+            label="Farmers"
             value={farmers.length}
-            color={COLORS.accent}
+            color={COLORS.primary}
           />
           <StatPill
             icon="check-circle"
             label="Active"
             value={farmers.filter(f => f.status === 'active').length}
-            color="#4FC87A"
+            color={COLORS.success}
           />
           <StatPill
             icon="alert-circle"
-            label="Inactive"
+            label="Alerts"
             value={farmers.filter(f => f.status === 'inactive').length}
-            color="#F39C12"
+            color={COLORS.danger}
           />
         </View>
-      </LinearGradient>
+      </View>
 
       <ScrollView style={styles.body} showsVerticalScrollIndicator={false}>
         {/* Add Farmer Button */}
@@ -376,42 +379,53 @@ const fiStyles = StyleSheet.create({
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  loginContainer: { flex: 1 },
-  loginGradient: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 30 },
-  loginTitle: { fontSize: 32, fontWeight: '900', color: '#fff', marginTop: 16 },
-  loginSub: { fontSize: 14, color: 'rgba(255,255,255,0.6)', marginTop: 4, marginBottom: 40 },
-  loginCard: { width: '100%', backgroundColor: '#fff', borderRadius: 24, padding: 28, ...SHADOWS.premium },
-  loginLabel: { fontSize: 15, fontWeight: '700', color: COLORS.text, marginBottom: 12 },
-  loginInput: { borderWidth: 1.5, borderColor: COLORS.border, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, fontSize: 16, color: COLORS.text, marginBottom: 12 },
-  loginError: { color: COLORS.danger, fontSize: 13, fontWeight: '600', marginBottom: 8, textAlign: 'center' },
-  loginBtn: { borderRadius: 14, overflow: 'hidden', marginTop: 4 },
-  loginBtnGrad: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 16, gap: 10 },
+  loginContainer: { flex: 1, backgroundColor: COLORS.background },
+  loginContent: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 30 },
+  shieldWrap: { 
+    width: 100, height: 100, borderRadius: 32, backgroundColor: COLORS.surface,
+    justifyContent: 'center', alignItems: 'center', marginBottom: 24, ...SHADOWS.soft 
+  },
+  loginTitle: { fontSize: 32, fontWeight: '900', color: COLORS.text, marginTop: 16 },
+  loginSub: { fontSize: 16, color: COLORS.textSecondary, marginTop: 4, marginBottom: 40 },
+  loginCard: { width: '100%', backgroundColor: COLORS.surface, borderRadius: 32, padding: 30, ...SHADOWS.premium, borderWidth: 1, borderColor: COLORS.divider },
+  loginLabel: { fontSize: 14, fontWeight: '700', color: COLORS.textSecondary, marginBottom: 15, textAlign: 'center', textTransform: 'uppercase' },
+  inputShadowWrap: { 
+    flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.surfaceLight, 
+    borderRadius: 16, paddingHorizontal: 16, borderWidth: 1, borderColor: COLORS.divider, marginBottom: 15
+  },
+  inputIcon: { marginRight: 10 },
+  loginInput: { flex: 1, paddingVertical: 14, fontSize: 16, color: COLORS.text },
+  loginError: { color: COLORS.danger, fontSize: 13, fontWeight: '600', marginBottom: 15, textAlign: 'center' },
+  loginBtn: { borderRadius: 16, overflow: 'hidden', ...SHADOWS.glass },
+  loginBtnGrad: { paddingVertical: 18, alignItems: 'center' },
   loginBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' },
   exitLink: { marginTop: 20, alignItems: 'center' },
   exitLinkText: { color: COLORS.textSecondary, fontSize: 14, fontWeight: '600' },
-  header: { paddingTop: 55, paddingHorizontal: 20, paddingBottom: 24 },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 },
-  headerTitle: { fontSize: 26, fontWeight: '900', color: '#fff' },
-  headerSub: { fontSize: 13, color: 'rgba(255,255,255,0.65)', marginTop: 4 },
-  exitBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20 },
-  exitBtnText: { color: COLORS.accent, fontSize: 13, fontWeight: '700' },
-  statsRow: { flexDirection: 'row', gap: 8 },
+  
+  header: { padding: 24, paddingTop: Platform.OS === 'ios' ? 60 : 50 },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 },
+  headerTitle: { fontSize: 28, fontWeight: '900', color: COLORS.text },
+  headerSub: { fontSize: 15, color: COLORS.textSecondary, fontWeight: '500', marginTop: 4 },
+  exitBtn: { backgroundColor: COLORS.primaryPale, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 },
+  exitBtnText: { color: COLORS.primary, fontSize: 13, fontWeight: '800' },
+  statsRow: { flexDirection: 'row', gap: 10 },
   body: { flex: 1 },
-  addBtn: { marginHorizontal: 16, marginTop: 20, marginBottom: 8, borderRadius: 14, overflow: 'hidden', ...SHADOWS.medium },
-  addBtnGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, gap: 10 },
+  addBtn: { marginHorizontal: 24, marginBottom: 20, borderRadius: 16, overflow: 'hidden', ...SHADOWS.glass },
+  addBtnGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 18, gap: 10 },
   addBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' },
-  sectionLabel: { fontSize: 13, fontWeight: '800', color: COLORS.textSecondary, marginHorizontal: 20, marginTop: 20, marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 },
+  sectionLabel: { fontSize: 13, fontWeight: '800', color: COLORS.textMuted, marginHorizontal: 24, marginBottom: 15, textTransform: 'uppercase' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalCard: { backgroundColor: '#fff', borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, maxHeight: '90%' },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  modalTitle: { fontSize: 20, fontWeight: '800', color: COLORS.text },
-  submitBtn: { borderRadius: 14, overflow: 'hidden', marginTop: 12, marginBottom: 20 },
-  submitBtnGrad: { paddingVertical: 16, alignItems: 'center' },
+  modalCard: { backgroundColor: '#fff', borderTopLeftRadius: 32, borderTopRightRadius: 32, padding: 24, maxHeight: '90%' },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
+  modalTitle: { fontSize: 22, fontWeight: '900', color: COLORS.text },
+  submitBtn: { borderRadius: 16, overflow: 'hidden', marginTop: 20, marginBottom: 20 },
+  submitBtnGrad: { paddingVertical: 18, alignItems: 'center' },
   submitBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' },
-  detailRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: COLORS.divider },
-  detailLabel: { fontSize: 13, color: COLORS.textSecondary, fontWeight: '600' },
-  detailValue: { fontSize: 14, color: COLORS.text, fontWeight: '700', maxWidth: '55%', textAlign: 'right' },
+  detailRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: COLORS.divider },
+  detailLabel: { fontSize: 14, color: COLORS.textSecondary, fontWeight: '600' },
+  detailValue: { fontSize: 15, color: COLORS.text, fontWeight: '700', maxWidth: '60%', textAlign: 'right' },
   statusChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
-  closeModalBtn: { marginTop: 20, backgroundColor: COLORS.primaryPale, paddingVertical: 14, borderRadius: 14, alignItems: 'center', marginBottom: 10 },
+  closeModalBtn: { marginTop: 24, backgroundColor: COLORS.primaryPale, paddingVertical: 16, borderRadius: 16, alignItems: 'center', marginBottom: 10 },
   closeModalText: { color: COLORS.primary, fontWeight: '800', fontSize: 15 },
 });
+
