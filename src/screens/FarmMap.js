@@ -14,10 +14,10 @@ import Skeleton from '../components/Skeleton';
 const FARM_ID = 'farm_001';
 
 const ZONE_LABELS = [
-  { emoji: '⬆️', dir: 'उत्तर',   dirEn: 'North', dirMr: 'उत्तर', color: '#1565C0', bg: '#E3F2FD' },
-  { emoji: '⬇️', dir: 'दक्षिण',  dirEn: 'South', dirMr: 'दक्षिण', color: '#2E7D32', bg: '#E8F5E9' },
-  { emoji: '➡️', dir: 'पूर्व',   dirEn: 'East',  dirMr: 'पूर्व', color: '#E65100', bg: '#FFF3E0' },
-  { emoji: '⬅️', dir: 'पश्चिम', dirEn: 'West',  dirMr: 'पश्चिम', color: '#6A1B9A', bg: '#F3E5F5' },
+  { icon: 'compass', dir: 'उत्तर',   dirEn: 'North', dirMr: 'उत्तर', color: '#1565C0', bg: '#E3F2FD' },
+  { icon: 'compass-outline', dir: 'दक्षिण',  dirEn: 'South', dirMr: 'दक्षिण', color: '#2E7D32', bg: '#E8F5E9' },
+  { icon: 'compass-rose', dir: 'पूर्व',   dirEn: 'East',  dirMr: 'पूर्व', color: '#E65100', bg: '#FFF3E0' },
+  { icon: 'crosshairs-gps', dir: 'पश्चिम', dirEn: 'West',  dirMr: 'पश्चिम', color: '#6A1B9A', bg: '#F3E5F5' },
 ];
 
 export default function FarmMap() {
@@ -111,13 +111,16 @@ export default function FarmMap() {
             
             return (
               <View key={i} style={[styles.gridCell, { backgroundColor: zone.bg, borderColor: zone.color + '15' }]}>
-                <Text style={styles.gridEmoji}>{zone.emoji}</Text>
+                <View style={styles.gridEmojiWrap}>
+                  <MaterialCommunityIcons name={zone.icon} size={28} color={zone.color} />
+                </View>
                 <Text style={[styles.gridTitle, { color: zone.color }]}>{nodeTitle}</Text>
                 
                 <View style={styles.gridDetails}>
                   {node ? (
                     <>
-                      <Text style={styles.gridMetric}>💧 {node.moisture}%</Text>
+                      <MaterialCommunityIcons name="water-percent" size={14} color={COLORS.primary} />
+                      <Text style={styles.gridMetric}>{node.moisture}%</Text>
                       <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
                         <Text style={styles.statusBadgeText}>{isOk ? 'OK' : '!!'}</Text>
                       </View>
@@ -144,7 +147,7 @@ export default function FarmMap() {
           return (
             <View key={node.id} style={styles.nodeCard}>
               <View style={[styles.nodeIconWrap, { backgroundColor: zone.bg }]}>
-                <Text style={styles.nodeEmoji}>{zone.emoji}</Text>
+                <MaterialCommunityIcons name={zone.icon} size={24} color={zone.color} />
               </View>
               <View style={styles.nodeContent}>
                 <Text style={styles.nodeName}>{lang === 'hi' ? zone.dir : (lang === 'mr' ? zone.dirMr : zone.dirEn)}</Text>
@@ -233,7 +236,7 @@ const styles = StyleSheet.create({
     width: '48%', borderRadius: 32, padding: 20, marginBottom: 16, 
     borderWidth: 1, ...SHADOWS.soft, alignItems: 'center' 
   },
-  gridEmoji: { fontSize: 32, marginBottom: 8 },
+  gridEmojiWrap: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.6)', justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
   gridTitle: { fontSize: 16, fontWeight: '800', marginBottom: 12 },
   gridDetails: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   gridMetric: { fontSize: 14, fontWeight: '700', color: COLORS.text },

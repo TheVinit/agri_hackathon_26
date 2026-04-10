@@ -85,9 +85,9 @@ export function computeAdvisory(nodes = [], npk = DEMO_NPK) {
         `Schedule irrigation for ${ids} within 24 hours`,
         'Increase monitoring frequency to twice daily',
       ],
-      textHindi: `⚠️ ${ids} में नमी कम हो रही है (${warningNodes.map(n=>n.moisture+'%').join(', ')}). अगले 24 घंटों में सिंचाई करें।`,
-      textEn:    `⚠️ Moisture declining in ${ids} (${warningNodes.map(n=>n.moisture+'%').join(', ')}). Schedule irrigation within 24 hours.`,
-      textMr:    `⚠️ ${ids} मध्ये ओलावा कमी होत आहे. 24 तासांत सिंचन करा.`,
+      textHindi: `${ids} में नमी कम हो रही है (${warningNodes.map(n=>n.moisture+'%').join(', ')}). अगले 24 घंटों में सिंचाई करें।`,
+      textEn:    `Moisture declining in ${ids} (${warningNodes.map(n=>n.moisture+'%').join(', ')}). Schedule irrigation within 24 hours.`,
+      textMr:    `${ids} मध्ये ओलावा कमी होत आहे. 24 तासांत सिंचन करा.`,
       dataContext: `Avg moisture: ${avgMoisture}% — below optimal`,
     };
   } else {
@@ -95,9 +95,9 @@ export function computeAdvisory(nodes = [], npk = DEMO_NPK) {
       decision: 'ok',
       severity: 'good',
       actionItems: ['No irrigation needed today', 'Check again after 2 days'],
-      textHindi: `✅ सभी ${nodes.length} क्षेत्रों में नमी उत्तम है। औसत: ${avgMoisture}%. आज सिंचाई की जरूरत नहीं।`,
-      textEn:    `✅ Moisture is optimal across all ${nodes.length} zones. Average: ${avgMoisture}%. No irrigation needed today.`,
-      textMr:    `✅ सर्व ${nodes.length} क्षेत्रांत ओलावा उत्तम आहे. सरासरी: ${avgMoisture}%. आज सिंचन नको.`,
+      textHindi: `सभी ${nodes.length} क्षेत्रों में नमी उत्तम है। औसत: ${avgMoisture}%. आज सिंचाई की जरूरत नहीं।`,
+      textEn:    `Moisture is optimal across all ${nodes.length} zones. Average: ${avgMoisture}%. No irrigation needed today.`,
+      textMr:    `सर्व ${nodes.length} क्षेत्रांत ओलावा उत्तम आहे. सरासरी: ${avgMoisture}%. आज सिंचन नको.`,
       dataContext: `All nodes above 40% — system healthy`,
     };
   }
@@ -113,18 +113,18 @@ export function computeAdvisory(nodes = [], npk = DEMO_NPK) {
         'Increase irrigation frequency during peak heat (12–3 PM)',
         'Avoid pesticide spraying during hot hours',
       ],
-      textHindi: `🌡 ${ids} में तापमान अधिक है। दोपहर 12-3 बजे सिंचाई बढ़ाएं। शेड नेट लगाएं।`,
-      textEn:    `🌡 High temp detected in ${ids}. Increase irrigation 12–3 PM. Deploy shade nets.`,
-      textMr:    `🌡 ${ids}  मध्ये तापमान जास्त आहे. दुपारी 12-3 वाजता सिंचन वाढवा.`,
+      textHindi: `${ids} में तापमान अधिक है। दोपहर 12-3 बजे सिंचाई बढ़ाएं। शेड नेट लगाएं।`,
+      textEn:    `High temp detected in ${ids}. Increase irrigation 12–3 PM. Deploy shade nets.`,
+      textMr:    `${ids} मध्ये तापमान जास्त आहे. दुपारी 12-3 वाजता सिंचन वाढवा.`,
       dataContext: `Peak temp: ${Math.max(...hotNodes.map(n => n.temperature))}°C`,
     };
   } else {
     temperature = {
       severity: 'good',
       actionItems: ['Temperature is ideal for crop growth', 'Continue normal farm operations'],
-      textHindi: `✅ सभी क्षेत्रों में तापमान आदर्श है। औसत: ${avgTemp}°C. फसल वृद्धि के लिए अनुकूल परिस्थितियाँ।`,
-      textEn:    `✅ Temperature is ideal across all zones. Average: ${avgTemp}°C. Great conditions for crop growth.`,
-      textMr:    `✅ सर्व क्षेत्रांत तापमान आदर्श आहे. सरासरी: ${avgTemp}°C. पीक वाढीसाठी अनुकूल.`,
+      textHindi: `सभी क्षेत्रों में तापमान आदर्श है। औसत: ${avgTemp}°C. फसल वृद्धि के लिए अनुकूल परिस्थितियाँ।`,
+      textEn:    `Temperature is ideal across all zones. Average: ${avgTemp}°C. Great conditions for crop growth.`,
+      textMr:    `सर्व क्षेत्रांत तापमान आदर्श आहे. सरासरी: ${avgTemp}°C. पीक वाढीसाठी अनुकूल.`,
       dataContext: `Avg temp: ${avgTemp}°C — within safe range`,
     };
   }
@@ -143,9 +143,9 @@ export function computeAdvisory(nodes = [], npk = DEMO_NPK) {
       status: 'low',
       severity: 'warning',
       actionItems: actions,
-      textHindi: `⚠️ मिट्टी में ${deficits.join(', ')} की कमी है। ${actions.slice(0,2).map(a=>'• '+a).join('. ')}`,
-      textEn:    `⚠️ Soil deficient in ${deficits.join(', ')}. ${actions.slice(0,2).join('. ')}.`,
-      textMr:    `⚠️ जमिनीत ${deficits.join(', ')} ची कमतरता आहे. ${actions.slice(0,2).join('. ')}.`,
+      textHindi: `मिट्टी में ${deficits.join(', ')} की कमी है। ${actions.slice(0,2).map(a=>'• '+a).join('. ')}`,
+      textEn:    `Soil deficient in ${deficits.join(', ')}. ${actions.slice(0,2).join('. ')}.`,
+      textMr:    `जमिनीत ${deficits.join(', ')} ची कमतरता आहे. ${actions.slice(0,2).join('. ')}.`,
       dataContext: `N:${npk.N} P:${npk.P} K:${npk.K} pH:${npk.pH}`,
     };
   } else {
@@ -153,9 +153,9 @@ export function computeAdvisory(nodes = [], npk = DEMO_NPK) {
       status: 'ok',
       severity: 'good',
       actionItems: ['All nutrients at optimal levels', `Maintain current fertilization schedule`],
-      textHindi: `✅ मिट्टी के सभी पोषक तत्व उत्तम स्तर पर हैं। N:${npk.N} P:${npk.P} K:${npk.K} pH:${npk.pH}`,
-      textEn:    `✅ All soil nutrients are at optimal levels. N:${npk.N} P:${npk.P} K:${npk.K} pH:${npk.pH}`,
-      textMr:    `✅ मातीतील सर्व पोषक घटक उत्तम पातळीवर. N:${npk.N} P:${npk.P} K:${npk.K} pH:${npk.pH}`,
+      textHindi: `मिट्टी के सभी पोषक तत्व उत्तम स्तर पर हैं। N:${npk.N} P:${npk.P} K:${npk.K} pH:${npk.pH}`,
+      textEn:    `All soil nutrients are at optimal levels. N:${npk.N} P:${npk.P} K:${npk.K} pH:${npk.pH}`,
+      textMr:    `मातीतील सर्व पोषक घटक उत्तम पातळीवर. N:${npk.N} P:${npk.P} K:${npk.K} pH:${npk.pH}`,
       dataContext: `N:${npk.N} P:${npk.P} K:${npk.K} pH:${npk.pH}`,
     };
   }
@@ -177,9 +177,9 @@ export function computeAdvisory(nodes = [], npk = DEMO_NPK) {
       'Add 2 tonnes/hectare organic compost before sowing',
       `pH ${npk.pH} is ${npk.pH >= 6 && npk.pH <= 7.5 ? 'ideal' : 'needs correction'} for ${crop}`,
     ],
-    textHindi: `🌾 मिट्टी (pH ${npk.pH}) और मौसम के आधार पर ${cropHi} की खेती उत्तम रहेगी। बुआई से पहले 2 टन/हेक्टेयर जैविक खाद मिलाएं।`,
-    textEn:    `🌾 Based on soil pH (${npk.pH}) and season, ${crop} is recommended. Add 2 tonnes/ha organic compost before sowing.`,
-    textMr:    `🌾 माती (pH ${npk.pH}) आणि हंगामावर आधारित ${cropMr} ची शिफारस. पेरणीआधी 2 टन/हेक्टर सेंद्रिय खत घाला.`,
+    textHindi: `मिट्टी (pH ${npk.pH}) और मौसम के आधार पर ${cropHi} की खेती उत्तम रहेगी। बुआई से पहले 2 टन/हेक्टेयर जैविक खाद मिलाएं।`,
+    textEn:    `Based on soil pH (${npk.pH}) and season, ${crop} is recommended. Add 2 tonnes/ha organic compost before sowing.`,
+    textMr:    `माती (pH ${npk.pH}) आणि हंगामावर आधारित ${cropMr} ची शिफारस. पेरणीआधी 2 टन/हेक्टर सेंद्रिय खत घाला.`,
     dataContext: `pH ${npk.pH} | Season: ${month < 6 ? 'Kharif' : 'Rabi'}`,
   };
 

@@ -84,7 +84,7 @@ export default function AdminScreen({ onExitAdmin }) {
     });
     if (farmerError) { Alert.alert('Error', farmerError.message); return; }
 
-    Alert.alert('✅ Done!', `${form.name} has been onboarded successfully.`);
+    Alert.alert('Done!', `${form.name} has been onboarded successfully.`);
     setForm({ name: '', village: '', phone: '', crop: '', area: '' });
     setAddModalVisible(false);
     fetchFarmers();
@@ -241,7 +241,10 @@ export default function AdminScreen({ onExitAdmin }) {
 
               <TouchableOpacity style={styles.submitBtn} onPress={handleAddFarmer} activeOpacity={0.85}>
                 <LinearGradient colors={[COLORS.primary, COLORS.primaryLight]} style={styles.submitBtnGrad}>
-                  <Text style={styles.submitBtnText}>✅  Add Farmer</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <MaterialCommunityIcons name="check" size={20} color="#fff" style={{ marginRight: 6 }} />
+                    <Text style={styles.submitBtnText}>Add Farmer</Text>
+                  </View>
                 </LinearGradient>
               </TouchableOpacity>
             </ScrollView>
@@ -269,7 +272,7 @@ export default function AdminScreen({ onExitAdmin }) {
               <View style={styles.detailRow}><Text style={styles.detailLabel}>Status</Text>
                 <View style={[styles.statusChip, { backgroundColor: selectedFarmer.status === 'active' ? '#E8F5EC' : '#FFF3DC' }]}>
                   <Text style={{ color: selectedFarmer.status === 'active' ? COLORS.success : COLORS.warning, fontWeight: '700', fontSize: 13 }}>
-                    {selectedFarmer.status === 'active' ? '🟢 Active' : '🟡 Inactive'}
+                    {selectedFarmer.status === 'active' ? 'Active' : 'Inactive'}
                   </Text>
                 </View>
               </View>
@@ -309,9 +312,18 @@ function FarmerCard({ farmer, onDelete, onToggleStatus, onView }) {
         </View>
         <View style={fcStyles.info}>
           <Text style={fcStyles.name}>{farmer.name}</Text>
-          <Text style={fcStyles.meta}>📍 {farmer.village || 'N/A'}</Text>
-          <Text style={fcStyles.meta}>🌾 {farmer.crop} • {farmer.area}</Text>
-          <Text style={fcStyles.meta}>📱 {farmer.phone}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
+            <MaterialCommunityIcons name="map-marker-outline" size={13} color={COLORS.textSecondary} style={{ marginRight: 4 }} />
+            <Text style={fcStyles.meta}>{farmer.village || 'N/A'}</Text>
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
+            <MaterialCommunityIcons name="sprout-outline" size={13} color={COLORS.textSecondary} style={{ marginRight: 4 }} />
+            <Text style={fcStyles.meta}>{farmer.crop} • {farmer.area}</Text>
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
+            <MaterialCommunityIcons name="phone-outline" size={13} color={COLORS.textSecondary} style={{ marginRight: 4 }} />
+            <Text style={fcStyles.meta}>{farmer.phone}</Text>
+          </View>
         </View>
         <View style={fcStyles.actions}>
           <View style={[fcStyles.badge, { backgroundColor: isActive ? '#E8F5EC' : '#F9ECDF' }]}>

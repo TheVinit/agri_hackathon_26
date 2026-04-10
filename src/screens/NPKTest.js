@@ -16,10 +16,10 @@ import Skeleton from '../components/Skeleton';
 const FARM_ID = 'farm_001';
 
 const ZONES = [
-  { icon: '⬆️', direction: 'उत्तर', directionEn: 'North', directionMr: 'उत्तर', color: '#1565C0', bg: '#E3F2FD' },
-  { icon: '⬇️', direction: 'दक्षिण', directionEn: 'South', directionMr: 'दक्षिण', color: '#2E7D32', bg: '#E8F5E9' },
-  { icon: '➡️', direction: 'पूर्व',  directionEn: 'East',  directionMr: 'पूर्व', color: '#E65100', bg: '#FFF3E0' },
-  { icon: '⬅️', direction: 'पश्चिम', directionEn: 'West',  directionMr: 'पश्चिम', color: '#6A1B9A', bg: '#F3E5F5' },
+  { icon: 'compass', direction: 'उत्तर', directionEn: 'North', directionMr: 'उत्तर', color: '#1565C0', bg: '#E3F2FD' },
+  { icon: 'compass-outline', direction: 'दक्षिण', directionEn: 'South', directionMr: 'दक्षिण', color: '#2E7D32', bg: '#E8F5E9' },
+  { icon: 'compass-rose', direction: 'पूर्व',  directionEn: 'East',  directionMr: 'पूर्व', color: '#E65100', bg: '#FFF3E0' },
+  { icon: 'crosshairs-gps', direction: 'पश्चिम', directionEn: 'West',  directionMr: 'पश्चिम', color: '#6A1B9A', bg: '#F3E5F5' },
 ];
 
 export default function NPKTest() {
@@ -88,7 +88,7 @@ export default function NPKTest() {
       <View style={styles.doneContainer}>
         <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
         <View style={styles.doneContent}>
-          <Text style={styles.doneEmoji}>🎉</Text>
+          <MaterialCommunityIcons name="check-decagram" size={80} color={COLORS.primary} style={{ marginBottom: 20 }} />
           <Text style={styles.doneTitle}>{t('जाँच पूरी हुई!', 'Test Completed!', 'चाचणी पूर्ण झाली!')}</Text>
           <Text style={styles.doneSub}>{t('मिट्टी का परीक्षण सफलतापूर्वक किया गया', 'Soil test completed successfully', 'माती परीक्षण यशस्वीरित्या पूर्ण झाले')}</Text>
           <Text style={styles.doneSummary}>{getSummaryText(t)}</Text>
@@ -124,7 +124,7 @@ export default function NPKTest() {
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
           >
             <View style={[styles.emojiWrap, { backgroundColor: zone.color + '15' }]}>
-              <Text style={styles.zoneEmoji}>{zone.icon}</Text>
+              <MaterialCommunityIcons name={zone.icon} size={36} color={zone.color} />
             </View>
             <Text style={[styles.zoneDir, { color: zone.color }]}>
               {lang === 'hi' ? zone.direction : (lang === 'mr' ? zone.directionMr : zone.directionEn)}

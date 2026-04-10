@@ -15,17 +15,16 @@ const FARM_ID = 'farm_001';
 
 // ── Severity config ────────────────────────────────────────────
 const SEVERITY_CONFIG = {
-  critical: { colors: ['#EF4444', '#DC2626'], labelHi: '🚨 तत्काल', labelEn: '🚨 Critical', labelMr: '🚨 तातडीचे' },
-  warning:  { colors: ['#F59E0B', '#D97706'], labelHi: '⚠️ सतर्क',  labelEn: '⚠️ Warning',  labelMr: '⚠️ सावधान' },
-  good:     { colors: ['#10B981', '#059669'], labelHi: '✅ उत्तम',  labelEn: '✅ Good',     labelMr: '✅ चांगले' },
-  info:     { colors: ['#6366F1', '#4F46E5'], labelHi: '💡 सलाह',  labelEn: '💡 Advisory', labelMr: '💡 शिफारस' },
+  critical: { colors: ['#E11D48', '#BE123C'], labelHi: 'तत्काल', labelEn: 'Critical', labelMr: 'तातडीचे' },
+  warning:  { colors: ['#F59E0B', '#D97706'], labelHi: 'सतर्क',  labelEn: 'Warning',  labelMr: 'सावधान' },
+  good:     { colors: ['#10B981', '#059669'], labelHi: 'उत्तम',  labelEn: 'Optimal',  labelMr: 'चांगले' },
+  info:     { colors: ['#3B82F6', '#2563EB'], labelHi: 'सलाह',  labelEn: 'Advisory',  labelMr: 'शिफारस' },
 };
 
 const CARD_DEFS = [
   {
     key: 'irrigation',
     icon: 'water-pump',
-    emoji: '💧',
     titleHi: 'सिंचाई सलाह',
     titleEn: 'Irrigation Advisory',
     titleMr: 'सिंचन सल्ला',
@@ -33,7 +32,6 @@ const CARD_DEFS = [
   {
     key: 'temperature',
     icon: 'thermometer',
-    emoji: '🌡',
     titleHi: 'तापमान सलाह',
     titleEn: 'Temperature Advisory',
     titleMr: 'तापमान सल्ला',
@@ -41,7 +39,6 @@ const CARD_DEFS = [
   {
     key: 'nutrients',
     icon: 'flask-outline',
-    emoji: '🌿',
     titleHi: 'पोषक तत्व सलाह',
     titleEn: 'Nutrient Advisory',
     titleMr: 'पोषण सल्ला',
@@ -49,7 +46,6 @@ const CARD_DEFS = [
   {
     key: 'nextCrop',
     icon: 'sprout',
-    emoji: '🌾',
     titleHi: 'अगली फसल',
     titleEn: 'Next Crop Recommendation',
     titleMr: 'पुढील पीक',
@@ -168,7 +164,7 @@ function SmartAdvisoryCard({ def, data, isPlaying, onPress, t, lang }) {
     <View style={[styles.card, isPlaying && styles.cardActive]}>
       {/* Gradient header */}
       <LinearGradient colors={sev.colors} style={styles.cardHeader} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-        <Text style={styles.cardEmoji}>{def.emoji}</Text>
+        <MaterialCommunityIcons name={def.icon} size={28} color="#fff" style={{ marginRight: 4 }} />
         <View style={{ flex: 1 }}>
           <Text style={styles.cardTitle}>{title}</Text>
           <View style={styles.sevRow}>
