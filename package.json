@@ -13,7 +13,7 @@
     "@expo/metro-runtime": "~6.1.2",
     "@expo/vector-icons": "^15.0.3",
     "@react-navigation/bottom-tabs": "^6.5.20",
-    "@react-navigation/drawer": "^7.9.8",
+    "@react-navigation/drawer": "^6.7.2",
     "@react-navigation/native": "^6.1.17",
     "@react-navigation/stack": "^6.3.20",
     "@supabase/supabase-js": "^2.103.0",
