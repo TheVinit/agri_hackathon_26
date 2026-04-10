@@ -127,25 +127,70 @@ const strip = StyleSheet.create({
   accentBar: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 3 },
 });
 
-// ── Weather Widget ─────────────────────────────────────────────
+// ── Weather Widget (Live via Open-Meteo API) ───────────────────
 function WeatherWidget({ t }) {
+  const [weather, setWeather] = useState({
+    temp: '--', condition: 'Loading...', icon: 'weather-cloudy-clock',
+    humidity: '--', wind: '--', rain: '--', hi: '--', lo: '--',
+    loading: true
+  });
+
+  useEffect(() => {
+    // Coordinates for Pune, MH
+    const lat = 18.5204;
+    const lon = 73.8567;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation,weather_code&daily=temperature_2m_max,temperature_2m_min&timezone=Asia%2FKolkata`;
+    
+    fetch(url).then(res => res.json()).then(data => {
+      const code = data.current.weather_code;
+      // Map WMO codes to MaterialCommunityIcons
+      let icon = 'weather-partly-cloudy';
+      let cond = 'Partly Cloudy';
+      if (code === 0) { icon = 'weather-sunny'; cond = 'Clear Sky'; }
+      else if (code <= 3) { icon = 'weather-partly-cloudy'; cond = 'Partly Cloudy'; }
+      else if (code <= 48) { icon = 'weather-fog'; cond = 'Foggy'; }
+      else if (code <= 67 || code >= 80) { icon = 'weather-pouring'; cond = 'Raining'; }
+      else if (code <= 77) { icon = 'weather-snowy'; cond = 'Snowing'; }
+      else if (code >= 95) { icon = 'weather-lightning'; cond = 'Thunderstorm'; }
+
+      setWeather({
+        temp: Math.round(data.current.temperature_2m),
+        condition: cond,
+        icon: icon,
+        humidity: Math.round(data.current.relative_humidity_2m),
+        wind: Math.round(data.current.wind_speed_10m),
+        rain: data.current.precipitation > 0 ? `${data.current.precipitation}mm` : '0%',
+        hi: Math.round(data.daily.temperature_2m_max[0]),
+        lo: Math.round(data.daily.temperature_2m_min[0]),
+        loading: false
+      });
+    }).catch(err => {
+      console.warn("Weather fetch failed:", err);
+      // Fallback
+      setWeather({
+        temp: 28, condition: 'Partly Cloudy', icon: 'weather-partly-cloudy',
+        humidity: 62, wind: 14, rain: '20%', hi: 34, lo: 21, loading: false
+      });
+    });
+  }, []);
+
   return (
     <LinearGradient colors={['#1565C0', '#1E88E5']} style={wx.card} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
       <View style={wx.left}>
         <Text style={wx.label}>{t('आज का मौसम', "Today's Weather", 'आजचे हवामान')}</Text>
         <View style={wx.tempRow}>
-          <Text style={wx.temp}>{WEATHER.temp}°</Text>
-          <Text style={wx.cond}>{WEATHER.condition}</Text>
+          <Text style={wx.temp}>{weather.temp}°</Text>
+          <Text style={wx.cond}>{weather.condition}</Text>
         </View>
-        <Text style={wx.range}>{t(`बारिश: ${WEATHER.rain}`, `Rain: ${WEATHER.rain}`, `पाऊस: ${WEATHER.rain}`)} · {WEATHER.hi}°/{WEATHER.lo}°</Text>
+        <Text style={wx.range}>{t(`बारिश: ${weather.rain}`, `Rain: ${weather.rain}`, `पाऊस: ${weather.rain}`)} · {weather.hi}°/{weather.lo}°</Text>
       </View>
       <View style={wx.right}>
-        <MaterialCommunityIcons name={WEATHER.icon} size={52} color="rgba(255,255,255,0.9)" />
+        <MaterialCommunityIcons name={weather.icon} size={52} color="rgba(255,255,255,0.9)" />
         <View style={wx.statRow}>
           <MaterialCommunityIcons name="water-percent" size={13} color="rgba(255,255,255,0.8)" />
-          <Text style={wx.stat}>{WEATHER.humidity}%</Text>
+          <Text style={wx.stat}>{weather.humidity}%</Text>
           <MaterialCommunityIcons name="weather-windy" size={13} color="rgba(255,255,255,0.8)" />
-          <Text style={wx.stat}>{WEATHER.wind} km/h</Text>
+          <Text style={wx.stat}>{weather.wind} km/h</Text>
         </View>
       </View>
     </LinearGradient>
