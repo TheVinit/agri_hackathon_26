@@ -118,26 +118,57 @@ export default function NPKTest() {
         </View>
 
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          <View style={[styles.zoneCard, { backgroundColor: zone.bg, borderColor: zone.color + '20' }]}>
-            <Text style={styles.zoneEmoji}>{zone.icon}</Text>
+          <LinearGradient 
+            colors={[zone.bg, '#FFFFFF']} 
+            style={[styles.zoneCard, { borderColor: zone.color + '30' }]}
+            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          >
+            <View style={[styles.emojiWrap, { backgroundColor: zone.color + '15' }]}>
+              <Text style={styles.zoneEmoji}>{zone.icon}</Text>
+            </View>
             <Text style={[styles.zoneDir, { color: zone.color }]}>
               {lang === 'hi' ? zone.direction : (lang === 'mr' ? zone.directionMr : zone.directionEn)}
             </Text>
-            <Text style={styles.zoneStep}>{t(`क्षेत्र ${currentNode + 1} / ${sensorNodes.length}`, `Zone ${currentNode + 1} / ${sensorNodes.length}`, `क्षेत्र ${currentNode + 1} / ${sensorNodes.length}`)}</Text>
-          </View>
+            <View style={styles.zonePill}>
+              <Text style={[styles.zoneStep, { color: zone.color }]}>
+                {t(`क्षेत्र ${currentNode + 1} / ${sensorNodes.length}`, `Zone ${currentNode + 1} / ${sensorNodes.length}`, `क्षेत्र ${currentNode + 1} / ${sensorNodes.length}`)}
+              </Text>
+            </View>
+          </LinearGradient>
 
           <View style={styles.instructCard}>
-            <Text style={styles.instructTitle}>{t('निर्देश', 'Instructions', 'सूचना')}</Text>
-            <Text style={styles.instructText}>
-              1. {t('NPK छड़ को मिट्टी में डालें', 'Insert NPK probe into soil', 'NPK प्रोब मातीत घाला')}{'\\n'}
-              2. {t('नीचे दिए गए बटन को दबाएं', 'Press the button below', 'खालील बटण दाबा')}{'\\n'}
-              3. {t('कुछ पल प्रतीक्षा करें', 'Wait for a moment', 'काही क्षण प्रतीक्षा करा')}
-            </Text>
+            <View style={styles.instructHeader}>
+              <MaterialCommunityIcons name="information" size={20} color={COLORS.primary} />
+              <Text style={styles.instructTitle}>{t('निर्देश', 'Instructions', 'सूचना')}</Text>
+            </View>
+            
+            <View style={styles.instructList}>
+              <View style={styles.instructItem}>
+                <View style={styles.instructDot} />
+                <Text style={styles.instructText}>{t('NPK छड़ को मिट्टी में डालें', 'Insert NPK probe into soil', 'NPK प्रोब मातीत घाला')}</Text>
+              </View>
+              <View style={styles.instructItem}>
+                <View style={styles.instructDot} />
+                <Text style={styles.instructText}>{t('नीचे दिए गए बटन को दबाएं', 'Press the button below', 'खालील बटण दाबा')}</Text>
+              </View>
+              <View style={styles.instructItem}>
+                <View style={styles.instructDot} />
+                <Text style={styles.instructText}>{t('कुछ पल प्रतीक्षा करें', 'Wait for a moment', 'काही क्षण प्रतीक्षा करा')}</Text>
+              </View>
+            </View>
           </View>
 
-          <TouchableOpacity style={styles.primaryBtn} onPress={startScan}>
-            <LinearGradient colors={[COLORS.primary, COLORS.primaryLight]} style={styles.primaryBtnGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-              <MaterialCommunityIcons name="play-circle-outline" size={24} color="#fff" style={{ marginRight: 10 }} />
+          <TouchableOpacity 
+            style={styles.primaryBtn} 
+            onPress={startScan}
+            activeOpacity={0.8}
+          >
+            <LinearGradient 
+              colors={[COLORS.primary, COLORS.primaryLight]} 
+              style={styles.primaryBtnGrad} 
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            >
+              <MaterialCommunityIcons name="scan-helper" size={24} color="#FFF" style={{ marginRight: 10 }} />
               <Text style={styles.primaryBtnText}>{t('जाँच शुरू करें', 'Start Scanning', 'चाचणी सुरू करा')}</Text>
             </LinearGradient>
           </TouchableOpacity>
@@ -257,18 +288,24 @@ const styles = StyleSheet.create({
   headerSubtitle: { fontSize: 16, color: COLORS.textSecondary, fontWeight: '500' },
 
   progressDots: { flexDirection: 'row', gap: 6, marginTop: 15 },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: COLORS.divider },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: COLORS.border },
   dotActive: { width: 20, backgroundColor: COLORS.primary },
   dotDone: { backgroundColor: COLORS.primaryLight },
 
-  zoneCard: { borderRadius: 32, padding: 30, alignItems: 'center', marginBottom: 24, borderWidth: 1, ...SHADOWS.soft },
-  zoneEmoji: { fontSize: 60, marginBottom: 15 },
-  zoneDir: { fontSize: 24, fontWeight: '900', marginBottom: 5 },
-  zoneStep: { fontSize: 14, color: COLORS.textSecondary, fontWeight: '600' },
+  zoneCard: { borderRadius: 32, padding: 32, alignItems: 'center', marginBottom: 24, borderWidth: 1, ...SHADOWS.premium },
+  emojiWrap: { width: 80, height: 80, borderRadius: 40, justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
+  zoneEmoji: { fontSize: 40 },
+  zoneDir: { fontSize: 28, fontWeight: '900', marginBottom: 12, letterSpacing: -0.5 },
+  zonePill: { backgroundColor: 'rgba(255,255,255,0.7)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 },
+  zoneStep: { fontSize: 13, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
 
-  instructCard: { backgroundColor: COLORS.surface, borderRadius: 24, padding: 24, marginBottom: 30, borderWidth: 1, borderColor: COLORS.divider },
-  instructTitle: { fontSize: 18, fontWeight: '800', color: COLORS.text, marginBottom: 15 },
-  instructText: { fontSize: 15, color: COLORS.textSecondary, lineHeight: 28 },
+  instructCard: { backgroundColor: COLORS.surface, borderRadius: 24, padding: 24, marginBottom: 30, borderWidth: 1, borderColor: COLORS.divider, ...SHADOWS.soft },
+  instructHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
+  instructTitle: { fontSize: 16, fontWeight: '800', color: COLORS.text },
+  instructList: { gap: 12 },
+  instructItem: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  instructDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: COLORS.primaryLight, marginTop: 8 },
+  instructText: { flex: 1, fontSize: 15, color: COLORS.textSecondary, lineHeight: 22, fontWeight: '500' },
 
   primaryBtn: { borderRadius: 16, overflow: 'hidden', ...SHADOWS.glass },
   primaryBtnGrad: { paddingVertical: 18, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
