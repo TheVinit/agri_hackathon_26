@@ -20,14 +20,7 @@ function getSupabase() {
 
 export const getAdminSupabase = getSupabase;
 
-// ── Demo fallback sensor data ─────────────────────────────────────────────
-const DEMO_NODES = [
-  { node_id: 1, moisture: 68, temperature: 24.5, humidity: 45, ec: 1.2, battery: 92, status: 'ok' },
-  { node_id: 2, moisture: 72, temperature: 25.0, humidity: 42, ec: 1.1, battery: 85, status: 'ok' },
-  { node_id: 3, moisture: 38, temperature: 27.3, humidity: 38, ec: 1.5, battery: 48, status: 'warning' },
-  { node_id: 4, moisture: 18, temperature: 31.7, humidity: 30, ec: 2.8, battery: 12, status: 'critical' },
-];
-
+// ── Fallback/Demo NPK data (if sensor not available) ──────────────────────
 const DEMO_NPK = { N: 42, P: 18, K: 65, pH: 6.8 };
 
 // ── Farm Health Score (0-100) ─────────────────────────────────────────────
@@ -48,7 +41,16 @@ export function computeHealthScore(nodes) {
 }
 
 // ── Smart Advisory Engine ─────────────────────────────────────────────────
-export function computeAdvisory(nodes = DEMO_NODES, npk = DEMO_NPK) {
+export function computeAdvisory(nodes = [], npk = DEMO_NPK) {
+  if (!nodes || nodes.length === 0) {
+    return {
+      irrigation: { severity: 'info', titleHi: 'डेटा अनुपलब्ध', textHindi: 'कोई सेंसर डेटा प्राप्त नहीं हुआ।', textEn: 'No sensor data available.' },
+      temperature: { severity: 'info', textHindi: 'डेटा नहीं है।', textEn: 'No data.' },
+      nutrients: { severity: 'info', textHindi: 'डेटा नहीं है।', textEn: 'No data.' },
+      nextCrop: { severity: 'info', textHindi: 'डेटा नहीं है।', textEn: 'No data.' },
+      generatedAt: new Date().toISOString()
+    };
+  }
   const criticalNodes = nodes.filter(n => n.moisture < 25);
   const warningNodes  = nodes.filter(n => n.moisture >= 25 && n.moisture < 40);
   const hotNodes      = nodes.filter(n => n.temperature > 32);
@@ -183,45 +185,55 @@ export function computeAdvisory(nodes = DEMO_NODES, npk = DEMO_NPK) {
   return { irrigation, temperature, nutrients, nextCrop, generatedAt: new Date().toISOString() };
 }
 
-// ─── API Functions ────────────────────────────────────────────────────────
+// ── API Functions ────────────────────────────────────────────────────────
 
-function buildDemoResponse(farmId) {
-  const alerts = DEMO_NODES
-    .filter(n => n.moisture < 25)
-    .map(n => ({ node_id: n.node_id, type: 'moisture', severity: 'high', message: 'Low moisture critical!' }));
+const API_BASE_URL = 'https://agri-hackathon-26.onrender.com';
 
+function buildEmptyResponse(farmId, errorMsg) {
   return {
     data: {
       farmId,
       farmerName: 'रामराव शिंदे',
       location:   'Pune, MH',
-      nodes:      DEMO_NODES,
+      nodes:      [],
       npk:        DEMO_NPK,
-      alerts,
-      dataSource: 'Demo',
+      alerts:     [],
+      dataSource: 'Error',
       lastSync:   new Date().toISOString(),
     },
-    error: null,
+    error: errorMsg || 'Unable to load data',
   };
 }
 
 export const getDashboard = async (farmId) => {
   const supabase = getSupabase();
-  if (!supabase) return buildDemoResponse(farmId);
+  let farmerName = 'रामराव शिंदे';
+  let location = 'Pune, MH';
+
+  if (supabase) {
+    try {
+      const { data: farm } = await supabase.from('farms').select('*').eq('id', farmId).single();
+      if (farm) {
+        farmerName = farm.farmer_name || farmerName;
+        location = farm.location || location;
+      }
+    } catch (e) {
+      console.warn('[API] Supabase farm fetch failed:', e.message);
+    }
+  }
 
   try {
-    const { data: farm } = await supabase.from('farms').select('*').eq('id', farmId).single();
-    const { data: rawNodes } = await supabase.from('sensor_data')
-      .select('*').eq('farm_id', farmId)
-      .order('created_at', { ascending: false }).limit(4);
+    const response = await fetch(`${API_BASE_URL}/api/sensors/${farmId}`);
+    if (!response.ok) {
+      throw new Error(`Render API responded with status: ${response.status}`);
+    }
+    const apiData = await response.json();
 
-    const nodes = rawNodes || [];
-    const finalNodes = [1, 2, 3, 4].map(id => {
-      const live = nodes.find(n => n.node_id === id);
-      return live
-        ? { ...live, status: live.moisture < 20 ? 'critical' : live.moisture < 35 ? 'warning' : 'ok' }
-        : DEMO_NODES.find(d => d.node_id === id);
-    });
+    const nodes = apiData.nodes || [];
+    const finalNodes = nodes.map(live => ({
+      ...live,
+      status: live.moisture < 20 ? 'critical' : live.moisture < 35 ? 'warning' : 'ok'
+    }));
 
     const alerts = finalNodes
       .filter(n => n.moisture < 25)
@@ -229,26 +241,40 @@ export const getDashboard = async (farmId) => {
 
     return {
       data: {
-        farmId,
-        farmerName: farm?.farmer_name || 'रामराव शिंदे',
-        location:   farm?.location || 'Pune, MH',
-        nodes:      finalNodes,
-        npk:        DEMO_NPK,
+        farmId: apiData.farm_id || farmId,
+        farmerName,
+        location,
+        nodes: finalNodes,
+        npk: apiData.npk_soil_actual || DEMO_NPK,
         alerts,
-        dataSource: nodes.length > 0 ? 'Live' : 'Demo',
-        lastSync:   new Date().toISOString(),
+        dataSource: 'Live',
+        lastSync: apiData.recorded_at || new Date().toISOString(),
       },
       error: null,
     };
   } catch (error) {
-    console.warn('[API] Dashboard fetch failed, using demo:', error.message);
-    return buildDemoResponse(farmId);
+    console.warn('[API] Dashboard fetch failed:', error.message);
+    return buildEmptyResponse(farmId, error.message);
   }
 };
 
 export const getTodayAdvisory = async (farmId, nodes, npk) => {
-  // Smart engine — uses actual sensor data if provided
-  const advisory = computeAdvisory(nodes || DEMO_NODES, npk || DEMO_NPK);
+  let finalNodes = nodes;
+  let finalNpk = npk;
+
+  if (!finalNodes || !finalNpk) {
+    const dashboardRes = await getDashboard(farmId);
+    if (dashboardRes.data && dashboardRes.data.nodes.length > 0) {
+      finalNodes = dashboardRes.data.nodes;
+      finalNpk = dashboardRes.data.npk;
+    } else {
+      // Fallback if API fails or returns no nodes
+      finalNodes = [];
+      finalNpk = DEMO_NPK;
+    }
+  }
+
+  const advisory = computeAdvisory(finalNodes, finalNpk);
   return { data: advisory, error: null };
 };
 
