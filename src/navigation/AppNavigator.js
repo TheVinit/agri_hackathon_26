@@ -32,7 +32,7 @@ export default function AppNavigator() {
   }
 
   if (!authFarmer) {
-    return <LoginScreen onLogin={setAuthFarmer} />;
+    return <LoginScreen onLogin={setAuthFarmer} onOpenAdmin={() => setIsAdminMode(true)} />;
   }
 
   return (
@@ -74,6 +74,7 @@ export default function AppNavigator() {
             <DashboardWrapper
               {...props}
               onLogout={handleLogout}
+              onAdmin={() => setIsAdminMode(true)}
             />
           )}
         </Tab.Screen>
@@ -86,17 +87,21 @@ export default function AppNavigator() {
   );
 }
 
-// ─── Wrapper: intercepts __LOGOUT__ navigation from Dashboard ──
-function DashboardWrapper({ navigation, route, onLogout }) {
-  // Listen for the logout special route signal
+// ─── Wrapper: intercepts __LOGOUT__ and __ADMIN__ navigation from Dashboard ──
+function DashboardWrapper({ navigation, route, onLogout, onAdmin }) {
+  // Listen for the special route signals
   React.useEffect(() => {
     const unsubscribe = navigation.addListener('state', () => {});
 
-    // Patch navigation to intercept __LOGOUT__
+    // Patch navigation to intercept __LOGOUT__ and __ADMIN__
     const origNavigate = navigation.navigate.bind(navigation);
     navigation.navigate = (name, params) => {
       if (name === '__LOGOUT__') {
         onLogout();
+        return;
+      }
+      if (name === '__ADMIN__') {
+        onAdmin();
         return;
       }
       origNavigate(name, params);
@@ -107,7 +112,7 @@ function DashboardWrapper({ navigation, route, onLogout }) {
       navigation.navigate = origNavigate;
       unsubscribe();
     };
-  }, [navigation, onLogout]);
+  }, [navigation, onLogout, onAdmin]);
 
   return <Dashboard navigation={navigation} route={route} />;
 }

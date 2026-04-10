@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
   KeyboardAvoidingView, Platform, ScrollView,
@@ -9,12 +9,25 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS, SHADOWS } from '../theme';
 import { useLang } from '../context/LanguageContext';
 
-export default function LoginScreen({ onLogin }) {
+export default function LoginScreen({ onLogin, onOpenAdmin }) {
   const { t, lang, setLanguage } = useLang();
   const [farmerId, setFarmerId] = useState('farm_001');
   const [password, setPassword] = useState('agri123');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const adminTapCount = useRef(0);
+  const adminTapTimer = useRef(null);
+
+  const handleLogoTap = () => {
+    adminTapCount.current += 1;
+    clearTimeout(adminTapTimer.current);
+    adminTapTimer.current = setTimeout(() => { adminTapCount.current = 0; }, 2000);
+    if (adminTapCount.current >= 5) {
+      adminTapCount.current = 0;
+      if (onOpenAdmin) onOpenAdmin();
+    }
+  };
 
   const handleLogin = (isQuickAdmin = false) => {
     setLoading(true);
@@ -58,9 +71,11 @@ export default function LoginScreen({ onLogin }) {
           
           <View style={styles.header}>
             <View style={styles.logoContainer}>
-              <View style={styles.logoCircle}>
-                <MaterialCommunityIcons name="leaf" size={42} color={COLORS.primary} />
-              </View>
+              <TouchableOpacity activeOpacity={0.8} onPress={handleLogoTap}>
+                <View style={styles.logoCircle}>
+                  <MaterialCommunityIcons name="leaf" size={42} color={COLORS.primary} />
+                </View>
+              </TouchableOpacity>
               <Text style={styles.brandName}>AgriPulse</Text>
               <Text style={styles.brandTag}>Smart Farming Assistant</Text>
             </View>

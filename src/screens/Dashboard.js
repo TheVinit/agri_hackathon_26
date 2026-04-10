@@ -458,6 +458,9 @@ export default function Dashboard({ navigation }) {
               <TouchableOpacity style={styles.langBtn} onPress={toggleLang}>
                 <Text style={styles.langTxt}>{lang.toUpperCase()}</Text>
               </TouchableOpacity>
+              <TouchableOpacity style={styles.adminBtn} onPress={() => navigation.navigate('__ADMIN__')}>
+                <MaterialCommunityIcons name="menu" size={24} color={COLORS.textSecondary} />
+              </TouchableOpacity>
               <TouchableOpacity style={styles.logoutBtn} onPress={() => navigation.navigate('__LOGOUT__')}>
                 <MaterialCommunityIcons name="logout" size={16} color={COLORS.danger} />
               </TouchableOpacity>
@@ -618,6 +621,7 @@ const styles = StyleSheet.create({
   headerActions: { flexDirection: 'row', gap: 8, alignItems: 'center' },
   langBtn:     { backgroundColor: COLORS.surface, paddingVertical: 7, paddingHorizontal: 14, borderRadius: 18, borderWidth: 1, borderColor: COLORS.divider, ...SHADOWS.soft },
   langTxt:     { color: COLORS.primary, fontWeight: '700', fontSize: 13 },
+  adminBtn:    { paddingVertical: 4, paddingHorizontal: 4 },
   logoutBtn:   { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#FFF1F1', paddingVertical: 7, paddingHorizontal: 12, borderRadius: 18, borderWidth: 1, borderColor: '#FECACA' },
   logoutTxt:   { color: COLORS.danger, fontWeight: '700', fontSize: 12 },
 
