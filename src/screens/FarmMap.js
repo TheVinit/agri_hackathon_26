@@ -30,7 +30,11 @@ export default function FarmMap() {
 
   useEffect(() => {
     fetchData();
-    return () => stopSpeaking();
+    const interval = setInterval(() => fetchData(true), 30000); // 30s Poll
+    return () => {
+      clearInterval(interval);
+      stopSpeaking();
+    };
   }, []);
 
   const fetchData = async (isRefresh = false) => {
@@ -48,14 +52,14 @@ export default function FarmMap() {
     if (speaking) { await stopSpeaking(); setSpeaking(false); return; }
     if (!data) return;
     const nodes = data.nodes || [];
-    const problem = nodes.filter(n => n.status === 'red' || n.status === 'amber');
+    const problems = nodes.filter(n => n.status === 'critical' || n.status === 'warning');
     
     let text = t('आपके खेत का नक्शा। ', 'Your farm map analysis. ', 'तुमच्या शेताचा नकाशा. ');
     
-    if (problem.length === 0) {
+    if (problems.length === 0) {
       text += t('सभी क्षेत्र ठीक हैं। खेत स्वस्थ है।', 'All zones are healthy.', 'सर्व क्षेत्रे ठीक आहेत. शेत निरोगी आहे.');
     } else {
-      text += t(`${problem.length} क्षेत्रों में समस्या है। `, `There are issues in ${problem.length} zones. `, `${problem.length} क्षेत्रांमध्ये समस्या आहे. `);
+      text += t(`${problems.length} क्षेत्रों में ध्यान देने की आवश्यकता है। `, `There are issues in ${problems.length} zones. `, `${problems.length} क्षेत्रांमध्ये लक्ष देण्याची गरज आहे. `);
     }
 
     const sarvamLangMap = { hi: 'hi-IN', en: 'en-IN', mr: 'mr-IN' };
@@ -78,7 +82,14 @@ export default function FarmMap() {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <View>
-            <Text style={styles.headerTitle}>{t('खेत का नक्शा', 'Farm Map', 'शेताचा नकाशा')}</Text>
+            <View style={styles.nameRow}>
+              <Text style={styles.headerTitle}>{t('खेत का नक्शा', 'Farm Map', 'शेताचा नकाशा')}</Text>
+              <View style={[styles.sourceBadge, { backgroundColor: data?.dataSource === 'Live' ? '#E8F5E9' : '#FFF3E0' }]}>
+                <Text style={[styles.sourceText, { color: data?.dataSource === 'Live' ? COLORS.primary : '#E65100' }]}>
+                  {data?.dataSource || 'Demo'}
+                </Text>
+              </View>
+            </View>
             <Text style={styles.headerSubtitle}>{t('खेत के विभिन्न हिस्सों की स्थिति', 'Real-time zone status', 'क्षेत्र निहाय स्थिती')}</Text>
           </View>
           <TouchableOpacity 
@@ -148,16 +159,9 @@ export default function FarmMap() {
           );
         })}
 
-        {data?.dataSource && (
-          <View style={styles.sourceTag}>
-            <View style={[styles.sourceDot, { backgroundColor: data.dataSource === 'hardware' ? COLORS.success : COLORS.warning }]} />
-            <Text style={styles.sourceLabel}>
-              {data.dataSource === 'hardware' 
-                ? t('हार्डवेयर लाइव डेटा', 'Hardware Live Data', 'हार्डवेअर थेट डेटा') 
-                : t('डेमो डेटा', 'Demo Data (Simulation)', 'डेमो डेटा')}
-            </Text>
-          </View>
-        )}
+        <View style={styles.footerInfo}>
+          <Text style={styles.lastSyncText}>{t('अंतिम अपडेट: ', 'Last Sync: ', 'शेवटचे अद्यतन: ')}{data?.lastSync ? new Date(data.lastSync).toLocaleTimeString() : '--'}</Text>
+        </View>
       </Animated.View>
       <View style={{ height: 100 }} />
     </ScrollView>
@@ -202,9 +206,9 @@ function LoadingScreen() {
 }
 
 function getStatusColor(status) {
-  if (status === 'green')  return COLORS.success;
-  if (status === 'amber')  return COLORS.warning;
-  if (status === 'red')    return COLORS.danger;
+  if (status === 'live' || status === 'ok')  return COLORS.success;
+  if (status === 'warning')  return COLORS.warning;
+  if (status === 'critical') return COLORS.danger;
   return COLORS.divider;
 }
 
@@ -213,6 +217,9 @@ const styles = StyleSheet.create({
   header: { padding: 24, paddingTop: Platform.OS === 'ios' ? 60 : 50 },
   headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   headerTitle: { fontSize: 28, fontWeight: '900', color: COLORS.text, marginBottom: 4 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  sourceBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.05)' },
+  sourceText: { fontSize: 10, fontWeight: '800', textTransform: 'uppercase' },
   headerSubtitle: { fontSize: 16, color: COLORS.textSecondary, fontWeight: '500' },
   
   voiceBtn: { 
@@ -259,7 +266,6 @@ const styles = StyleSheet.create({
   metricLabel: { fontSize: 10, color: COLORS.textMuted, fontWeight: '600' },
   nodeStatusDot: { width: 12, height: 12, borderRadius: 6 },
 
-  sourceTag: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 10, gap: 8 },
-  sourceDot: { width: 8, height: 8, borderRadius: 4 },
-  sourceLabel: { fontSize: 12, color: COLORS.textMuted, fontWeight: '600' }
+  footerInfo: { alignItems: 'center', marginTop: 20 },
+  lastSyncText: { fontSize: 12, color: COLORS.textMuted, fontWeight: '600' },
 });

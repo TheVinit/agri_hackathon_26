@@ -6,6 +6,10 @@ import { Platform } from 'react-native';
 const SARVAM_API_URL = 'https://api.sarvam.ai/text-to-speech';
 const SARVAM_API_KEY = process.env.EXPO_PUBLIC_SARVAM_API_KEY;
 
+if (!SARVAM_API_KEY) {
+  console.error('[TTS] CRITICAL: EXPO_PUBLIC_SARVAM_API_KEY is missing from environment.');
+}
+
 // ── State ─────────────────────────────────────────────────────
 let webAudioInstance = null;       // HTMLAudioElement on web
 let nativeSound      = null;       // expo-av Sound on native
@@ -55,7 +59,33 @@ export async function speak(text, langCode = 'hi-IN', options = {}) {
   }
 }
 
-// ── Deprecated alias for backward compatibility ──────────
+// ── Specialized: Speak Advisory Object ────────────────────────
+export async function speakAdvisory(data, lang, name, options = {}) {
+  let text = '';
+  const alerts = data?.alerts?.length || 0;
+  
+  if (lang === 'hi') {
+    text = `नमस्ते ${name || 'किसान'} जी! `;
+    if (alerts > 0) text += `आपके खेत में ${alerts} क्षेत्र में पानी की कमी है। `;
+    else text += `खेत में नमी का स्तर बहुत अच्छा है। `;
+    text += `आज का तापमान ${data?.nodes?.[0]?.temperature || 24} डिग्री है।`;
+  } else if (lang === 'mr') {
+    text = `नमस्कार ${name || 'शेतकरी'} जी! `;
+    if (alerts > 0) text += `तुमच्या शेतात ${alerts} ठिकाणी पाण्याची गरज आहे. `;
+    else text += `शेतात ओलावा पातळी खूप चांगली आहे. `;
+    text += `आजचे तापमान ${data?.nodes?.[0]?.temperature || 24} अंश आहे।`;
+  } else {
+    text = `Hello ${name || 'Farmer'}! `;
+    if (alerts > 0) text += `There are ${alerts} areas needing water. `;
+    else text += `Moisture levels are optimal across all zones. `;
+    text += `Current temperature is ${data?.nodes?.[0]?.temperature || 24} degrees.`;
+  }
+
+  const sarvamLangMap = { hi: 'hi-IN', en: 'en-IN', mr: 'mr-IN' };
+  return speak(text, sarvamLangMap[lang] || 'hi-IN', options);
+}
+
+// ── Deprecated alias ──────────────────────────────────────────
 export async function speakHindi(text, options = {}) {
   return speak(text, 'hi-IN', options);
 }

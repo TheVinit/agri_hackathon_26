@@ -11,7 +11,7 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 export const getDashboard = async (farmId) => {
   try {
     // 1. Get farm details
-    const { data: farm } = await supabase.from('farms').select('*').eq('id', farmId).single();
+    const { data: farm, error: farmErr } = await supabase.from('farms').select('*').eq('id', farmId).single();
     
     // 2. Get latest sensor data (nodes 1-4)
     const { data: rawNodes } = await supabase.from('sensor_data')
@@ -21,35 +21,40 @@ export const getDashboard = async (farmId) => {
       .limit(4);
 
     const nodes = rawNodes || [];
+    let dataSource = nodes.length > 0 ? 'Live' : 'Demo';
 
-    // Fallback Dummy Data if empty
+    // Premium Fallback Dummy Data if empty or partial
     const dummyNodes = [
-      { node_id: 1, moisture: 68, temperature: 24.5, ec: 1.2, battery: 92 },
-      { node_id: 2, moisture: 72, temperature: 25.0, ec: 1.1, battery: 85 },
-      { node_id: 3, moisture: 55, temperature: 27.3, ec: 1.5, battery: 48 },
-      { node_id: 4, moisture: 18, temperature: 31.7, ec: 2.8, battery: 12 },
+      { node_id: 1, moisture: 68, temperature: 24.5, humidity: 45, ec: 1.2, battery: 92, status: 'ok' },
+      { node_id: 2, moisture: 72, temperature: 25.0, humidity: 42, ec: 1.1, battery: 85, status: 'ok' },
+      { node_id: 3, moisture: 55, temperature: 27.3, humidity: 38, ec: 1.5, battery: 48, status: 'warning' },
+      { node_id: 4, moisture: 18, temperature: 31.7, humidity: 30, ec: 2.8, battery: 12, status: 'critical' },
     ];
 
     const finalNodes = [1, 2, 3, 4].map(id => {
       const live = nodes.find(n => n.node_id === id);
-      return live || dummyNodes.find(d => d.node_id === id);
+      return live ? { ...live, status: live.moisture < 20 ? 'critical' : 'live' } : dummyNodes.find(d => d.node_id === id);
     });
 
     const alerts = [];
     finalNodes.forEach(n => {
-      if (n.moisture < 20) alerts.push({ message: 'Low moisture critical!' });
+      if (n.moisture < 25) alerts.push({ node_id: n.node_id, type: 'moisture', severity: 'high', message: 'Low moisture critical!' });
     });
 
     return {
       data: {
         farmId,
         farmerName: farm?.farmer_name || 'रामराव शिंदे',
+        location: farm?.location || 'Pune, MH',
         nodes: finalNodes,
         alerts,
+        dataSource,
+        lastSync: new Date().toISOString()
       },
       error: null
     };
   } catch (error) {
+    console.error('[API] Dashboard fetch failed:', error);
     return { data: null, error: error.message };
   }
 };

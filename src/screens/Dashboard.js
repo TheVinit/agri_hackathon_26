@@ -7,7 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS, SHADOWS } from '../theme';
 import { getDashboard } from '../services/api';
-import { speak, stopSpeaking } from '../services/tts';
+import { speakAdvisory, stopSpeaking } from '../services/tts';
 import { useLang } from '../context/LanguageContext';
 import Skeleton from '../components/Skeleton';
 
@@ -27,7 +27,11 @@ export default function Dashboard({ navigation }) {
 
   useEffect(() => {
     fetchData();
-    return () => stopSpeaking();
+    const interval = setInterval(() => fetchData(true), 30000); // 30s Poll
+    return () => {
+      clearInterval(interval);
+      stopSpeaking();
+    };
   }, []);
 
   const fetchData = async (isRefresh = false) => {
@@ -60,29 +64,7 @@ export default function Dashboard({ navigation }) {
 
     setSpeaking(true);
     
-    let speechText = '';
-    const alerts = data?.alerts?.length || 0;
-    
-    if (lang === 'hi') {
-      speechText = `नमस्ते ${data.farmerName || 'किसान'} जी! `;
-      if (alerts > 0) speechText += `आपके खेत में ${alerts} क्षेत्र में पानी की कमी है। `;
-      else speechText += `खेत में नमी का स्तर बहुत अच्छा है। `;
-      speechText += `आज का तापमान ${data?.nodes?.[0]?.temperature || 24} डिग्री है।`;
-    } else if (lang === 'mr') {
-      speechText = `नमस्कार ${data.farmerName || 'शेतकरी'} जी! `;
-      if (alerts > 0) speechText += `तुमच्या शेतात ${alerts} ठिकाणी पाण्याची गरज आहे. `;
-      else speechText += `शेतात ओलावा पातळी खूप चांगली आहे. `;
-      speechText += `आजचे तापमान ${data?.nodes?.[0]?.temperature || 24} अंश आहे.`;
-    } else {
-      speechText = `Hello ${data.farmerName || 'Farmer'}! `;
-      if (alerts > 0) speechText += `There are ${alerts} areas needing water. `;
-      else speechText += `Moisture levels are optimal across all zones. `;
-      speechText += `Current temperature is ${data?.nodes?.[0]?.temperature || 24} degrees.`;
-    }
-
-    const sarvamLangMap = { hi: 'hi-IN', en: 'en-IN', mr: 'mr-IN' };
-
-    await speak(speechText, sarvamLangMap[lang], {
+    await speakAdvisory(data, lang, data?.farmerName, {
       onDone: () => {
         setSpeaking(false);
         pulseAnim.setValue(1);
@@ -93,7 +75,6 @@ export default function Dashboard({ navigation }) {
       }
     });
   };
-
   if (loading) return <LoadingScreen />;
 
   const alertsCount = data?.alerts?.length || 0;
@@ -112,7 +93,14 @@ export default function Dashboard({ navigation }) {
         <Animated.View style={[styles.header, { opacity: fadeAnim, transform: [{ translateY }] }]}>
           <View style={styles.headerTopUser}>
             <View>
-              <Text style={styles.greetingText}>{t('नमस्ते', 'Welcome Back', 'नमस्कार')},</Text>
+              <View style={styles.nameRow}>
+                <Text style={styles.greetingText}>{t('नमस्ते', 'Welcome Back', 'नमस्कार')},</Text>
+                <View style={[styles.sourceBadge, { backgroundColor: data?.dataSource === 'Live' ? '#E8F5E9' : '#FFF3E0' }]}>
+                  <Text style={[styles.sourceText, { color: data?.dataSource === 'Live' ? COLORS.primary : '#E65100' }]}>
+                    {data?.dataSource || 'Demo'}
+                  </Text>
+                </View>
+              </View>
               <Text style={styles.userName}>{data?.farmerName || t('किसान', 'Farmer', 'शेतकरी')}</Text>
             </View>
             <TouchableOpacity style={styles.langToggle} onPress={toggleLang}>
@@ -225,6 +213,9 @@ const styles = StyleSheet.create({
   header: { paddingHorizontal: 24, paddingTop: Platform.OS === 'ios' ? 60 : 50, paddingBottom: 20 },
   headerTopUser: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   greetingText: { fontSize: 16, color: COLORS.textSecondary, fontWeight: '500', letterSpacing: 0.5 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  sourceBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.05)' },
+  sourceText: { fontSize: 10, fontWeight: '800', textTransform: 'uppercase' },
   userName: { fontSize: 28, color: COLORS.text, fontWeight: '800', marginTop: 4, letterSpacing: -0.5 },
   
   langToggle: {
