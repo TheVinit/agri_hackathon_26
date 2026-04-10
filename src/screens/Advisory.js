@@ -1,131 +1,372 @@
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, ActivityIndicator, StatusBar } from 'react-native';
-import { Text, Button, useTheme, Surface } from 'react-native-paper';
+// Advisory.js — Voice-First, Premium Advisory Screen
+// The farmer taps a card to hear the advisory. No raw data visible.
+import React, { useEffect, useState, useRef } from 'react';
+import {
+  View, Text, StyleSheet, ScrollView, TouchableOpacity,
+  Animated, StatusBar, ActivityIndicator,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import AdvisoryCard from '../components/AdvisoryCard';
-import { getTodayAdvisory } from '../services/api';
-import { playAdvisory, AUDIO_URLS } from '../services/tts';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { COLORS, SHADOWS, GAPS, FONTS } from '../theme';
+import { COLORS, SHADOWS } from '../theme';
+import { getTodayAdvisory } from '../services/api';
+import { speakHindi, stopSpeaking } from '../services/tts';
+
+const FARM_ID = 'farm_001';
+
+// ── Advisory card definitions (visually driven) ───────────────
+const CARD_CONFIG = {
+  irrigation: {
+    emoji:      '💧',
+    title:      'पानी की सलाह',
+    titleEn:    'Water Advisory',
+    gradient:   ['#1565C0', '#0D47A1'],
+    icon:       'water-pump',
+    getDecision: (d) =>
+      d?.decision === 'irrigate_now'
+        ? { label: '🚨 आज सिंचाई करें', good: false }
+        : { label: '✅ पानी ठीक है', good: true },
+  },
+  nutrients: {
+    emoji:      '🌿',
+    title:      'खाद की सलाह',
+    titleEn:    'Fertilizer Advisory',
+    gradient:   ['#2E7D32', '#1B5E20'],
+    icon:       'flask-outline',
+    getDecision: (d) =>
+      d?.status === 'low' || d?.status === 'LOW'
+        ? { label: '⚠️ खाद डालना जरूरी है', good: false }
+        : { label: '✅ खाद ठीक है', good: true },
+  },
+  nextCrop: {
+    emoji:      '🌾',
+    title:      'अगली फसल',
+    titleEn:    'Next Crop Advisory',
+    gradient:   ['#795548', '#5D4037'],
+    icon:       'sprout',
+    getDecision: (d) =>
+      ({ label: `✅ सुझाव: ${d?.crop || 'सोयाबीन'}`, good: true }),
+  },
+};
 
 export default function Advisory() {
-  const [loading, setLoading] = useState(true);
-  const [data, setData] = useState(null);
-  const [error, setError] = useState(null);
+  const [data,     setData]     = useState(null);
+  const [loading,  setLoading]  = useState(true);
+  const [error,    setError]    = useState(null);
+  const [playing,  setPlaying]  = useState(null); // null | 'all' | 'irrigation' | 'nutrients' | 'nextCrop'
 
-  const fetchAdvisory = async () => {
-    setLoading(true);
-    const { data: advisoryData, error: apiError } = await getTodayAdvisory('farm_001');
-    if (apiError) {
-      setError(apiError);
+  const waveAnim  = useRef(new Animated.Value(1)).current;
+  const fadeAnim  = useRef(new Animated.Value(0)).current;
+  const waveLoop  = useRef(null);
+
+  useEffect(() => {
+    fetchData();
+    return () => { stopSpeaking(); waveLoop.current?.stop(); };
+  }, []);
+
+  useEffect(() => {
+    if (playing) {
+      waveLoop.current = Animated.loop(
+        Animated.sequence([
+          Animated.timing(waveAnim, { toValue: 1.04, duration: 500, useNativeDriver: true }),
+          Animated.timing(waveAnim, { toValue: 1,    duration: 500, useNativeDriver: true }),
+        ])
+      );
+      waveLoop.current.start();
     } else {
-      setData(advisoryData);
-      setError(null);
+      waveLoop.current?.stop();
+      waveAnim.setValue(1);
+    }
+  }, [playing]);
+
+  const fetchData = async () => {
+    setLoading(true);
+    const { data: d, error: e } = await getTodayAdvisory(FARM_ID);
+    if (e) setError(e);
+    else {
+      setData(d);
+      Animated.timing(fadeAnim, { toValue: 1, duration: 700, useNativeDriver: true }).start();
     }
     setLoading(false);
   };
 
-  useEffect(() => {
-    fetchAdvisory();
-  }, []);
+  const speak = async (key) => {
+    if (playing === key) {
+      await stopSpeaking();
+      setPlaying(null);
+      return;
+    }
+    await stopSpeaking();
+    if (!data) return;
+    setPlaying(key);
 
+    const textMap = {
+      irrigation: data.irrigation?.textHindi,
+      nutrients:  data.nutrients?.textHindi,
+      nextCrop:   data.nextCrop?.textHindi,
+    };
+
+    await speakHindi(textMap[key] || '', {
+      onDone:  () => setPlaying(null),
+      onError: () => setPlaying(null),
+    });
+  };
+
+  const speakAll = async () => {
+    if (playing === 'all') {
+      await stopSpeaking();
+      setPlaying(null);
+      return;
+    }
+    await stopSpeaking();
+    if (!data) return;
+    setPlaying('all');
+
+    const full = [
+      'आज की खेती सलाह।',
+      data.irrigation?.textHindi,
+      data.nutrients?.textHindi,
+      data.nextCrop?.textHindi,
+    ].filter(Boolean).join(' ');
+
+    await speakHindi(full, {
+      onDone:  () => setPlaying(null),
+      onError: () => setPlaying(null),
+    });
+  };
+
+  // ── Loading ────────────────────────────────────────────────
   if (loading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-        <Text style={styles.loadingText}>FETCH_ADVISORY: Parsing Decision Matrix...</Text>
-      </View>
+      <LinearGradient colors={['#0D3D22', '#1B6E3E']} style={styles.loadingScreen}>
+        <ActivityIndicator size="large" color="#fff" />
+        <Text style={styles.loadingText}>आज की सलाह आ रही है...</Text>
+        <Text style={styles.loadingTextEn}>Fetching today's advisory...</Text>
+      </LinearGradient>
     );
   }
 
+  // ── Error ──────────────────────────────────────────────────
   if (error || !data) {
     return (
-      <View style={styles.centered}>
-        <MaterialCommunityIcons name="alert-octagon-outline" size={64} color={COLORS.error} />
-        <Text style={styles.errorText}>INTEL_FAIL: Data Source Unreachable</Text>
-        <Button mode="contained" onPress={fetchAdvisory} style={styles.retryBtn}>
-          RE-SYNC DATA
-        </Button>
-      </View>
+      <LinearGradient colors={['#0D3D22', '#1B6E3E']} style={styles.loadingScreen}>
+        <MaterialCommunityIcons name="wifi-off" size={60} color="rgba(255,255,255,0.6)" />
+        <Text style={styles.loadingText}>सलाह नहीं मिली</Text>
+        <TouchableOpacity style={styles.retryBtn} onPress={fetchData}>
+          <Text style={styles.retryText}>🔄  फिर कोशिश करें</Text>
+        </TouchableOpacity>
+      </LinearGradient>
     );
   }
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <StatusBar barStyle="light-content" />
-      <LinearGradient colors={[COLORS.primary, '#00251A']} style={styles.header}>
-        <MaterialCommunityIcons name="integrated-circuit-chip" size={40} color={COLORS.accent} />
-        <View style={styles.headerTitles}>
-          <Text style={styles.headerTitleEn}>DECISION_SUPPORT_SYSTEM</Text>
-          <Text style={styles.headerTitleHi}>आज की उन्नत सलाह</Text>
-        </View>
+      <StatusBar barStyle="light-content" backgroundColor="#0D3D22" />
+
+      {/* ── Header ────────────────────────────────────────── */}
+      <LinearGradient colors={['#0D3D22', '#1B6E3E', '#27AE60']} style={styles.header} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+        <Text style={styles.headerDate}>
+          {new Date().toLocaleDateString('hi-IN', { weekday: 'long', day: 'numeric', month: 'long' })}
+        </Text>
+        <Text style={styles.headerTitle}>📋  आज की सलाह</Text>
+
+        {/* ── Speak All Button ────────────────────────────── */}
+        <TouchableOpacity
+          style={[styles.speakAllBtn, playing === 'all' && styles.speakAllBtnActive]}
+          onPress={speakAll}
+          activeOpacity={0.88}
+        >
+          <MaterialCommunityIcons
+            name={playing === 'all' ? 'stop-circle' : 'volume-high'}
+            size={26}
+            color={playing === 'all' ? '#fff' : COLORS.primary}
+          />
+          <View style={styles.speakAllTextWrap}>
+            <Text style={[styles.speakAllText, playing === 'all' && { color: '#fff' }]}>
+              {playing === 'all' ? 'रोकें' : 'पूरी सलाह सुनें'}
+            </Text>
+            <Text style={[styles.speakAllTextEn, playing === 'all' && { color: 'rgba(255,255,255,0.7)' }]}>
+              {playing === 'all' ? 'Tap to stop' : 'Hear all in Hindi'}
+            </Text>
+          </View>
+          {playing === 'all' && (
+            <Animated.View style={[styles.waveDot, { transform: [{ scale: waveAnim }] }]} />
+          )}
+        </TouchableOpacity>
       </LinearGradient>
 
-      <View style={styles.content}>
-        <View style={styles.metaRow}>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>SESSION: LATEST</Text>
-          </View>
-          <Text style={styles.timestamp}>STAMP: 2026-03-27T19:30</Text>
+      {/* ── Advisory Cards ────────────────────────────────── */}
+      <Animated.View style={[styles.cardsWrap, { opacity: fadeAnim }]}>
+        {/* Playing indicator */}
+        {playing && (
+          <Animated.View style={[styles.listeningBanner, { transform: [{ scale: waveAnim }] }]}>
+            <MaterialCommunityIcons name="waveform" size={20} color={COLORS.primary} />
+            <Text style={styles.listeningText}>  🎙  सुन रहे हैं...</Text>
+          </Animated.View>
+        )}
+
+        <VoiceCard
+          config={CARD_CONFIG.irrigation}
+          data={data.irrigation}
+          isPlaying={playing === 'irrigation'}
+          onPress={() => speak('irrigation')}
+        />
+        <VoiceCard
+          config={CARD_CONFIG.nutrients}
+          data={data.nutrients}
+          isPlaying={playing === 'nutrients'}
+          onPress={() => speak('nutrients')}
+        />
+        <VoiceCard
+          config={CARD_CONFIG.nextCrop}
+          data={data.nextCrop}
+          isPlaying={playing === 'nextCrop'}
+          onPress={() => speak('nextCrop')}
+        />
+
+        {/* Bottom tip */}
+        <View style={styles.tipBox}>
+          <Text style={styles.tipText}>
+            💡  हर सलाह के 🔊 बटन को दबाकर हिंदी में सुनें{'\n'}
+            <Text style={styles.tipEn}>Tap any card's play button to hear in Hindi</Text>
+          </Text>
         </View>
 
-        <AdvisoryCard
-          title="सिंचाई (Irrigation)"
-          titleEn="HYDRATION_MATRIX"
-          text={data.irrigation.textHindi}
-          textEn={data.irrigation.decision === 'irrigate_now' ? "STATUS: CRITICAL. IRRIGATE IMMEDIATELY (45M)." : "STATUS: NOMINAL. SOIL MOISTURE SATURATED."}
-          bgColour="#FFFFFF"
-          headerColour="#0277BD"
-          onAudioPress={() => playAdvisory(AUDIO_URLS.critical)}
-        />
-
-        <AdvisoryCard
-          title="पोषक तत्व (Nutrients)"
-          titleEn="NUTRIENT_OPTIMIZATION"
-          text={data.nutrients.textHindi}
-          textEn={`DETECTED: ${data.nutrients.status.toUpperCase()}. APPLY DAP COMPOUND.`}
-          bgColour="#FFFFFF"
-          headerColour="#EF6C00"
-          onAudioPress={() => playAdvisory(AUDIO_URLS.mainAdvisory)}
-        />
-
-        <AdvisoryCard
-          title="अगली फसल (Next Crop)"
-          titleEn="CROP_ROTATION_INTEL"
-          text={data.nextCrop.textHindi}
-          textEn={`OPTIMIZED: ${data.nextCrop.crop.toUpperCase()}. SOIL PH SUITABLE.`}
-          bgColour="#FFFFFF"
-          headerColour="#2E7D32"
-          onAudioPress={() => playAdvisory(AUDIO_URLS.allGood)}
-        />
-
-        <View style={styles.footer}>
-          <View style={styles.footerLine} />
-          <Text style={styles.footerText}>END_OF_INTEL_ADVISORY</Text>
-          <View style={styles.footerLine} />
-        </View>
-        <View style={{ height: 40 }} />
-      </View>
+        <View style={{ height: 50 }} />
+      </Animated.View>
     </ScrollView>
   );
 }
 
+// ── VoiceCard Component ────────────────────────────────────────
+function VoiceCard({ config, data, isPlaying, onPress }) {
+  const dec  = config.getDecision(data);
+  const text = data?.textHindi || 'सलाह लोड हो रही है...';
+
+  return (
+    <TouchableOpacity
+      style={[styles.card, isPlaying && styles.cardActive]}
+      onPress={onPress}
+      activeOpacity={0.92}
+    >
+      {/* Card Header */}
+      <LinearGradient colors={config.gradient} style={styles.cardHeader} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+        <Text style={styles.cardEmoji}>{config.emoji}</Text>
+        <View style={styles.cardTitles}>
+          <Text style={styles.cardTitle}>{config.title}</Text>
+          <Text style={styles.cardTitleEn}>{config.titleEn}</Text>
+        </View>
+        {/* Big Play/Stop button */}
+        <TouchableOpacity
+          style={[styles.playBtn, isPlaying && styles.playBtnActive]}
+          onPress={onPress}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <MaterialCommunityIcons
+            name={isPlaying ? 'stop' : 'play'}
+            size={26}
+            color={isPlaying ? '#fff' : 'rgba(255,255,255,0.9)'}
+          />
+        </TouchableOpacity>
+      </LinearGradient>
+
+      {/* Card Body */}
+      <View style={styles.cardBody}>
+        {/* Decision badge */}
+        <View style={[styles.decBadge, { backgroundColor: dec.good ? '#E8F5EC' : '#FEF0F0' }]}>
+          <Text style={[styles.decText, { color: dec.good ? '#2E7D32' : '#C62828' }]}>{dec.label}</Text>
+        </View>
+
+        {/* Advisory text in Hindi */}
+        <Text style={styles.advisoryText}>{text}</Text>
+
+        {/* Tap hint */}
+        <TouchableOpacity style={[styles.tapHint, isPlaying && styles.tapHintActive]} onPress={onPress}>
+          <MaterialCommunityIcons
+            name={isPlaying ? 'stop-circle-outline' : 'volume-high'}
+            size={18}
+            color={isPlaying ? '#C62828' : COLORS.primary}
+          />
+          <Text style={[styles.tapHintText, isPlaying && { color: '#C62828' }]}>
+            {isPlaying ? '  रोकने के लिए दबाएं' : '  🔊  हिंदी में सुनें'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  header: { paddingHorizontal: 30, paddingVertical: 40, borderBottomRightRadius: 60, flexDirection: 'row', alignItems: 'center', ...SHADOWS.medium },
-  headerTitles: { marginLeft: 20 },
-  headerTitleEn: { fontSize: 10, fontFamily: FONTS.mono, fontWeight: '900', color: COLORS.accent, letterSpacing: 2 },
-  headerTitleHi: { fontSize: 26, fontWeight: '900', color: COLORS.white, marginTop: 4 },
-  content: { padding: 24, paddingTop: 30 },
-  metaRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
-  badge: { backgroundColor: '#E0E7E5', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 },
-  badgeText: { fontSize: 9, fontFamily: FONTS.mono, fontWeight: '900', color: COLORS.primary },
-  timestamp: { fontSize: 9, fontFamily: FONTS.mono, color: COLORS.textSecondary, fontWeight: '700' },
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background },
-  loadingText: { marginTop: 15, fontFamily: FONTS.mono, color: COLORS.primary, fontSize: 14, fontWeight: '700' },
-  errorText: { fontSize: 14, fontFamily: FONTS.mono, color: COLORS.error, textAlign: 'center', marginTop: 15, marginBottom: 20 },
-  retryBtn: { borderRadius: 4 },
-  footer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 30, opacity: 0.5 },
-  footerLine: { flex: 1, height: 1, backgroundColor: COLORS.textSecondary, marginHorizontal: 15 },
-  footerText: { fontSize: 10, fontFamily: FONTS.mono, fontWeight: '900', color: COLORS.textSecondary },
+  container: { flex: 1, backgroundColor: '#F5FAF7' },
+
+  // Loading/Error
+  loadingScreen: { flex: 1, justifyContent: 'center', alignItems: 'center', minHeight: 700, padding: 30 },
+  loadingText: { fontSize: 18, fontWeight: '700', color: '#fff', marginTop: 20, marginBottom: 8 },
+  loadingTextEn: { fontSize: 13, color: 'rgba(255,255,255,0.55)' },
+  retryBtn: { marginTop: 20, backgroundColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 28, paddingVertical: 14, borderRadius: 30 },
+  retryText: { color: '#fff', fontWeight: '800', fontSize: 16 },
+
+  // Header
+  header: { paddingTop: 55, paddingBottom: 28, paddingHorizontal: 24, alignItems: 'center', borderBottomLeftRadius: 36, borderBottomRightRadius: 36 },
+  headerDate: { fontSize: 13, color: 'rgba(255,255,255,0.6)', marginBottom: 6, fontWeight: '500' },
+  headerTitle: { fontSize: 28, fontWeight: '900', color: '#fff', marginBottom: 24 },
+
+  // Speak All
+  speakAllBtn: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
+    borderRadius: 28, paddingVertical: 16, paddingHorizontal: 24, gap: 12,
+    width: '100%', ...SHADOWS.medium,
+  },
+  speakAllBtnActive: { backgroundColor: '#C62828' },
+  speakAllTextWrap: { flex: 1 },
+  speakAllText: { fontSize: 17, fontWeight: '900', color: COLORS.primary },
+  speakAllTextEn: { fontSize: 11, color: COLORS.textSecondary, marginTop: 1 },
+  waveDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#fff' },
+
+  // Cards wrapper
+  cardsWrap: { padding: 18 },
+
+  // Listening banner
+  listeningBanner: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#E8F5EC',
+    borderRadius: 14, padding: 14, marginBottom: 16,
+    borderWidth: 1.5, borderColor: '#C8E6D1', justifyContent: 'center',
+  },
+  listeningText: { fontSize: 15, fontWeight: '800', color: COLORS.primary },
+
+  // Card
+  card: {
+    backgroundColor: '#fff', borderRadius: 24, marginBottom: 20,
+    overflow: 'hidden', ...SHADOWS.card,
+    borderWidth: 2, borderColor: 'transparent',
+  },
+  cardActive: { borderColor: COLORS.primary },
+  cardHeader: { flexDirection: 'row', alignItems: 'center', paddingVertical: 20, paddingHorizontal: 20 },
+  cardEmoji: { fontSize: 34, marginRight: 14 },
+  cardTitles: { flex: 1 },
+  cardTitle: { fontSize: 20, fontWeight: '900', color: '#fff' },
+  cardTitleEn: { fontSize: 11, color: 'rgba(255,255,255,0.7)', marginTop: 3, fontWeight: '600' },
+  playBtn: {
+    width: 52, height: 52, borderRadius: 26,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center', alignItems: 'center',
+    borderWidth: 2, borderColor: 'rgba(255,255,255,0.5)',
+  },
+  playBtnActive: { backgroundColor: 'rgba(198,40,40,0.85)', borderColor: 'rgba(255,255,255,0.3)' },
+
+  // Card body
+  cardBody: { padding: 20 },
+  decBadge: { borderRadius: 12, paddingVertical: 8, paddingHorizontal: 14, alignSelf: 'flex-start', marginBottom: 14 },
+  decText: { fontSize: 14, fontWeight: '800' },
+  advisoryText: { fontSize: 18, lineHeight: 30, color: '#1A2E25', fontWeight: '500', marginBottom: 18 },
+  tapHint: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#E8F5EC',
+    paddingVertical: 12, paddingHorizontal: 16, borderRadius: 14,
+  },
+  tapHintActive: { backgroundColor: '#FEF0F0' },
+  tapHintText: { fontSize: 15, fontWeight: '800', color: COLORS.primary },
+
+  // Tip
+  tipBox: { backgroundColor: '#FFF8E8', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#FFE0A0', marginTop: 4 },
+  tipText: { fontSize: 14, color: '#5E4A1A', fontWeight: '600', lineHeight: 22, textAlign: 'center' },
+  tipEn: { fontSize: 12, color: '#8E7A4A', fontWeight: '500' },
 });

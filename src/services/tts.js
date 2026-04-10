@@ -1,132 +1,187 @@
-import { Audio } from "expo-av";
+// src/services/tts.js — Cross-Platform TTS (Web + Native)
+// Web: Sarvam AI → HTML5 Audio (base64 data URL) → fallback: Web Speech API
+// Native: Sarvam AI → expo-file-system → expo-av → fallback: expo-speech
+import { Platform } from 'react-native';
 
-// ─── Module-Level State ───────────────────────────────────────────────────────
+const SARVAM_API_URL = 'https://api.sarvam.ai/text-to-speech';
+const SARVAM_API_KEY = 'sk_7dzs8sxh_qB26MScLaSCD9LyD0XFGe6dy';
 
-/** @type {Audio.Sound | null} */
-let currentSound = null;
+// ── State ─────────────────────────────────────────────────────
+let webAudioInstance = null;       // HTMLAudioElement on web
+let nativeSound      = null;       // expo-av Sound on native
 
-/** @type {boolean} */
-let _isPlaying = false;
-
-// ─── Audio URLs (AgriPulse Cloudinary Assets) ─────────────────────────────────
-
-export const AUDIO_URLS = {
-  mainAdvisory:
-    "https://res.cloudinary.com/dy3jinwkn/video/upload/v1774183533/Main_advisory_w8ccrj.mp3",
-  critical:
-    "https://res.cloudinary.com/dy3jinwkn/video/upload/v1774183533/critical_b0gda5.mp3",
-  allGood:
-    "https://res.cloudinary.com/dy3jinwkn/video/upload/v1774183533/all_good_yiwwtb.mp3",
-};
-
-// ─── Internal Helpers ─────────────────────────────────────────────────────────
-
-/**
- * Safely stop and unload the current sound object, then clear state.
- */
-const _unloadCurrent = async () => {
-  if (currentSound) {
-    try {
-      await currentSound.stopAsync();
-    } catch (_) {
-      // Already stopped — ignore
+// ── Stop any current playback ─────────────────────────────────
+export async function stopSpeaking() {
+  // Web
+  if (Platform.OS === 'web') {
+    if (webAudioInstance) {
+      webAudioInstance.pause();
+      webAudioInstance.src = '';
+      webAudioInstance = null;
     }
-    try {
-      await currentSound.unloadAsync();
-    } catch (_) {
-      // Already unloaded — ignore
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
     }
-    currentSound = null;
-    _isPlaying = false;
-  }
-};
-
-// ─── Public API ───────────────────────────────────────────────────────────────
-
-/**
- * Load and play an advisory audio from a remote URL.
- *
- * @param {string | null | undefined} audioUrl  Remote MP3/audio URL to play.
- * @returns {Promise<void>}
- *
- * Usage:
- *   await playAdvisory(AUDIO_URLS.mainAdvisory);
- *   await playAdvisory(AUDIO_URLS.critical);
- *   await playAdvisory(AUDIO_URLS.allGood);
- */
-export const playAdvisory = async (audioUrl) => {
-  // Guard: empty / null URL
-  if (!audioUrl || audioUrl.trim() === "") {
-    console.log("[TTS] playAdvisory called with empty/null URL — skipping.");
     return;
   }
+  // Native
+  try {
+    if (nativeSound) {
+      await nativeSound.stopAsync();
+      await nativeSound.unloadAsync();
+      nativeSound = null;
+    }
+  } catch (_) {}
+}
+
+// ── Speak Hindi (main export) ─────────────────────────────────
+export async function speakHindi(text, options = {}) {
+  if (!text) return;
+  const { onStart, onDone, onError } = options;
+
+  await stopSpeaking();
+  if (onStart) onStart();
 
   try {
-    // 1. Configure audio session for both iOS silent mode and Android
-    await Audio.setAudioModeAsync({
-      playsInSilentModeIOS: true,
-      staysActiveInBackground: true,
-      shouldDuckAndroid: true,
-    });
-
-    // 2. Stop and unload any currently playing sound
-    await _unloadCurrent();
-
-    // 3. Create and load the new sound
-    console.log(`[TTS] Loading audio: ${audioUrl}`);
-    const { sound } = await Audio.Sound.createAsync(
-      { uri: audioUrl },
-      { shouldPlay: false }
-    );
-
-    currentSound = sound;
-
-    // 4. Attach playback status listener
-    currentSound.setOnPlaybackStatusUpdate((status) => {
-      if (!status.isLoaded) {
-        if (status.error) {
-          console.error(`[TTS] Playback error: ${status.error}`);
-        }
-        _isPlaying = false;
-        return;
-      }
-
-      _isPlaying = status.isPlaying;
-
-      if (status.didJustFinish) {
-        console.log("[TTS] Playback finished.");
-        _isPlaying = false;
-        // Auto-unload after finish to free memory
-        _unloadCurrent();
-      }
-    });
-
-    // 5. Start playback
-    await currentSound.playAsync();
-    console.log("[TTS] Playback started.");
+    const base64 = await fetchSarvamBase64(text, 'hi-IN');
+    if (Platform.OS === 'web') {
+      await playBase64Web(base64, { onDone, onError });
+    } else {
+      await playBase64Native(base64, { onDone, onError });
+    }
   } catch (err) {
-    console.error("[TTS] playAdvisory error:", err.message ?? err);
-    _isPlaying = false;
+    console.warn('[TTS] Sarvam failed →', err.message, '— using fallback');
+    fallbackSpeak(text, 'hi-IN', { onDone, onError });
   }
-};
+}
 
-/**
- * Stop and unload the currently playing advisory audio.
- *
- * @returns {Promise<void>}
- */
-export const stopAdvisory = async () => {
-  if (!currentSound) {
-    console.log("[TTS] stopAdvisory — nothing is playing.");
-    return;
+// ── Fetch base64 audio from Sarvam AI ────────────────────────
+async function fetchSarvamBase64(text, langCode) {
+  const chunks = chunkText(text, 450);
+  // For simplicity, join chunks and send first chunk only for speed
+  const firstChunk = chunks[0] || text;
+
+  const res = await fetch(SARVAM_API_URL, {
+    method: 'POST',
+    headers: {
+      'api-subscription-key': SARVAM_API_KEY,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      inputs: [firstChunk],
+      target_language_code: langCode,
+      speaker: 'meera',
+      pitch: 0,
+      pace: 0.88,
+      loudness: 1.5,
+      speech_sample_rate: 22050,
+      enable_preprocessing: true,
+      model: 'bulbul:v1',
+    }),
+  });
+
+  if (!res.ok) {
+    const txt = await res.text().catch(() => '');
+    throw new Error(`Sarvam ${res.status}: ${txt.slice(0, 100)}`);
   }
-  console.log("[TTS] Stopping current audio.");
-  await _unloadCurrent();
-};
 
-/**
- * Returns whether audio is currently playing.
- *
- * @returns {boolean}
- */
-export const isPlaying = () => _isPlaying;
+  const json = await res.json();
+  const b64 = json.audios?.[0];
+  if (!b64) throw new Error('No audio in Sarvam response');
+  return b64;
+}
+
+// ── Web: Play base64 via HTML5 Audio ─────────────────────────
+function playBase64Web(base64, { onDone, onError }) {
+  return new Promise((resolve, reject) => {
+    const audio = new Audio(`data:audio/wav;base64,${base64}`);
+    webAudioInstance = audio;
+    audio.onended = () => {
+      webAudioInstance = null;
+      if (onDone) onDone();
+      resolve();
+    };
+    audio.onerror = (e) => {
+      webAudioInstance = null;
+      const err = new Error('HTML5 Audio error');
+      if (onError) onError(err);
+      reject(err);
+    };
+    audio.play().catch((e) => {
+      // Autoplay blocked — tell caller
+      if (onError) onError(e);
+      reject(e);
+    });
+  });
+}
+
+// ── Native: Write to file and play via expo-av ────────────────
+async function playBase64Native(base64, { onDone, onError }) {
+  const { Audio } = await import('expo-av');
+  const FileSystem = await import('expo-file-system');
+
+  const fileUri = FileSystem.cacheDirectory + `sarvam_${Date.now()}.wav`;
+  await FileSystem.writeAsStringAsync(fileUri, base64, {
+    encoding: FileSystem.EncodingType.Base64,
+  });
+
+  await Audio.setAudioModeAsync({
+    allowsRecordingIOS: false,
+    playsInSilentModeIOS: true,
+    shouldDuckAndroid: true,
+    playThroughEarpieceAndroid: false,
+  });
+
+  const { sound } = await Audio.Sound.createAsync({ uri: fileUri });
+  nativeSound = sound;
+
+  await new Promise((resolve, reject) => {
+    sound.setOnPlaybackStatusUpdate((status) => {
+      if (status.didJustFinish) {
+        sound.unloadAsync().catch(() => {});
+        nativeSound = null;
+        FileSystem.deleteAsync(fileUri, { idempotent: true }).catch(() => {});
+        if (onDone) onDone();
+        resolve();
+      }
+      if (status.error) {
+        reject(new Error(status.error));
+      }
+    });
+    sound.playAsync().catch(reject);
+  });
+}
+
+// ── Fallback: Web Speech API / expo-speech ────────────────────
+function fallbackSpeak(text, lang, { onDone, onError }) {
+  if (Platform.OS === 'web') {
+    if (typeof window === 'undefined' || !window.speechSynthesis) {
+      if (onError) onError(new Error('No TTS available'));
+      return;
+    }
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang;
+    utterance.rate = 0.9;
+    utterance.onend  = () => { if (onDone) onDone(); };
+    utterance.onerror = () => { if (onError) onError(new Error('SpeechSynthesis error')); };
+    window.speechSynthesis.speak(utterance);
+  } else {
+    // Native: expo-speech fallback (install expo-speech if needed)
+    console.warn('[TTS] Native fallback: install expo-speech for offline TTS');
+    if (onDone) setTimeout(onDone, 500);
+  }
+}
+
+// ── Helpers ───────────────────────────────────────────────────
+function chunkText(text, maxLen) {
+  if (text.length <= maxLen) return [text];
+  const result = [];
+  const sentences = text.split(/(?<=[।.!?])\s+/);
+  let cur = '';
+  for (const s of sentences) {
+    if ((cur + s).length > maxLen) { if (cur) result.push(cur.trim()); cur = s; }
+    else cur += ' ' + s;
+  }
+  if (cur.trim()) result.push(cur.trim());
+  return result;
+}

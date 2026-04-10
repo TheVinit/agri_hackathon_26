@@ -1,47 +1,69 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, StyleSheet, Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { COLORS, THEME } from '../theme';
+import { COLORS } from '../theme';
+import { useLang } from '../context/LanguageContext';
 
-import Dashboard from '../screens/Dashboard';
-import NPKTest from '../screens/NPKTest';
-import Advisory from '../screens/Advisory';
-import FarmMap from '../screens/FarmMap';
+import Dashboard   from '../screens/Dashboard';
+import Advisory    from '../screens/Advisory';
+import NPKTest     from '../screens/NPKTest';
+import FarmMap     from '../screens/FarmMap';
+import AdminScreen from '../screens/AdminScreen';
 
 const Tab = createBottomTabNavigator();
 
+let adminTapCount = 0;
+let adminTapTimer = null;
+
 export default function AppNavigator() {
+  const [isAdminMode, setIsAdminMode] = useState(false);
+  const { t } = useLang();
+
+  if (isAdminMode) {
+    return <AdminScreen onExitAdmin={() => setIsAdminMode(false)} />;
+  }
+
   return (
-    <NavigationContainer theme={THEME}>
+    <NavigationContainer>
       <Tab.Navigator
         screenOptions={({ route }) => ({
-          tabBarIcon: ({ color, size, focused }) => {
+          headerShown: false,
+          tabBarIcon: ({ focused, color }) => {
             let iconName;
-            if (route.name === 'Dashboard') iconName = focused ? 'view-dashboard' : 'view-dashboard-outline';
-            else if (route.name === 'NPK Test') iconName = focused ? 'flask-round-bottom' : 'flask-round-bottom-outline';
-            else if (route.name === 'Advisory') iconName = focused ? 'book-open-variant' : 'book-open-page-variant-outline';
-            else if (route.name === 'Farm Map') iconName = focused ? 'map-marker-radius' : 'map-marker-radius-outline';
-            
-            return (
-              <View style={focused ? styles.activeTabIcon : null}>
-                <MaterialCommunityIcons name={iconName} size={focused ? 24 : 22} color={color} />
-              </View>
-            );
+            if (route.name === 'Home') iconName = focused ? 'home' : 'home-outline';
+            if (route.name === 'Advisory') iconName = focused ? 'book-open-variant' : 'book-open-page-variant-outline';
+            if (route.name === 'NPKTest') iconName = focused ? 'flask-round-bottom' : 'flask-round-bottom-outline';
+            if (route.name === 'Map') iconName = focused ? 'map-marker-radius' : 'map-marker-radius-outline';
+            return <MaterialCommunityIcons name={iconName} size={focused ? 28 : 24} color={color} />;
           },
           tabBarActiveTintColor: COLORS.primary,
-          tabBarInactiveTintColor: COLORS.textSecondary,
-          headerShown: false, // We use custom headers in screens now
+          tabBarInactiveTintColor: COLORS.textMuted,
           tabBarStyle: styles.tabBar,
-          tabBarLabelStyle: styles.tabBarLabel,
-          tabBarItemStyle: { paddingVertical: 8 },
+          tabBarLabelStyle: styles.tabLabel,
+          tabBarItemStyle: styles.tabItem,
         })}
       >
-        <Tab.Screen name="Dashboard" component={Dashboard} />
-        <Tab.Screen name="NPK Test" component={NPKTest} />
-        <Tab.Screen name="Advisory" component={Advisory} />
-        <Tab.Screen name="Farm Map" component={FarmMap} />
+        <Tab.Screen
+          name="Home"
+          component={Dashboard}
+          options={{ title: t('होम', 'Home') }}
+          listeners={{
+            tabLongPress: () => {
+              adminTapCount++;
+              clearTimeout(adminTapTimer);
+              adminTapTimer = setTimeout(() => { adminTapCount = 0; }, 2000);
+              if (adminTapCount >= 3) {
+                adminTapCount = 0;
+                setIsAdminMode(true);
+              }
+            },
+          }}
+        />
+        <Tab.Screen name="Advisory" component={Advisory} options={{ title: t('सलाह', 'Advisory') }} />
+        <Tab.Screen name="NPKTest" component={NPKTest} options={{ title: t('मिट्टी जाँच', 'Soil Test') }} />
+        <Tab.Screen name="Map" component={FarmMap} options={{ title: t('नक्शा', 'Map') }} />
       </Tab.Navigator>
     </NavigationContainer>
   );
@@ -49,28 +71,21 @@ export default function AppNavigator() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    height: 70,
-    backgroundColor: '#FFFFFF',
+    height: Platform.OS === 'ios' ? 90 : 75,
+    backgroundColor: COLORS.surface,
     borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
-    paddingBottom: 10,
-    paddingTop: 5,
-    elevation: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
+    borderTopColor: COLORS.glassBorder,
+    paddingBottom: Platform.OS === 'ios' ? 25 : 12,
+    paddingTop: 10,
+    position: 'absolute',
+    elevation: 0,
   },
-  tabBarLabel: {
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 0.2,
-    marginTop: -2,
+  tabLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    marginTop: 4,
   },
-  activeTabIcon: {
-    backgroundColor: 'rgba(27, 94, 32, 0.08)',
-    paddingHorizontal: 15,
-    paddingVertical: 4,
-    borderRadius: 15,
+  tabItem: {
+    paddingTop: 4,
   },
 });
