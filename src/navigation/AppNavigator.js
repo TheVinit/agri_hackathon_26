@@ -11,6 +11,7 @@ import Advisory    from '../screens/Advisory';
 import NPKTest     from '../screens/NPKTest';
 import FarmMap     from '../screens/FarmMap';
 import AdminScreen from '../screens/AdminScreen';
+import LoginScreen from '../screens/LoginScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -19,10 +20,15 @@ let adminTapTimer = null;
 
 export default function AppNavigator() {
   const [isAdminMode, setIsAdminMode] = useState(false);
+  const [authFarmer, setAuthFarmer] = useState(null);
   const { t } = useLang();
 
   if (isAdminMode) {
     return <AdminScreen onExitAdmin={() => setIsAdminMode(false)} />;
+  }
+
+  if (!authFarmer) {
+    return <LoginScreen onLogin={setAuthFarmer} />;
   }
 
   return (
@@ -48,7 +54,7 @@ export default function AppNavigator() {
         <Tab.Screen
           name="Home"
           component={Dashboard}
-          options={{ title: t('होम', 'Home') }}
+          options={{ title: t('होम', 'Home', 'मुख्यपृष्ठ') }}
           listeners={{
             tabLongPress: () => {
               adminTapCount++;
@@ -61,9 +67,9 @@ export default function AppNavigator() {
             },
           }}
         />
-        <Tab.Screen name="Advisory" component={Advisory} options={{ title: t('सलाह', 'Advisory') }} />
-        <Tab.Screen name="NPKTest" component={NPKTest} options={{ title: t('मिट्टी जाँच', 'Soil Test') }} />
-        <Tab.Screen name="Map" component={FarmMap} options={{ title: t('नक्शा', 'Map') }} />
+        <Tab.Screen name="Advisory" component={Advisory} options={{ title: t('सलाह', 'Advisory', 'सल्ला') }} />
+        <Tab.Screen name="NPKTest" component={NPKTest} options={{ title: t('मिट्टी जाँच', 'Soil Test', 'माती परीक्षण') }} />
+        <Tab.Screen name="Map" component={FarmMap} options={{ title: t('नक्शा', 'Map', 'नकाशा') }} />
       </Tab.Navigator>
     </NavigationContainer>
   );

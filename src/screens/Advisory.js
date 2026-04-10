@@ -137,7 +137,7 @@ export default function Advisory() {
   // ── Loading ────────────────────────────────────────────────
   if (loading) {
     return (
-      <LinearGradient colors={['#0D3D22', '#1B6E3E']} style={styles.loadingScreen}>
+      <LinearGradient colors={[COLORS.primary, COLORS.primaryLight]} style={styles.loadingScreen}>
         <ActivityIndicator size="large" color="#fff" />
         <Text style={styles.loadingText}>आज की सलाह आ रही है...</Text>
         <Text style={styles.loadingTextEn}>Fetching today's advisory...</Text>
@@ -148,7 +148,7 @@ export default function Advisory() {
   // ── Error ──────────────────────────────────────────────────
   if (error || !data) {
     return (
-      <LinearGradient colors={['#0D3D22', '#1B6E3E']} style={styles.loadingScreen}>
+      <LinearGradient colors={[COLORS.primary, COLORS.primaryLight]} style={styles.loadingScreen}>
         <MaterialCommunityIcons name="wifi-off" size={60} color="rgba(255,255,255,0.6)" />
         <Text style={styles.loadingText}>सलाह नहीं मिली</Text>
         <TouchableOpacity style={styles.retryBtn} onPress={fetchData}>
@@ -160,10 +160,10 @@ export default function Advisory() {
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <StatusBar barStyle="light-content" backgroundColor="#0D3D22" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
 
       {/* ── Header ────────────────────────────────────────── */}
-      <LinearGradient colors={['#0D3D22', '#1B6E3E', '#27AE60']} style={styles.header} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+      <LinearGradient colors={[COLORS.primary, COLORS.primaryLight]} style={styles.header} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
         <Text style={styles.headerDate}>
           {new Date().toLocaleDateString('hi-IN', { weekday: 'long', day: 'numeric', month: 'long' })}
         </Text>
@@ -296,7 +296,7 @@ function VoiceCard({ config, data, isPlaying, onPress }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5FAF7' },
+  container: { flex: 1, backgroundColor: COLORS.background },
 
   // Loading/Error
   loadingScreen: { flex: 1, justifyContent: 'center', alignItems: 'center', minHeight: 700, padding: 30 },

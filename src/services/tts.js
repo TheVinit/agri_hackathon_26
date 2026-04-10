@@ -34,8 +34,8 @@ export async function stopSpeaking() {
   } catch (_) {}
 }
 
-// ── Speak Hindi (main export) ─────────────────────────────────
-export async function speakHindi(text, options = {}) {
+// ── Speak (main export) ─────────────────────────────────
+export async function speak(text, langCode = 'hi-IN', options = {}) {
   if (!text) return;
   const { onStart, onDone, onError } = options;
 
@@ -43,7 +43,7 @@ export async function speakHindi(text, options = {}) {
   if (onStart) onStart();
 
   try {
-    const base64 = await fetchSarvamBase64(text, 'hi-IN');
+    const base64 = await fetchSarvamBase64(text, langCode);
     if (Platform.OS === 'web') {
       await playBase64Web(base64, { onDone, onError });
     } else {
@@ -51,8 +51,13 @@ export async function speakHindi(text, options = {}) {
     }
   } catch (err) {
     console.warn('[TTS] Sarvam failed →', err.message, '— using fallback');
-    fallbackSpeak(text, 'hi-IN', { onDone, onError });
+    fallbackSpeak(text, langCode, { onDone, onError });
   }
+}
+
+// ── Deprecated alias for backward compatibility ──────────
+export async function speakHindi(text, options = {}) {
+  return speak(text, 'hi-IN', options);
 }
 
 // ── Fetch base64 audio from Sarvam AI ────────────────────────
