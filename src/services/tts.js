@@ -4,7 +4,7 @@
 import { Platform } from 'react-native';
 
 const SARVAM_API_URL = 'https://api.sarvam.ai/text-to-speech';
-const SARVAM_API_KEY = 'sk_7dzs8sxh_qB26MScLaSCD9LyD0XFGe6dy';
+const SARVAM_API_KEY = process.env.EXPO_PUBLIC_SARVAM_API_KEY;
 
 // ── State ─────────────────────────────────────────────────────
 let webAudioInstance = null;       // HTMLAudioElement on web

@@ -1,8 +1,8 @@
 // src/services/api.js — Supabase API Service
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = 'https://aekmiuxibmfjiakhkkrc.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFla21pdXhpYm1mamlha2hra3JjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4Mjk5MTYsImV4cCI6MjA5MTQwNTkxNn0.iwbzLIGx2fEKhbdn7Wxrk7ssJpfCjrxu-47ee3mWye0';
+const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
