@@ -383,11 +383,11 @@ export default function AIAssistant({ route, navigation }) {
       // FALLBACK FOR EXPO GO: Use the system keyboard's microphone!
       if (keyboardInput.current) {
         keyboardInput.current.focus();
-        // Give a subtle hint
+        // Visual feedback
         const msg = lang === 'hi' 
-          ? 'मैने कीबोर्ड खोल दिया है, आप माइक बटन दबाकर बोल सकते हैं' 
-          : 'Keyboard opened. Tap the mic icon on your keyboard to speak!';
-        console.log(msg);
+          ? 'कीबोर्ड माइक का उपयोग करें' 
+          : 'Use keyboard mic';
+        alert(msg);
       }
       return; 
     }
