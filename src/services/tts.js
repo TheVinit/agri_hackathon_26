@@ -1,7 +1,8 @@
 // src/services/tts.js
 import { Platform } from 'react-native';
-import * as Speech from 'expo-speech';
-import { Audio } from 'expo-av';
+// import * as Speech from 'expo-speech';
+// import { Audio as ExpoAudio } from 'expo-av';
+
 
 const SARVAM_API_URL = 'https://api.sarvam.ai/v1/tts'; // Reverting to V1 common endpoint
 const SARVAM_API_KEY = process.env.EXPO_PUBLIC_SARVAM_API_KEY;
@@ -34,7 +35,10 @@ export function stopSpeaking() {
     if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel();
   } else {
     if (nativeSoundInstance) { try { nativeSoundInstance.stopAsync(); } catch(e){} nativeSoundInstance = null; }
-    Speech.stop();
+    try {
+      const Speech = require('expo-speech');
+      Speech.stop();
+    } catch(e) {}
   }
 }
 
@@ -61,7 +65,7 @@ async function fetchSarvamBase64(text, langCode) {
 
 function playBase64Web(base64, { onDone, onError }) {
   return new Promise((resolve) => {
-    const audio = new Audio(`data:audio/wav;base64,${base64}`);
+    const audio = new window.Audio(`data:audio/wav;base64,${base64}`);
     webAudioInstance = audio;
     audio.onended = () => { webAudioInstance = null; onDone?.(); resolve(); };
     audio.onerror = (e) => { webAudioInstance = null; onError?.(e); resolve(); };
@@ -71,6 +75,7 @@ function playBase64Web(base64, { onDone, onError }) {
 
 async function playBase64Native(base64, { onDone, onError }) {
   try {
+    const { Audio } = require('expo-av');
     const { sound } = await Audio.Sound.createAsync(
       { uri: `data:audio/mp3;base64,${base64}` },
       { shouldPlay: true }
@@ -92,6 +97,30 @@ function fallbackSpeak(text, lang, { onDone, onError }) {
     utterance.onend = onDone;
     window.speechSynthesis.speak(utterance);
   } else {
-    Speech.speak(text, { language: lang, onDone, onError });
+    try {
+      const Speech = require('expo-speech');
+      Speech.speak(text, { language: lang, onDone, onError });
+    } catch(e) {
+      onDone?.();
+    }
   }
+}
+export async function speakAdvisory(nodes, lang = 'hi', options = {}) {
+  let text = '';
+  if (lang === 'hi') {
+    text = `खेत की स्थिति रिपोर्ट: `;
+    const avgMoisture = Math.round(nodes.reduce((s, n) => s + n.moisture, 0) / nodes.length);
+    text += `औसत नमी ${avgMoisture} प्रतिशत है। `;
+    if (avgMoisture < 45) text += `मिट्टी में नमी कम है, कृपया सिंचाई करें। `;
+    const avgTemp = (nodes.reduce((s, n) => s + n.temperature, 0) / nodes.length).toFixed(1);
+    if (parseFloat(avgTemp) > 32) text += `तापमान अधिक है। `;
+  } else {
+    text = `Farm status report: `;
+    const avgMoisture = Math.round(nodes.reduce((s, n) => s + n.moisture, 0) / nodes.length);
+    text += `Average moisture is ${avgMoisture} percent. `;
+    const avgTemp = (nodes.reduce((s, n) => s + n.temperature, 0) / nodes.length).toFixed(1);
+    text += `Average temperature is ${avgTemp} degrees. `;
+  }
+
+  return speak(text, lang, options);
 }

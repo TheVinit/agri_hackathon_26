@@ -29,9 +29,8 @@ export default function FarmMap() {
 
   const statusColor = (s) => s === 'ok' ? COLORS.success : s === 'warning' ? COLORS.warning : s === 'offline' ? COLORS.textMuted : COLORS.danger;
   const statusLabel = (s) => s === 'ok' ? 'Good' : s === 'warning' ? 'Warning' : s === 'offline' ? 'Offline' : 'Critical';
-
   return (
-    <View style={styles.root}>
+    <ScrollView style={styles.root} stickyHeaderIndices={[0]} showsVerticalScrollIndicator={false}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
@@ -48,7 +47,7 @@ export default function FarmMap() {
       </View>
 
       {/* Map */}
-      <View style={styles.mapContainer}>
+      <View style={[styles.mapContainer, { height: 500 }]}> 
         {Platform.OS === 'web' ? (
           <>
             {!mapLoaded && (
@@ -98,10 +97,9 @@ export default function FarmMap() {
         <View style={styles.infoPanel}>
           <View style={styles.infoPanelHeader}>
             <Text style={styles.infoPanelTitle}>{selectedNode.label}</Text>
-            <View style={[styles.statusBadge, { backgroundColor: statusColor(selectedNode.status) + '20' }]}>
-              <View style={[styles.dot, { backgroundColor: statusColor(selectedNode.status) }]} />
-              <Text style={[styles.statusBadgeTxt, { color: statusColor(selectedNode.status) }]}>{statusLabel(selectedNode.status)}</Text>
-            </View>
+            <TouchableOpacity onPress={() => setSelectedNode(null)}>
+               <MaterialCommunityIcons name="close" size={20} color={COLORS.textMuted} />
+            </TouchableOpacity>
           </View>
           <View style={styles.infoPanelMetrics}>
             <MetricTile icon="water-percent" label="Moisture" value={selectedNode.moisture != null ? `${selectedNode.moisture}%` : '--'} color={selectedNode.status === 'offline' ? COLORS.textMuted : COLORS.primary} />
@@ -111,36 +109,41 @@ export default function FarmMap() {
       )}
 
       {/* Node Cards */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.nodeScroll} contentContainerStyle={styles.nodeScrollContent}>
-        {DEMO_NODES.map(n => (
-          <TouchableOpacity
-            key={n.id}
-            style={[styles.nodeCard, selectedNode?.id === n.id && styles.nodeCardActive, n.status === 'offline' && styles.nodeCardOffline]}
-            onPress={() => setSelectedNode(selectedNode?.id === n.id ? null : n)}
-            activeOpacity={0.8}
-          >
-            <View style={styles.nodeCardTop}>
-              <Text style={styles.nodeCardTitle}>{n.label}</Text>
-              <View style={[styles.nodeBadge, { backgroundColor: statusColor(n.status) + '20' }]}>
-                <View style={[styles.dot, { backgroundColor: statusColor(n.status) }]} />
+      <View style={styles.nodeScrollWrap}>
+        <Text style={styles.nodeScrollHeader}>Field Sensors</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.nodeScroll} contentContainerStyle={styles.nodeScrollContent}>
+          {DEMO_NODES.map(n => (
+            <TouchableOpacity
+              key={n.id}
+              style={[styles.nodeCard, selectedNode?.id === n.id && styles.nodeCardActive, n.status === 'offline' && styles.nodeCardOffline]}
+              onPress={() => setSelectedNode(selectedNode?.id === n.id ? null : n)}
+              activeOpacity={0.8}
+            >
+              <View style={styles.nodeCardTop}>
+                <Text style={styles.nodeCardTitle}>{n.label}</Text>
+                <View style={[styles.nodeBadge, { backgroundColor: statusColor(n.status) + '20' }]}>
+                  <View style={[styles.dot, { backgroundColor: statusColor(n.status) }]} />
+                </View>
               </View>
-            </View>
-            <Text style={styles.nodeCardMoisture}>
-              {n.moisture != null ? `${n.moisture}%` : '—'}
-            </Text>
-            <Text style={styles.nodeCardLabel}>
-              {n.status === 'offline' ? 'Offline' : 'Moisture'}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+              <Text style={styles.nodeCardMoisture}>
+                {n.moisture != null ? `${n.moisture}%` : '—'}
+              </Text>
+              <Text style={styles.nodeCardLabel}>
+                {n.status === 'offline' ? 'Offline' : 'Moisture'}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
 
       {/* OSM Attribution */}
       <View style={styles.attribution}>
         <MaterialCommunityIcons name="map" size={12} color={COLORS.textMuted} />
         <Text style={styles.attributionTxt}>Map data © OpenStreetMap contributors</Text>
       </View>
-    </View>
+      
+      <View style={{ height: 100 }} />
+    </ScrollView>
   );
 }
 
@@ -183,6 +186,8 @@ const styles = StyleSheet.create({
   metricVal: { fontSize: 16, fontWeight: '900' },
   metricLabel: { fontSize: 11, color: COLORS.textMuted, fontWeight: '600' },
 
+  nodeScrollWrap: { marginTop: 10 },
+  nodeScrollHeader: { fontSize: 13, fontWeight: '800', color: COLORS.textMuted, marginLeft: 20, marginBottom: 8, textTransform: 'uppercase' },
   nodeScroll: { maxHeight: 130 },
   nodeScrollContent: { paddingHorizontal: 16, paddingVertical: 12, gap: 12 },
   nodeCard: { width: 120, backgroundColor: COLORS.surface, borderRadius: 18, padding: 14, borderWidth: 1.5, borderColor: COLORS.divider, ...SHADOWS.soft },
