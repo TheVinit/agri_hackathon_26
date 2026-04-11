@@ -62,4 +62,4 @@ git pull origin app-foundation_vinit
 ---
 
 *Developed for the Agri Hackathon 2026*
-**AgriPulse - Empowering Farmers with Data.**
+**AgriPulse - Empowering Farmers with Data.hi......**
