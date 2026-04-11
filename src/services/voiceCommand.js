@@ -1,8 +1,18 @@
 // src/services/voiceCommand.js
 // Voice Command Recognition for AgriPulse
 // Web: Web Speech API (SpeechRecognition)
-// Native: expo-speech-recognition (if available) → graceful fallback
+// Native: expo-speech-recognition
 import { Platform } from 'react-native';
+
+// Optional native import
+let ExpoSpeechRecognition = null;
+if (Platform.OS !== 'web') {
+  try {
+    ExpoSpeechRecognition = require('expo-speech-recognition').ExpoSpeechRecognition;
+  } catch (e) {
+    console.warn('[Voice] Native speech recognition module not found. Voice commands may be limited.');
+  }
+}
 
 // ─── Intent Map ────────────────────────────────────────────────
 // Maps spoken phrases → action tokens (multi-language)
@@ -11,14 +21,14 @@ const INTENTS = [
     action: 'navigate_home',
     keywords: [
       'home', 'होम', 'मुख्य', 'dashboard', 'डैशबोर्ड', 'मुख्यपृष्ठ', 'घर',
-      'मुख्य पृष्ठ', 'घरी जा',
+      'मुख्य पृष्ठ', 'घरी जा', 'वापस', 'back',
     ],
   },
   {
     action: 'navigate_advisory',
     keywords: [
       'advisory', 'सलाह', 'सल्ला', 'counsel', 'advice', 'farming advice',
-      'farming advisory', 'कृषि सलाह', 'कृषी सल्ला', 'tip', 'tips',
+      'farming advisory', 'कृषि सलाह', 'कृषी सल्ला', 'tip', 'tips', 'मदद', 'help',
     ],
   },
   {
@@ -81,70 +91,90 @@ export function parseIntent(transcript) {
   return { action: 'unknown', transcript, confidence: 0 };
 }
 
-// ─── Web Speech Recognition wrapper ────────────────────────────
-let recognitionInstance = null;
+// ─── Recognition state ──────────────────────────────────────────
+let webRecognitionInstance = null; 
 
 export function isVoiceSupported() {
   if (Platform.OS === 'web') {
     return typeof window !== 'undefined' &&
       (window.SpeechRecognition || window.webkitSpeechRecognition);
   }
-  // Native: check expo-speech-recognition or Voice module
-  return false; // graceful degradation
+  // On native, supported if the module loaded OR we have fallback logic
+  return !!ExpoSpeechRecognition; 
 }
 
+// ─── Start Listening ────────────────────────────────────────────
 export function startListening({ lang = 'hi-IN', onResult, onError, onEnd }) {
-  if (Platform.OS !== 'web') {
-    if (onError) onError(new Error('Voice commands are web-only in this build'));
-    return;
+  if (Platform.OS === 'web') {
+    return startWebListening({ lang, onResult, onError, onEnd });
+  } else {
+    return startNativeListening({ lang, onResult, onError, onEnd });
   }
+}
 
-  const SpeechRecognition =
-    window.SpeechRecognition || window.webkitSpeechRecognition;
-
+// ─── Web Implementation ─────────────────────────────────────────
+function startWebListening({ lang, onResult, onError, onEnd }) {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) {
     if (onError) onError(new Error('SpeechRecognition not supported'));
     return;
   }
-
   stopListening();
-
   const recognition = new SpeechRecognition();
-  recognitionInstance = recognition;
-
+  webRecognitionInstance = recognition;
   recognition.continuous = false;
   recognition.interimResults = false;
   recognition.lang = lang;
-  recognition.maxAlternatives = 3;
-
   recognition.onresult = (event) => {
-    const results = Array.from(event.results);
-    const transcripts = results.flatMap(r => Array.from(r).map(alt => alt.transcript));
-    const best = transcripts[0] || '';
+    const best = event.results[0][0].transcript;
     const intent = parseIntent(best);
-    if (onResult) onResult({ transcript: best, intent, all: transcripts });
+    if (onResult) onResult({ transcript: best, intent });
   };
-
-  recognition.onerror = (event) => {
-    if (onError) onError(new Error(event.error));
-  };
-
-  recognition.onend = () => {
-    recognitionInstance = null;
-    if (onEnd) onEnd();
-  };
-
+  recognition.onerror = (event) => { if (onError) onError(new Error(event.error)); };
+  recognition.onend = () => { webRecognitionInstance = null; if (onEnd) onEnd(); };
   recognition.start();
 }
 
-export function stopListening() {
-  if (recognitionInstance) {
-    try { recognitionInstance.stop(); } catch (_) {}
-    recognitionInstance = null;
+// ─── Native Implementation ──────────────────────────────────────
+async function startNativeListening({ lang, onResult, onError, onEnd }) {
+  try {
+    if (!ExpoSpeechRecognition) throw new Error('Speech recognition not available on this device');
+
+    const { status } = await ExpoSpeechRecognition.requestPermissionsAsync();
+    if (status !== 'granted') throw new Error('Microphone permission denied');
+
+    ExpoSpeechRecognition.start({
+      lang,
+      interimResults: false,
+      onResult: (event) => {
+        const best = event.results[0]?.transcript || '';
+        const intent = parseIntent(best);
+        if (onResult) onResult({ transcript: best, intent });
+      },
+      onError: (event) => { if (onError) onError(new Error(event.error)); },
+      onEnd: () => {
+        if (onEnd) onEnd();
+      },
+    });
+  } catch (err) {
+    console.warn('[Voice] Native listener error:', err.message);
+    if (onError) onError(err);
   }
 }
 
-// ─── Lang code helper ──────────────────────────────────────────
+export function stopListening() {
+  if (Platform.OS === 'web') {
+    if (webRecognitionInstance) {
+      try { webRecognitionInstance.stop(); } catch (_) {}
+      webRecognitionInstance = null;
+    }
+  } else {
+    try {
+      if (ExpoSpeechRecognition) ExpoSpeechRecognition.stop();
+    } catch (_) {}
+  }
+}
+
 export function getRecognitionLang(appLang) {
   const map = { hi: 'hi-IN', en: 'en-IN', mr: 'mr-IN' };
   return map[appLang] || 'hi-IN';

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Pressable, StatusBar,
-  Animated, ScrollView, RefreshControl, Platform, Modal,
+  Animated, ScrollView, RefreshControl, Platform, Modal, TextInput
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -458,6 +458,7 @@ export default function Dashboard({ navigation, virtualNodes = [] }) {
   const slideAnim = useRef(new Animated.Value(30)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const pulseLoop = useRef(null);
+  const fallbackInput = useRef(null);
 
   useEffect(() => {
     fetchData();
@@ -574,10 +575,19 @@ export default function Dashboard({ navigation, virtualNodes = [] }) {
               </TouchableOpacity>
             </View>
             
-            {voiceSupported && (
+            {voiceSupported ? (
               <TouchableOpacity style={styles.voiceCtrlBtn} onPress={() => setVoiceOpen(true)} activeOpacity={0.85}>
                 <MaterialCommunityIcons name="microphone-settings" size={18} color={COLORS.primary} />
                 <Text style={styles.voiceCtrlTxt}>{t('आवाज़ से पूछें', 'Ask by Voice', 'आवाजाने विचारा')}</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity 
+                style={styles.voiceCtrlBtn} 
+                onPress={() => fallbackInput.current?.focus()} 
+                activeOpacity={0.85}
+              >
+                <MaterialCommunityIcons name="keyboard-outline" size={18} color={COLORS.primary} />
+                <Text style={styles.voiceCtrlTxt}>{t('मदद चाहिए?', 'Need Help?', 'मदत हवी आहे?')}</Text>
               </TouchableOpacity>
             )}
           </LinearGradient>
@@ -587,7 +597,7 @@ export default function Dashboard({ navigation, virtualNodes = [] }) {
         <Animated.View style={[styles.section, styles.actionGrid, { opacity: fadeAnim }]}>
           {[
             { icon: 'leaf', color: COLORS.primary, bg: COLORS.primaryPale, label: t('सलाह', 'Advice', 'सल्ला'), sub: t('सिंचाई / खाद', 'Water & Food', 'पाणी/खत'), screen: 'AdvisoryTab' },
-            { icon: 'flask', color: '#6366F1', bg: 'rgba(99,102,241,0.1)', label: t('मिट्टी', 'Soil', 'माती'), sub: t('जाँच रिपोर्ट', 'Test Report', 'तपासणी'), screen: 'MoreTab' },
+            { icon: 'flask', color: '#6366F1', bg: 'rgba(99,102,241,0.1)', label: t('मिट्टी', 'Soil', 'माती'), sub: t('जाँच रिपोर्ट', 'Test Report', 'तपासणी'), screen: 'AnalyticsTab' },
             { icon: 'map-marker-radius', color: '#F59E0B', bg: '#FFF8EC', label: t('नक्शा', 'Map', 'नकाशा'), sub: t('खेत देखें', 'View Farm', 'शेत पहा'), screen: 'MapTab' },
             { icon: 'robot-happy', color: '#059669', bg: '#ECFDF5', label: t('AI सहायक', 'AI Talk', 'AI सहाय्यक'), sub: t('सवाल पूछें', 'Ask AI', 'AI विचारा'), screen: 'AITab' },
           ].map((a, i) => (
@@ -665,6 +675,16 @@ export default function Dashboard({ navigation, virtualNodes = [] }) {
       </ScrollView>
 
       <VoiceCommandModal visible={voiceOpen} onClose={() => setVoiceOpen(false)} lang={lang} onIntent={handleVoiceIntent} t={t} />
+      
+      {/* Hidden fallback for Expo Go voice input */}
+      <TextInput 
+        ref={fallbackInput}
+        style={{ height: 0, width: 0, opacity: 0, position: 'absolute' }}
+        onSubmitEditing={(e) => {
+          const txt = e.nativeEvent.text;
+          if (txt) handleVoiceIntent({ action: 'forward_to_ai', transcript: txt });
+        }}
+      />
     </View>
   );
 }

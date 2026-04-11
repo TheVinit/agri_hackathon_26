@@ -32,7 +32,9 @@
     "plugins": [
       "expo-asset",
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-location",
+      "expo-speech-recognition"
     ]
   }
 }

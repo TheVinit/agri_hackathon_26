@@ -149,7 +149,7 @@ export default function AnalyticsScreen({ navigation }) {
           <NPKBar npkValues={{ N: 45, P: 28, K: 60, pH: 6.8 }} />
           <View style={styles.npkFooter}>
             <Text style={[TEXT_STYLES.small, { color: COLORS.textMuted }]}>Last tested: 2 days ago</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('NPKTest')}>
+            <TouchableOpacity onPress={() => navigation.navigate('NPKTestMore')}>
               <Text style={[TEXT_STYLES.h4, { color: COLORS.primary }]}>Run New Test →</Text>
             </TouchableOpacity>
           </View>

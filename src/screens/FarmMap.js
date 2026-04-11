@@ -113,7 +113,7 @@ export default function FarmMap() {
             
             return (
               <TouchableOpacity 
-                key={i} 
+                key={`zone-grid-${i}`} 
                 style={[styles.gridCell, { backgroundColor: zone.bg, borderColor: zone.color + '15' }]}
                 onPress={() => navigation.navigate('ZoneDetail', { zoneId: node?.id || i, zoneTitle: zone.dirEn })}
               >
@@ -141,9 +141,9 @@ export default function FarmMap() {
         <View style={styles.legendBlock}>
           <Text style={styles.legendHeader}>{t('संकेत', 'Legend', 'संकेत')}</Text>
           <View style={styles.legendRows}>
-            <LegendRow color={COLORS.success} text={t('ठीक (Healthy)', 'Good (Healthy)', 'उत्तम (चांगले)')} />
-            <LegendRow color={COLORS.warning} text={t('ध्यान दें (Warning)', 'Warning', 'लक्ष द्या (इशारा)')} />
-            <LegendRow color={COLORS.danger} text={t('खतरा (Danger)', 'Critical', 'धोका (गंभीर)')} />
+            <LegendRow key="ok" color={COLORS.success} text={t('ठीक (Healthy)', 'Good (Healthy)', 'उत्तम (चांगले)')} />
+            <LegendRow key="warn" color={COLORS.warning} text={t('ध्यान दें (Warning)', 'Warning', 'लक्ष द्या (इशारा)')} />
+            <LegendRow key="crit" color={COLORS.danger} text={t('खतरा (Danger)', 'Critical', 'धोका (गंभीर)')} />
           </View>
         </View>
 

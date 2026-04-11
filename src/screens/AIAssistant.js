@@ -155,7 +155,7 @@ function FarmContextBar({ farmData, lang }) {
 }
 
 // ── Proactive Analysis card (shown on first load) ─────────────────────────────
-function AnalysisCard({ analysis, lang, onSuggest }) {
+function AnalysisCard({ analysis, lang, onSuggest, onStartVoice, listening }) {
   const scaleAnim = useRef(new Animated.Value(0.92)).current;
   const opacAnim  = useRef(new Animated.Value(0)).current;
   const [expanded, setExpanded] = useState(true);
@@ -220,10 +220,19 @@ function AnalysisCard({ analysis, lang, onSuggest }) {
           </>
         )}
 
-        {/* Footer */}
-        <Text style={styles.analysisFooter}>
-          {lang === 'hi' ? '⬇️ नीचे सवाल पूछें या माइक दबाएं' : lang === 'mr' ? '⬇️ खाली प्रश्न विचारा किंवा माईक दाबा' : '⬇️ Ask a question below or tap the mic'}
-        </Text>
+        {/* Big Prominent Voice Button */}
+        <TouchableOpacity 
+          style={[styles.bigVoiceBtn, listening && { borderColor: '#EF4444', backgroundColor: 'rgba(239,68,68,0.1)' }]} 
+          onPress={onStartVoice}
+          activeOpacity={0.85}
+        >
+          <MaterialCommunityIcons name={listening ? 'microphone' : 'microphone-outline'} size={28} color={listening ? '#EF4444' : COLORS.primary} />
+          <Text style={[styles.bigVoiceBtnTxt, listening && { color: '#EF4444' }]}>
+            {listening 
+              ? (lang === 'hi' ? 'बोल रहे हैं (रोकने के लिए दबाएं)...' : lang === 'mr' ? 'बोलत आहात...' : 'Listening (tap to stop)...')
+              : (lang === 'hi' ? 'सवाल पूछने के लिए माइक दबाएं' : lang === 'mr' ? 'प्रश्न विचारण्यासाठी माईक दाबा' : 'Tap Mic to Ask a Question')}
+          </Text>
+        </TouchableOpacity>
       </LinearGradient>
     </Animated.View>
   );
@@ -289,6 +298,7 @@ export default function AIAssistant({ route, navigation }) {
   const [farmData,     setFarmData]     = useState(null);
   const [analysis,     setAnalysis]     = useState(null);
   const [suggestions,  setSuggestions]  = useState([]);
+  const keyboardInput = useRef(null);
   const [autoSpeak,    setAutoSpeak]    = useState(true);
   const scrollRef  = useRef(null);
   const inputRef   = useRef(null);
@@ -369,7 +379,18 @@ export default function AIAssistant({ route, navigation }) {
 
   // ── Voice input ───────────────────────────────────────────────────────
   const startVoice = () => {
-    if (!isVoiceSupported()) { alert(lang === 'hi' ? 'इस ब्राउज़र में आवाज़ उपलब्ध नहीं है' : 'Voice not supported in this browser'); return; }
+    if (!isVoiceSupported()) { 
+      // FALLBACK FOR EXPO GO: Use the system keyboard's microphone!
+      if (keyboardInput.current) {
+        keyboardInput.current.focus();
+        // Give a subtle hint
+        const msg = lang === 'hi' 
+          ? 'मैने कीबोर्ड खोल दिया है, आप माइक बटन दबाकर बोल सकते हैं' 
+          : 'Keyboard opened. Tap the mic icon on your keyboard to speak!';
+        console.log(msg);
+      }
+      return; 
+    }
     setListening(true);
     pulseLoop.current = Animated.loop(Animated.sequence([
       Animated.timing(pulseAnim, { toValue: 1.3, duration: 500, useNativeDriver: true }),
@@ -456,7 +477,7 @@ export default function AIAssistant({ route, navigation }) {
         onContentSizeChange={scrollToEnd}
       >
         {/* Proactive analysis card */}
-        {analysis && <AnalysisCard analysis={analysis} lang={lang} onSuggest={sendMessage} />}
+        {analysis && <AnalysisCard analysis={analysis} lang={lang} onSuggest={sendMessage} onStartVoice={listening ? stopVoice : startVoice} listening={listening} />}
 
         {/* Dynamic suggestions (shown above messages) */}
         {messages.length === 0 && suggestions.length > 0 && (
@@ -484,8 +505,12 @@ export default function AIAssistant({ route, navigation }) {
       </ScrollView>
 
       {/* ── Input bar ── */}
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        {/* Listening bar */}
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
+        style={{ backgroundColor: COLORS.surface }} // Ensure it stays opaque and visible
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      >
+        {/* Listening banner */}
         {listening && (
           <View style={styles.listeningBanner}>
             <VoiceWave active={listening} />
@@ -516,7 +541,7 @@ export default function AIAssistant({ route, navigation }) {
 
           {/* Text input */}
           <TextInput
-            ref={inputRef}
+            ref={keyboardInput}
             style={styles.textInput}
             value={input}
             onChangeText={setInput}
@@ -598,7 +623,9 @@ const styles = StyleSheet.create({
   actionEmoji: { fontSize: 18, marginTop: 1 },
   actionTitle: { fontSize: 13, fontWeight: '800', color: COLORS.text, marginBottom: 2 },
   actionDetail: { fontSize: 12, color: COLORS.textSecondary, lineHeight: 17 },
-  analysisFooter: { fontSize: 12, color: COLORS.textMuted, textAlign: 'center', fontWeight: '600' },
+  
+  bigVoiceBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 14, marginTop: 14, backgroundColor: 'rgba(255,255,255,0.7)', borderRadius: 16, borderWidth: 2, borderColor: COLORS.primary + '50' },
+  bigVoiceBtnTxt: { fontSize: 14, fontWeight: '800', color: COLORS.primary },
 
   // Suggestions
   suggestWrap: { gap: 6 },

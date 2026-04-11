@@ -13,6 +13,7 @@ import { COLORS, SHADOWS } from '../theme';
 import { extractFarmerProfile, extractFarmHistory, getOnboardingPrompt } from '../services/groq';
 import { startListening, stopListening, getRecognitionLang, isVoiceSupported } from '../services/voiceCommand';
 import { speak, stopSpeaking } from '../services/tts';
+import * as Location from 'expo-location';
 
 const STEPS = ['welcome', 'language', 'profile', 'location', 'history'];
 
@@ -386,23 +387,27 @@ function LocationStep({ t, lang, data, set }) {
     return () => stopSpeaking();
   }, [lang]);
 
-  const getLocation = () => {
+  const getLocation = async () => {
     setLoading(true); setError('');
-    if (typeof navigator !== 'undefined' && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          set('lat', pos.coords.latitude);
-          set('lng', pos.coords.longitude);
-          reverseGeocode(pos.coords.latitude, pos.coords.longitude);
-          setLoading(false);
-        },
-        () => { setError(t('अनुमति नहीं मिली', 'Permission denied', 'परवानगी नाकारली')); setLoading(false); },
-        { timeout: 10000 }
-      );
-    } else {
+    try {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setError(t('अनुमति नहीं मिली', 'Permission denied', 'परवानगी नाकारली'));
+        setLoading(false);
+        return;
+      }
+
+      let location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+
+      set('lat', location.coords.latitude);
+      set('lng', location.coords.longitude);
+      reverseGeocode(location.coords.latitude, location.coords.longitude);
+    } catch (e) {
       setError(t('GPS उपलब्ध नहीं', 'GPS not available', 'GPS उपलब्ध नाही'));
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   const reverseGeocode = async (lat, lng) => {

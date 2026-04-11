@@ -36,6 +36,13 @@ export async function stopSpeaking() {
       nativeSound = null;
     }
   } catch (_) {}
+  
+  if (Platform.OS !== 'web') {
+    try {
+      const Speech = await import('expo-speech');
+      Speech.stop();
+    } catch (_) {}
+  }
 }
 
 // ── Speak (main export) ─────────────────────────────────
@@ -116,9 +123,9 @@ async function fetchSarvamBase64(text, langCode) {
       target_language_code: langCode,
       speaker: 'meera',
       pitch: 0,
-      pace: 0.88,
+      pace: 1.0,
       loudness: 1.5,
-      speech_sample_rate: 22050,
+      speech_sample_rate: 8000,
       enable_preprocessing: true,
       model: 'bulbul:v1',
     }),
@@ -210,9 +217,20 @@ function fallbackSpeak(text, lang, { onDone, onError }) {
     utterance.onerror = () => { if (onError) onError(new Error('SpeechSynthesis error')); };
     window.speechSynthesis.speak(utterance);
   } else {
-    // Native: expo-speech fallback (install expo-speech if needed)
-    console.warn('[TTS] Native fallback: install expo-speech for offline TTS');
-    if (onDone) setTimeout(onDone, 500);
+    // Native: expo-speech fallback
+    import('expo-speech').then((Speech) => {
+      Speech.speak(text, {
+        language: lang,
+        pitch: 1.0,
+        rate: 0.9,
+        onDone: () => { if (onDone) onDone(); },
+        onStopped: () => { if (onDone) onDone(); },
+        onError: (err) => { if (onError) onError(err); }
+      });
+    }).catch(err => {
+      console.warn('[TTS] Failed to import expo-speech:', err.message);
+      if (onDone) setTimeout(onDone, 500);
+    });
   }
 }
 
