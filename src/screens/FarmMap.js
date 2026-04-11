@@ -106,9 +106,12 @@ export default function FarmMap() {
       <Animated.View style={{ opacity: fadeAnim, padding: 24, paddingTop: 0 }}>
         <View style={styles.farmGrid}>
           {ZONE_LABELS.slice(0, 4).map((zone, i) => {
-            const node = nodes[i];
+            // AUTHENTIC MAPPING: Fixes data ambiguity by finding the specific node for each zone
+            const zoneIds = { 'North': 1, 'South': 2, 'East': 3, 'West': 4 };
+            const node = nodes.find(n => n.node_id === zoneIds[zone.dirEn] || n.name?.includes(zone.dirEn));
+            
             const statusColor = node ? getStatusColor(node.status) : COLORS.divider;
-            const isOk = node?.status === 'green';
+            const isOk = node?.status === 'ok';
             const nodeTitle = lang === 'hi' ? zone.dir : (lang === 'mr' ? zone.dirMr : zone.dirEn);
             
             return (
@@ -131,7 +134,12 @@ export default function FarmMap() {
                         <Text style={styles.statusBadgeText}>{isOk ? 'OK' : '!!'}</Text>
                       </View>
                     </>
-                  ) : <Skeleton width={50} height={15} />}
+                  ) : (
+                    <View style={styles.awaitingWrap}>
+                      <MaterialCommunityIcons name="cloud-sync" size={12} color={COLORS.textMuted} />
+                      <Text style={styles.awaitingText}>{t('प्रतीक्षारत', 'Awaiting', 'प्रतिक्षा')}</Text>
+                    </View>
+                  )}
                 </View>
               </TouchableOpacity>
             );
@@ -252,6 +260,8 @@ const styles = StyleSheet.create({
   gridMetric: { fontSize: 14, fontWeight: '700', color: COLORS.text },
   statusBadge: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8 },
   statusBadgeText: { fontSize: 9, fontWeight: '900', color: '#fff' },
+  awaitingWrap: { flexDirection: 'row', alignItems: 'center', gap: 4, opacity: 0.6 },
+  awaitingText: { fontSize: 10, fontWeight: '700', color: COLORS.textMuted },
 
   legendBlock: { 
     backgroundColor: COLORS.surface, borderRadius: 24, padding: 20, marginBottom: 24,
