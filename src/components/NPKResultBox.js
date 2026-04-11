@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text, Surface } from 'react-native-paper';
-import { COLORS, SHADOWS, GAPS, FONTS } from '../theme';
+import { COLORS, SHADOWS, GAPS, FONTS, RADIUS, TEXT_STYLES } from '../theme';
 
 export default function NPKResultBox({ nutrient, value, threshold, unit }) {
   const isLow = value < threshold.min;
@@ -10,12 +10,11 @@ export default function NPKResultBox({ nutrient, value, threshold, unit }) {
 
   const bgColor = isAlert ? '#FFF5F5' : '#F1F8E9';
   const textColor = isAlert ? COLORS.error : COLORS.primary;
-  const borderColor = isAlert ? '#FFCDD2' : '#C8E6C9';
   const badgeColor = isAlert ? COLORS.error : COLORS.accent;
   const badgeLabel = isLow ? 'LOW' : isHigh ? 'HIGH' : 'OK';
 
   return (
-    <Surface style={[styles.box, { backgroundColor: bgColor, borderColor }]}>
+    <Surface style={[styles.box, { backgroundColor: bgColor }]}>
       <View style={[styles.badge, { backgroundColor: badgeColor }]}>
         <Text style={styles.badgeText}>{badgeLabel}</Text>
       </View>
@@ -45,13 +44,12 @@ const styles = StyleSheet.create({
   box: {
     flex: 1,
     margin: 8,
-    borderRadius: 8,
-    borderWidth: 1.5,
+    borderRadius: RADIUS.lg,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 24,
     paddingHorizontal: 12,
-    ...SHADOWS.technical,
+    ...SHADOWS.md,
   },
   badge: {
     position: 'absolute',
@@ -66,7 +64,7 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: '900',
     letterSpacing: 1,
-    fontFamily: FONTS.mono,
+    fontFamily: TEXT_STYLES.h4.fontFamily,
   },
   header: {
     alignItems: 'center',
@@ -86,7 +84,7 @@ const styles = StyleSheet.create({
   },
   idBadgeText: {
     fontSize: 7,
-    fontFamily: FONTS.mono,
+    fontFamily: TEXT_STYLES.h4.fontFamily,
     color: COLORS.textSecondary,
     fontWeight: '800',
   },

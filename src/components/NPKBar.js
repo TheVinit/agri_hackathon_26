@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Surface, Text } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
-import { COLORS, SHADOWS, GAPS, FONTS } from '../theme';
+import { COLORS, SHADOWS, GAPS, FONTS, RADIUS, TEXT_STYLES } from '../theme';
 
 const DEFAULT_THRESHOLDS = {
   N: { min: 50 },
@@ -76,11 +76,9 @@ const styles = StyleSheet.create({
     marginTop: GAPS.lg,
     marginBottom: GAPS.xl,
     padding: 24,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#E0E7E5',
+    borderRadius: RADIUS.lg,
     backgroundColor: COLORS.white,
-    ...SHADOWS.technical,
+    ...SHADOWS.md,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -103,7 +101,7 @@ const styles = StyleSheet.create({
   },
   idBadgeText: {
     fontSize: 8,
-    fontFamily: FONTS.mono,
+    fontFamily: TEXT_STYLES.h4.fontFamily,
     color: COLORS.accent,
     fontWeight: '900',
   },

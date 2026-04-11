@@ -1,6 +1,6 @@
 // src/navigation/AppNavigator.js
 // Production-grade navigation — Bottom Tabs with custom tab bar + floating AI FAB
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, Platform,
   StyleSheet, Animated, Dimensions,
@@ -10,6 +10,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, SHADOWS } from '../theme';
 import { useLang } from '../context/LanguageContext';
 import { useNotifications } from '../context/NotificationContext';
@@ -24,10 +25,13 @@ import OnboardingScreen    from '../screens/OnboardingScreen';
 import AIAssistant         from '../screens/AIAssistant';
 import NodeSetupScreen     from '../screens/NodeSetupScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
+import SplashScreen        from '../screens/SplashScreen';
+import AnalyticsScreen     from '../screens/AnalyticsScreen';
+import AlertsScreen        from '../screens/AlertsScreen';
+import ZoneDetailScreen    from '../screens/ZoneDetailScreen';
 
 const Tab   = createBottomTabNavigator();
 const Stack = createStackNavigator();
-
 const { width: W } = Dimensions.get('window');
 
 // ── Custom bottom tab bar ─────────────────────────────────────────────────────
@@ -36,11 +40,11 @@ function CustomTabBar({ state, descriptors, navigation }) {
   const { t } = useLang();
 
   const TABS = [
-    { name: 'HomeTab',     icon: 'home',             iconActive: 'home',            label: t('होम','Home','होम') },
+    { name: 'HomeTab',     icon: 'home-outline',             iconActive: 'home',            label: t('होम','Home','होम') },
     { name: 'AdvisoryTab', icon: 'book-open-outline', iconActive: 'book-open-variant', label: t('सलाह','Advice','सल्ला') },
     { name: 'AITab',       icon: null,               iconActive: null,              label: t('AI','AI','AI') }, // center FAB
     { name: 'MapTab',      icon: 'map-marker-outline', iconActive: 'map-marker',    label: t('नक्शा','Map','नकाशा') },
-    { name: 'MoreTab',     icon: 'flask-round-bottom-outline', iconActive: 'flask-round-bottom', label: t('जाँच','Test','परीक्षण') },
+    { name: 'AnalyticsTab',icon: 'chart-box-outline', iconActive: 'chart-box', label: t('विश्लेषण','Analytics','विश्लेषण') },
   ];
 
   return (
@@ -48,7 +52,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
       <View style={tb.bar}>
         {state.routes.map((route, index) => {
           const isFocused   = state.index === index;
-          const tabDef      = TABS[index];
+          const tabDef      = TABS[index] || TABS[0];
           const isCenter    = route.name === 'AITab';
 
           const onPress = () => {
@@ -142,7 +146,6 @@ const tb = StyleSheet.create({
 
 // ── Main Tab Stack ────────────────────────────────────────────────────────────
 function MainTabs({ farmer, onLogout, virtualNodes }) {
-  const { t } = useLang();
   return (
     <Tab.Navigator
       tabBar={(props) => <CustomTabBar {...props} />}
@@ -154,7 +157,7 @@ function MainTabs({ farmer, onLogout, virtualNodes }) {
       <Tab.Screen name="AdvisoryTab"  component={Advisory} />
       <Tab.Screen name="AITab"        component={AIAssistant} />
       <Tab.Screen name="MapTab"       component={FarmMap} />
-      <Tab.Screen name="MoreTab"      component={NPKTest} />
+      <Tab.Screen name="AnalyticsTab" component={AnalyticsScreen} />
     </Tab.Navigator>
   );
 }
@@ -205,13 +208,13 @@ function AppHeader({ navigation, farmer, onLogout }) {
         <View style={ah.actions}>
           {/* Lang toggle */}
           <TouchableOpacity style={ah.actionBtn} onPress={toggleLang}>
-            <Text style={ah.langTxt}>{LANG_FLAGS[lang]}</Text>
+            <Text style={ah.langTxt}>{LANG_FLAGS[lang] || 'EN'}</Text>
           </TouchableOpacity>
 
           {/* Notifications */}
           <TouchableOpacity
             style={ah.actionBtn}
-            onPress={() => navigation?.navigate && navigation.navigate('Notifications')}
+            onPress={() => navigation?.navigate && navigation.navigate('Alerts')}
           >
             <MaterialCommunityIcons name="bell-outline" size={22} color={COLORS.textSecondary} />
             {unreadCount > 0 && (
@@ -238,6 +241,11 @@ function AppHeader({ navigation, farmer, onLogout }) {
             <Text style={ah.menuItemTxt}>{farmer?.name || 'Farmer'}</Text>
           </TouchableOpacity>
           <View style={ah.menuDivider} />
+          <TouchableOpacity style={ah.menuItem} onPress={() => { toggleMenu(); navigation.navigate('__ADMIN__'); }}>
+            <MaterialCommunityIcons name="shield-account" size={18} color={COLORS.warning} />
+            <Text style={[ah.menuItemTxt, { color: COLORS.warning }]}>Admin Mode</Text>
+          </TouchableOpacity>
+          <View style={ah.menuDivider} />
           <TouchableOpacity style={ah.menuItem} onPress={() => { toggleMenu(); onLogout(); }}>
             <MaterialCommunityIcons name="logout" size={18} color={COLORS.danger} />
             <Text style={[ah.menuItemTxt, { color: COLORS.danger }]}>{t('लॉगआउट', 'Logout', 'बाहेर जा')}</Text>
@@ -253,7 +261,7 @@ const ah = StyleSheet.create({
   headerGrad: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 20, paddingVertical: 12,
-    paddingTop: Platform.OS === 'ios' ? 56 : 20,
+    paddingTop: Platform.OS === 'ios' ? 56 : 50,
     borderBottomWidth: 1, borderBottomColor: COLORS.divider,
   },
   left: { flex: 1 },
@@ -268,7 +276,7 @@ const ah = StyleSheet.create({
   avatarGrad: { width: 38, height: 38, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
   avatarTxt: { fontSize: 16, fontWeight: '900', color: '#fff' },
   menu: {
-    position: 'absolute', top: Platform.OS === 'ios' ? 108 : 72, right: 16,
+    position: 'absolute', top: Platform.OS === 'ios' ? 108 : 96, right: 16,
     backgroundColor: COLORS.surface, borderRadius: 16, padding: 8,
     borderWidth: 1, borderColor: COLORS.divider, minWidth: 180,
     ...SHADOWS.premium, zIndex: 999,
@@ -279,7 +287,7 @@ const ah = StyleSheet.create({
 });
 
 // ── Root Navigator with Stack (for Notifications modal push) ──────────────────
-function RootStack({ farmer, onLogout, virtualNodes }) {
+function RootStack({ farmer, onLogout, virtualNodes, onAdminMode }) {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false, cardStyle: { backgroundColor: COLORS.background } }}>
       <Stack.Screen name="Main">
@@ -290,6 +298,24 @@ function RootStack({ farmer, onLogout, virtualNodes }) {
         component={NotificationsScreen}
         options={{ presentation: 'card', gestureEnabled: true }}
       />
+      <Stack.Screen
+        name="Alerts"
+        component={AlertsScreen}
+      />
+      <Stack.Screen
+        name="ZoneDetail"
+        component={ZoneDetailScreen}
+      />
+      <Stack.Screen
+        name="NPKTestMore"
+        component={NPKTest}
+      />
+      <Stack.Screen 
+        name="__ADMIN__"
+        listeners={{ focus: () => onAdminMode() }}
+      >
+        {() => <View />}
+      </Stack.Screen>
     </Stack.Navigator>
   );
 }
@@ -301,20 +327,34 @@ export default function AppNavigator() {
   const [isNewFarmer,  setIsNewFarmer]  = useState(false);
   const [isNodeSetup,  setIsNodeSetup]  = useState(false);
   const [virtualNodes, setVirtualNodes] = useState([]);
-  const { t, setLanguage } = useLang();
+  const [appReady,     setAppReady]     = useState(false);
+  const { setLanguage } = useLang();
 
-  const handleLogout = () => {
+  useEffect(() => {
+    AsyncStorage.getItem('authFarmer').then(res => {
+      if(res) setAuthFarmer(JSON.parse(res));
+      setAppReady(true);
+    });
+  }, []);
+
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem('authFarmer');
     setAuthFarmer(null); setIsNewFarmer(false);
     setIsNodeSetup(false); setVirtualNodes([]);
   };
 
-  const handleLogin = (farmer) => {
+  const handleLogin = async (farmer) => {
     setAuthFarmer(farmer);
     setIsNewFarmer(!farmer.hasProfile);
+    if (farmer.hasProfile) {
+      await AsyncStorage.setItem('authFarmer', JSON.stringify(farmer));
+    }
   };
 
-  const handleOnboardingComplete = (data, lang) => {
-    setAuthFarmer(f => ({ ...f, ...data, hasProfile: true }));
+  const handleOnboardingComplete = async (data, lang) => {
+    const freshFarmer = { ...authFarmer, ...data, hasProfile: true };
+    setAuthFarmer(freshFarmer);
+    await AsyncStorage.setItem('authFarmer', JSON.stringify(freshFarmer));
     if (setLanguage) setLanguage(lang);
     setIsNewFarmer(false);
     setIsNodeSetup(true);
@@ -325,6 +365,8 @@ export default function AppNavigator() {
     setIsNodeSetup(false);
   };
 
+  if (!appReady) return <SplashScreen />;
+
   if (isAdminMode) return <AdminScreen onExitAdmin={() => setIsAdminMode(false)} />;
   if (!authFarmer) return <LoginScreen onLogin={handleLogin} onOpenAdmin={() => setIsAdminMode(true)} />;
   if (isNewFarmer) return <OnboardingScreen onComplete={handleOnboardingComplete} />;
@@ -332,7 +374,7 @@ export default function AppNavigator() {
 
   return (
     <NavigationContainer>
-      <RootStack farmer={authFarmer} onLogout={handleLogout} virtualNodes={virtualNodes} />
+      <RootStack farmer={authFarmer} onLogout={handleLogout} virtualNodes={virtualNodes} onAdminMode={() => setIsAdminMode(true)} />
     </NavigationContainer>
   );
 }

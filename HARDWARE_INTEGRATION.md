@@ -4,19 +4,14 @@
 ---
 
 ### Backend URL
-```
-https://divine-wind-cf72.crazything344.workers.dev/
-```
+https://aekmiuxibmfjiakhkkrc.supabase.co/functions/v1/sensor-data
 
 ---
 
 ### 1. Send Sensor Data (POST every 15 seconds)
 
-**Endpoint:**
-```
-POST /api/sensor-data
+POST https://aekmiuxibmfjiakhkkrc.supabase.co/functions/v1/sensor-data
 Content-Type: application/json
-```
 
 **Payload:**
 ```json
@@ -66,7 +61,7 @@ No auth needed.
 
 const char* ssid      = "YOUR_WIFI_SSID";
 const char* password  = "YOUR_WIFI_PASSWORD";
-const char* serverURL = "https://divine-wind-cf72.crazything344.workers.dev/api/sensor-data";
+const char* serverURL = "https://aekmiuxibmfjiakhkkrc.supabase.co/functions/v1/sensor-data";
 
 const int NODE_ID = 1; // Change per node: 1, 2, 3, or 4
 
@@ -131,7 +126,7 @@ void loop() {
 
 ### 5. Test with cURL
 ```bash
-curl -X POST https://divine-wind-cf72.crazything344.workers.dev/api/sensor-data \
+curl -X POST https://aekmiuxibmfjiakhkkrc.supabase.co/functions/v1/sensor-data \
   -H "Content-Type: application/json" \
   -d '{"farmId":"farm_001","nodeId":1,"moisture":68.4,"temperature":24.6,"ec":1.85,"battery":87}'
 ```

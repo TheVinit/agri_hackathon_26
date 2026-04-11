@@ -3,7 +3,7 @@ import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Text, Surface } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { COLORS, SHADOWS, GAPS } from '../theme';
+import { COLORS, SHADOWS, GAPS, RADIUS } from '../theme';
 
 export default function AdvisoryCard({
   title,
@@ -67,10 +67,10 @@ export default function AdvisoryCard({
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 32, // Increased from 24
-    marginBottom: 24, // Increased from 20
+    borderRadius: RADIUS.xl, // 20
+    marginBottom: 24,
     overflow: 'hidden',
-    ...SHADOWS.medium,
+    ...SHADOWS.md,
   },
   header: {
     flexDirection: 'row',
@@ -107,8 +107,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.25)',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.5)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,

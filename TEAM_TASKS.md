@@ -30,8 +30,8 @@ Since I stripped the keys from the code, Vercel will build the UI correctly, but
 * Log into the **Vercel Dashboard** -> Go to `agri-hackathon` -> **Settings** -> **Environment Variables**.
 * Add these exactly:
   1. `EXPO_PUBLIC_SUPABASE_URL` = `https://aekmiuxibmfjiakhkkrc.supabase.co`
-  2. `EXPO_PUBLIC_SUPABASE_ANON_KEY` = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` *(Ask me for the raw string if you don't have it saved, or grab it from Supabase settings)*
-  3. `EXPO_PUBLIC_SARVAM_API_KEY` = `sk_7dzs8sxh_qB26MScLaSCD9LyD0XFGe6dy`
+  2. `EXPO_PUBLIC_SUPABASE_ANON_KEY` = `<YOUR_SUPABASE_ANON_KEY>` *(Ask me for the raw string if you don't have it saved, or grab it from Supabase settings)*
+  3. `EXPO_PUBLIC_SARVAM_API_KEY` = `<YOUR_SARVAM_API_KEY>`
 * Hit **Redeploy** on the latest `main` commit.
 
 ### Task 2: Configure Local Server (`.env`)

@@ -23,7 +23,7 @@ The application flips the traditional dashboard hierarchy. Instead of presenting
 ### C. Resilient "Air-Gap" Fallbacks
 The system is built to survive network latency or misconfigured backend keys:
 - **Demo Mode Initialization:** If `Supabase` environment variables are missing or fail to connect, the `api.js` client safely degrades into "Demo Mode," supplying mocked but interactive data to ensure the UI (and hackathon presentations) never crash.
-- **Hidden Admin Portal:** A dedicated Admin diagnostics screen is structurally hidden behind a 5-tap gesture sequence on the `LoginScreen.js` logo to protect internal configurations while remaining accessible for on-field hardware debugging.
+- **Hidden Admin Portal:** A dedicated Admin diagnostics screen is accessible via a 5-tap gesture sequence on the logo (Login/Dashboard) or via the header dropdown menu to protect internal configurations while remaining accessible for debugging.
 
 ## 4. Key UI/UX Principles
 - **Data De-Prioritization:** Complex metrics (Raw EC, NPK values) are pushed below the fold. Primary real estate is reserved for Quick Actions and Voice output.

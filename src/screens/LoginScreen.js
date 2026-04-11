@@ -6,15 +6,17 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { COLORS, SHADOWS } from '../theme';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { COLORS, SHADOWS, RADIUS, SPACING, TEXT_STYLES } from '../theme';
 import { useLang } from '../context/LanguageContext';
+import { useToast } from '../context/ToastContext';
 
-export default function LoginScreen({ onLogin, onOpenAdmin }) {
+export default function LoginScreen({ navigation, onOpenAdmin }) {
   const { t, lang, setLanguage } = useLang();
+  const { showToast } = useToast();
   const [farmerId, setFarmerId] = useState('farm_001');
   const [password, setPassword] = useState('agri123');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const adminTapCount = useRef(0);
   const adminTapTimer = useRef(null);
@@ -31,9 +33,9 @@ export default function LoginScreen({ onLogin, onOpenAdmin }) {
 
   const handleLogin = (isQuickAdmin = false) => {
     setLoading(true);
-    setError('');
     
-    setTimeout(() => {
+    setTimeout(async () => {
+      let user = null;
       if (isQuickAdmin) {
         // Quick demo → show onboarding flow (hasProfile: false)
         onLogin({ id: 'farm_001', name: 'New Farmer', hasProfile: false });
@@ -41,7 +43,7 @@ export default function LoginScreen({ onLogin, onOpenAdmin }) {
         // Returning farmer → skip onboarding (hasProfile: true)
         onLogin({ id: 'farm_001', name: 'रामराव शिंदे', hasProfile: true });
       } else {
-        setError(t('गलत आईडी या पासवर्ड', 'Invalid ID or Password', 'चुकीचा आयडी किंवा पासवर्ड'));
+        showToast(t('गलत आईडी या पासवर्ड', 'Invalid ID or Password', 'चुकीचा आयडी किंवा पासवर्ड'), 'error');
       }
       setLoading(false);
     }, 1200);
@@ -77,8 +79,8 @@ export default function LoginScreen({ onLogin, onOpenAdmin }) {
                   <MaterialCommunityIcons name="leaf" size={42} color={COLORS.primary} />
                 </View>
               </TouchableOpacity>
-              <Text style={styles.brandName}>AgriPulse</Text>
-              <Text style={styles.brandTag}>Smart Farming Assistant</Text>
+              <Text style={[TEXT_STYLES.h1, styles.brandName]}>AgriPulse</Text>
+              <Text style={[TEXT_STYLES.body, styles.brandTag]}>Smart Farming Assistant</Text>
             </View>
 
             {/* Premium 3-Tab Language Selector */}
@@ -90,14 +92,14 @@ export default function LoginScreen({ onLogin, onOpenAdmin }) {
           </View>
 
           <View style={styles.card}>
-            <Text style={styles.welcomeText}>{t('लॉगिन करें', 'Welcome Back', 'लॉगिन करा')}</Text>
+            <Text style={[TEXT_STYLES.h2, styles.welcomeText]}>{t('लॉगिन करें', 'Welcome Back', 'लॉगिन करा')}</Text>
             
             <View style={styles.inputBox}>
-              <Text style={styles.inputLabel}>{t('किसान आईडी', 'Farmer ID', 'शेतकरी आयडी')}</Text>
+              <Text style={[TEXT_STYLES.h4, styles.inputLabel]}>{t('किसान आईडी', 'Farmer ID', 'शेतकरी आयडी')}</Text>
               <View style={styles.inputField}>
                 <MaterialCommunityIcons name="account" size={20} color={COLORS.textMuted} />
                 <TextInput 
-                  style={styles.textInput}
+                  style={[TEXT_STYLES.body, styles.textInput]}
                   value={farmerId}
                   onChangeText={setFarmerId}
                   autoCapitalize="none"
@@ -106,19 +108,17 @@ export default function LoginScreen({ onLogin, onOpenAdmin }) {
             </View>
 
             <View style={styles.inputBox}>
-              <Text style={styles.inputLabel}>{t('पासवर्ड', 'Password', 'पासवर्ड')}</Text>
+              <Text style={[TEXT_STYLES.h4, styles.inputLabel]}>{t('पासवर्ड', 'Password', 'पासवर्ड')}</Text>
               <View style={styles.inputField}>
                 <MaterialCommunityIcons name="lock" size={20} color={COLORS.textMuted} />
                 <TextInput 
-                  style={styles.textInput}
+                  style={[TEXT_STYLES.body, styles.textInput]}
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry
                 />
               </View>
             </View>
-
-            {error ? <Text style={styles.errTxt}>{error}</Text> : null}
 
             <TouchableOpacity 
               style={styles.mainBtn}
@@ -132,7 +132,7 @@ export default function LoginScreen({ onLogin, onOpenAdmin }) {
                 start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
               >
                 {loading ? <ActivityIndicator color="#fff" /> : (
-                  <Text style={styles.btnTxt}>{t('प्रवेश करें', 'Sign In', 'प्रवेश करा')}</Text>
+                  <Text style={[TEXT_STYLES.h3, styles.btnTxt]}>{t('प्रवेश करें', 'Sign In', 'प्रवेश करा')}</Text>
                 )}
               </LinearGradient>
             </TouchableOpacity>
@@ -142,14 +142,14 @@ export default function LoginScreen({ onLogin, onOpenAdmin }) {
               onPress={() => handleLogin(true)}
               activeOpacity={0.7}
             >
-              <Text style={styles.easyBtnTitle}>{t('नए किसान? यहाँ से शुरू करें', 'New Farmer? Start Here', 'नवीन शेतकरी? येथून सुरू करा')}</Text>
+              <Text style={[TEXT_STYLES.h4, styles.easyBtnTitle]}>{t('नए किसान? यहाँ से शुरू करें', 'New Farmer? Start Here', 'नवीन शेतकरी? येथून सुरू करा')}</Text>
               <MaterialCommunityIcons name="arrow-right" size={16} color={COLORS.primary} />
             </TouchableOpacity>
           </View>
 
           <View style={styles.footer}>
-            <Text style={styles.version}>Project AgriPulse v1.2</Text>
-            <Text style={styles.footerHelp}>{t('मदद चाहिए? 1800-AGRI-SAFE', 'Need help? 1800-AGRI-SAFE', 'मदत हवी आहे? १८००-AGRI-SAFE')}</Text>
+            <Text style={[TEXT_STYLES.small, styles.version]}>Project AgriPulse v1.2</Text>
+            <Text style={[TEXT_STYLES.body, styles.footerHelp]}>{t('मदद चाहिए? 1800-AGRI-SAFE', 'Need help? 1800-AGRI-SAFE', 'मदत हवी आहे? १८००-AGRI-SAFE')}</Text>
           </View>
 
         </ScrollView>
@@ -160,62 +160,53 @@ export default function LoginScreen({ onLogin, onOpenAdmin }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  scrollContent: { padding: 24, paddingBottom: 60, flexGrow: 1, justifyContent: 'center' },
-  
+  scrollContent: { padding: SPACING.xl, paddingBottom: 60, flexGrow: 1, justifyContent: 'center' },
   header: { alignItems: 'center', marginBottom: 30 },
   logoContainer: { alignItems: 'center', marginBottom: 40 },
   logoCircle: { 
     width: 90, height: 90, borderRadius: 30, 
     backgroundColor: COLORS.surface, 
     justifyContent: 'center', alignItems: 'center',
-    marginBottom: 16, ...SHADOWS.premium,
-    borderWidth: 1, borderColor: COLORS.divider
+    marginBottom: 16, ...SHADOWS.md,
   },
-  brandName: { fontSize: 34, fontWeight: '900', color: COLORS.text, letterSpacing: -1 },
-  brandTag: { fontSize: 16, color: COLORS.textMuted, fontWeight: '600', marginTop: 2 },
-
+  brandName: { color: COLORS.text, letterSpacing: -1 },
+  brandTag: { color: COLORS.textSecondary, marginTop: 2 },
   tabBar: { 
     flexDirection: 'row', backgroundColor: COLORS.surface, 
-    borderRadius: 20, padding: 4, width: '100%',
-    borderWidth: 1, borderColor: COLORS.divider, ...SHADOWS.soft
+    borderRadius: RADIUS.xl, padding: 4, width: '100%',
+    ...SHADOWS.sm,
   },
-  tab: { flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: 16 },
+  tab: { flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: RADIUS.lg },
   tabActive: { backgroundColor: COLORS.primaryPale },
-  tabText: { fontSize: 13, fontWeight: '700', color: COLORS.textMuted },
+  tabText: { ...TEXT_STYLES.data, color: COLORS.textMuted }, 
   tabTextActive: { color: COLORS.primary },
   tabIndicator: { 
     position: 'absolute', bottom: 6, width: 20, height: 3, 
-    backgroundColor: COLORS.primary, borderRadius: 2 
+    backgroundColor: COLORS.primary, borderRadius: RADIUS.sm 
   },
-
   card: { 
-    backgroundColor: COLORS.surface, borderRadius: 36, padding: 32, 
-    ...SHADOWS.premium, borderWidth: 1, borderColor: COLORS.divider
+    backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, padding: SPACING.xxl, 
+    ...SHADOWS.lg,
   },
-  welcomeText: { fontSize: 22, fontWeight: '800', color: COLORS.text, marginBottom: 28 },
-  
+  welcomeText: { color: COLORS.text, marginBottom: 28 },
   inputBox: { marginBottom: 20 },
-  inputLabel: { fontSize: 13, fontWeight: '800', color: COLORS.textSecondary, marginBottom: 8, marginLeft: 4, textTransform: 'uppercase' },
+  inputLabel: { color: COLORS.textSecondary, marginBottom: 8, marginLeft: 4, textTransform: 'uppercase' },
   inputField: { 
     flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.surfaceLight,
-    borderRadius: 18, paddingHorizontal: 18, paddingVertical: 14,
-    borderWidth: 1.5, borderColor: COLORS.divider
+    borderRadius: RADIUS.lg, paddingHorizontal: 18, paddingVertical: 14,
+    borderWidth: 1, borderColor: COLORS.divider
   },
-  textInput: { flex: 1, marginLeft: 12, fontSize: 16, color: COLORS.text, fontWeight: '600' },
-  
-  errTxt: { color: COLORS.danger, fontSize: 14, fontWeight: '700', marginBottom: 15, textAlign: 'center' },
-
-  mainBtn: { borderRadius: 18, overflow: 'hidden', marginTop: 10, ...SHADOWS.glass },
+  textInput: { flex: 1, marginLeft: 12, color: COLORS.text },
+  errTxt: { color: COLORS.danger, ...TEXT_STYLES.body, fontWeight: '700', marginBottom: 15, textAlign: 'center' },
+  mainBtn: { borderRadius: RADIUS.lg, overflow: 'hidden', marginTop: 10, ...SHADOWS.md },
   btnGradient: { paddingVertical: 20, alignItems: 'center' },
-  btnTxt: { color: '#fff', fontSize: 18, fontWeight: '800', letterSpacing: 0.5 },
-
+  btnTxt: { color: '#fff', letterSpacing: 0.5 },
   easyBtn: { 
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', 
     marginTop: 25, gap: 8, paddingVertical: 10
   },
-  easyBtnTitle: { color: COLORS.primary, fontWeight: '700', fontSize: 15 },
-
+  easyBtnTitle: { color: COLORS.primary },
   footer: { marginTop: 40, alignItems: 'center' },
-  version: { fontSize: 12, color: COLORS.textMuted, fontWeight: '700', marginBottom: 6 },
-  footerHelp: { fontSize: 13, color: COLORS.textMuted, fontWeight: '500' }
+  version: { color: COLORS.textMuted, marginBottom: 6 },
+  footerHelp: { color: COLORS.textMuted }
 });

@@ -9,8 +9,10 @@ AgriPulse is a premium React Native Expo application designed to assist Indian f
 *   **Farmer-Centric Dashboard**: Personalized welcome (नमस्कार) and status-coded farm insights.
 *   **Real-time Sensor Monitoring**: 4-node grid tracking Moisture, EC, and Temperature.
 *   **Soil NPK Analysis**: Automated soil health check with immediate OK/LOW nutrition alerts.
-*   **Intelligent Advisory**: Bi-lingual (Hindi/English) irrigation, nutrient, and crop recommendations.
-*   **Integrated Farm Map**: Google Satellite View tracking sensor health across your geofenced area.
+*   **Intelligent Advisory**: Bi-lingual (Hindi/English) irrigation, nutrient, and crop recommendations with context-aware triggers.
+*   **Integrated Farm Map**: Google Satellite View tracking sensor health across your geofenced area, detailing zone-specific quick actions.
+*   **Alerts Framework**: Actionable notification feed summarizing active problems across moisture and temperatures.
+*   **Resilient Connectivity**: Graceful offline handling via sticky banner providing last-synced data access.
 *   **Multi-Platform Ready**: Optimized for Android, iOS, and Web browsers.
 
 ---
@@ -43,10 +45,12 @@ npx expo start
 
 ## 📂 Project Structure
 
-*   `App.js` & `index.js`: Main entry points.
-*   `src/screens`: Contains Dashboard, NPK Test, Advisory, and Map screens.
-*   `src/components`: Custom reusable UI components (NodeCard, NPKBar).
-*   `src/mockData.js`: Simulates real-time sensor streams and advisory logic.
+*   `App.js` & `index.js`: Main entry points containing root navigation and robust OfflineBanner configuration.
+*   `src/screens`: Dashboard, NPK Test, Advisory, Map, Analytics, Alerts, and ZoneDetail screens.
+*   `src/components`: Custom reusable UI components with soft shadows and cohesive border styling.
+*   `src/navigation`: Dedicated `AppNavigator` managing the dual-layer Stack Auth Flow and Bottom Tab architecture.
+*   `src/theme.js`: Centralized design system scaling fonts, radii, padding, and layout dimensions across the app.
+*   `src/mockData.js`: Simulates real-time sensor streams, analytical trends, and advisory logic.
 *   `babel.config.js`: Customized for Expo 52 compilation.
 
 ---

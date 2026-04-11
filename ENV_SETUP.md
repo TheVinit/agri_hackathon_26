@@ -13,10 +13,10 @@ Paste the following variables into the file:
 ```env
 # 🐘 Supabase Database Keys
 EXPO_PUBLIC_SUPABASE_URL=https://aekmiuxibmfjiakhkkrc.supabase.co
-EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFla21pdXhpYm1mamlha2hra3JjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4Mjk5MTYsImV4cCI6MjA5MTQwNTkxNn0.iwbzLIGx2fEKhbdn7Wxrk7ssJpfCjrxu-47ee3mWye0
+EXPO_PUBLIC_SUPABASE_ANON_KEY=<YOUR_SUPABASE_ANON_KEY>
 
 # 🎙️ Voice Generation (Sarvam AI)
-EXPO_PUBLIC_SARVAM_API_KEY=sk_7dzs8sxh_qB26MScLaSCD9LyD0XFGe6dy
+EXPO_PUBLIC_SARVAM_API_KEY=<YOUR_SARVAM_API_KEY>
 ```
 
 🚨 **CRITICAL:** Do NOT push the `.env` file to Github. It is already added to our `.gitignore` to prevent leaks. 

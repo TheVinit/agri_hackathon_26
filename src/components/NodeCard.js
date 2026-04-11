@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Card, Text, Surface } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { COLORS, SHADOWS, GAPS, FONTS } from '../theme';
+import { COLORS, SHADOWS, GAPS, FONTS, RADIUS, TEXT_STYLES } from '../theme';
 
 export default function NodeCard({ node }) {
   const getStatusColor = (status) => {
@@ -81,11 +81,9 @@ const styles = StyleSheet.create({
     width: '48%',
     marginBottom: GAPS.md,
     backgroundColor: COLORS.surface,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#E0E7E5',
+    borderRadius: RADIUS.lg,
     overflow: 'hidden',
-    ...SHADOWS.technical,
+    ...SHADOWS.md,
   },
   cardContent: {
     padding: 14,
@@ -116,7 +114,7 @@ const styles = StyleSheet.create({
   },
   nodeId: {
     fontSize: 9,
-    fontFamily: FONTS.mono,
+    fontFamily: TEXT_STYLES.h4.fontFamily,
     color: COLORS.textSecondary,
     fontWeight: '700',
   },

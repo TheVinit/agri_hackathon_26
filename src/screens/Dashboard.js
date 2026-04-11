@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, StatusBar,
+  View, Text, StyleSheet, TouchableOpacity, Pressable, StatusBar,
   Animated, ScrollView, RefreshControl, Platform, Modal,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { COLORS, SHADOWS } from '../theme';
+import { COLORS, SHADOWS, SPACING, RADIUS, TEXT_STYLES } from '../theme';
 import { getDashboard, computeHealthScore } from '../services/api';
 import { speakAdvisory, stopSpeaking, speak } from '../services/tts';
 import { useLang } from '../context/LanguageContext';
@@ -216,7 +216,13 @@ function WeatherWidget({ t }) {
   return (
     <LinearGradient colors={['#1565C0', '#1E88E5']} style={wx.card} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
       <View style={wx.left}>
-        <Text style={wx.label}>{t('आज का मौसम', "Today's Weather", 'आजचे हवामान')}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+          <Text style={wx.label}>{t('आज का मौसम', "Today's Weather", 'आजचे हवामान')}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(16,185,129,0.2)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: RADIUS.pill, gap: 4 }}>
+            <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#10B981' }} />
+            <Text style={{ fontSize: 9, fontWeight: '800', color: '#10B981', textTransform: 'uppercase' }}>Live</Text>
+          </View>
+        </View>
         <View style={wx.tempRow}>
           <Text style={wx.temp}>{weather.temp}°</Text>
           <Text style={wx.cond}>{weather.condition}</Text>
@@ -532,6 +538,7 @@ export default function Dashboard({ navigation, virtualNodes = [] }) {
           <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchData(true); }} tintColor={COLORS.primary} />
         }
       >
+
         {/* ── ALERT BANNER ── */}
         {alertsCount > 0 && (
           <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
@@ -576,7 +583,11 @@ export default function Dashboard({ navigation, virtualNodes = [] }) {
             { icon: 'map-marker-radius', color: '#F59E0B', bg: '#FFF8EC', label: t('नक्शा', 'Map', 'नकाशा'), sub: t('खेत देखें', 'View Farm', 'शेत पहा'), screen: 'MapTab' },
             { icon: 'robot-happy', color: '#059669', bg: '#ECFDF5', label: t('AI सहायक', 'AI Talk', 'AI सहाय्यक'), sub: t('सवाल पूछें', 'Ask AI', 'AI विचारा'), screen: 'AITab' },
           ].map((a, i) => (
-            <TouchableOpacity key={i} style={styles.actionCard} activeOpacity={0.8} onPress={() => navigation.navigate(a.screen)}>
+            <Pressable 
+              key={i} 
+              style={({pressed}) => [styles.actionCard, pressed && { transform: [{ scale: 0.97 }], opacity: 0.92 }]} 
+              onPress={() => navigation.navigate(a.screen)}
+            >
               <View style={[styles.actionIcon, { backgroundColor: a.bg }]}>
                 <MaterialCommunityIcons name={a.icon} size={28} color={a.color} />
               </View>
@@ -584,7 +595,7 @@ export default function Dashboard({ navigation, virtualNodes = [] }) {
                 <Text style={styles.actionLabel}>{a.label}</Text>
                 <Text style={styles.actionSub}>{a.sub}</Text>
               </View>
-            </TouchableOpacity>
+            </Pressable>
           ))}
         </Animated.View>
 

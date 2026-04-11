@@ -5,12 +5,13 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { COLORS, SHADOWS } from '../theme';
+import { COLORS, SHADOWS, SPACING } from '../theme';
 import { sensorNodes, npkValues } from '../mockData';
 import { postNPKReading } from '../services/api';
 import { speak, stopSpeaking } from '../services/tts';
 import { useNavigation } from '@react-navigation/native';
 import { useLang } from '../context/LanguageContext';
+import { useToast } from '../context/ToastContext';
 import Skeleton from '../components/Skeleton';
 
 const FARM_ID = 'farm_001';
@@ -24,6 +25,7 @@ const ZONES = [
 
 export default function NPKTest() {
   const { t, lang } = useLang();
+  const { showToast } = useToast();
   const navigation = useNavigation();
   const [step, setStep] = useState('start');     // 'start' | 'scanning' | 'result' | 'done'
   const [currentNode, setCurrentNode] = useState(0);
@@ -71,8 +73,9 @@ export default function NPKTest() {
       const { error } = await postNPKReading(FARM_ID, payload);
       setIsSubmitting(false);
       if (error) {
-        Alert.alert('⚠️ Error', t('डाटा सेव नहीं हो सका', 'Data could not be saved', 'माहिती जतन होऊ शकली नाही'));
+        showToast(t('डाटा सेव नहीं हो सका', 'Data could not be saved', 'माहिती जतन होऊ शकली नाही'), 'error');
       } else {
+        showToast(t('डेटा सुरक्षित रूप से सहेजा गया!', 'Sensor data saved securely!', 'डेटा सुरक्षितपणे जतन केला!'), 'success');
         setStep('done');
         await speak(t('सभी क्षेत्रों की जाँच पूरी हो गई। आज की सलाह देखने के लिए धन्यवाद।', 'All zones tested. Thank you for viewing today\'s advisory.', 'सर्व क्षेत्रांची चाचणी पूर्ण झाली. आजचा सल्ला पाहिल्याबद्दल धन्यवाद.'), lang === 'hi' ? 'hi-IN' : (lang === 'mr' ? 'mr-IN' : 'en-IN'));
       }
@@ -93,10 +96,15 @@ export default function NPKTest() {
           <Text style={styles.doneSub}>{t('मिट्टी का परीक्षण सफलतापूर्वक किया गया', 'Soil test completed successfully', 'माती परीक्षण यशस्वीरित्या पूर्ण झाले')}</Text>
           <Text style={styles.doneSummary}>{getSummaryText(t)}</Text>
           
-          <TouchableOpacity style={styles.primaryBtn} onPress={() => navigation.navigate('Advisory')}>
-            <LinearGradient colors={[COLORS.primary, COLORS.primaryLight]} style={styles.primaryBtnGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-              <Text style={styles.primaryBtnText}>📋 {t('आज की सलाह देखें', 'View Today\'s Advisory', 'आजचा सल्ला पहा')}</Text>
-            </LinearGradient>
+          <TouchableOpacity
+            style={[styles.advisoryUpdatedCard, { ...SHADOWS.soft }]} 
+            onPress={() => navigation.navigate('Advisory', { triggeredByNPK: true })}
+          >
+            <View style={{ flex: 1 }}>
+              <Text style={styles.advisoryUpdatedTitle}>🤖 {t('सलाह अपडेट की गई', 'Advisory updated based on this test', 'या चाचणीवर आधारित सल्ला अद्यतनित')}</Text>
+              <Text style={styles.advisoryUpdatedSub}>{t('सुझाव देखने के लिए टैप करें', 'Tap to see your crop recommendations', 'तुमच्या पीक शिफारसी पाहण्यासाठी टॅप करा')}</Text>
+            </View>
+            <MaterialCommunityIcons name="arrow-right" size={24} color={COLORS.primary} />
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.secondaryBtn} onPress={() => { setCurrentNode(0); setStep('start'); }}>
@@ -282,8 +290,8 @@ function getSummaryText(t) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  scrollContent: { padding: 24, paddingTop: 0 },
-  header: { padding: 24, paddingTop: Platform.OS === 'ios' ? 60 : 50 },
+  scrollContent: { padding: SPACING.xl, paddingTop: 0 },
+  header: { padding: SPACING.xl, paddingTop: Platform.OS === 'ios' ? 60 : 50 },
   headerTitle: { fontSize: 28, fontWeight: '900', color: COLORS.text, marginBottom: 4 },
   headerSubtitle: { fontSize: 16, color: COLORS.textSecondary, fontWeight: '500' },
 
@@ -356,6 +364,21 @@ const styles = StyleSheet.create({
   doneTitle: { fontSize: 32, fontWeight: '900', color: COLORS.text, marginBottom: 10 },
   doneSub: { fontSize: 16, color: COLORS.textSecondary, marginBottom: 30, textAlign: 'center' },
   doneSummary: { fontSize: 20, fontWeight: '800', color: COLORS.primary, marginBottom: 40 },
-  secondaryBtn: { marginTop: 20, paddingVertical: 10 },
+  
+  advisoryUpdatedCard: {
+    backgroundColor: COLORS.primaryPale,
+    borderRadius: 20,
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: COLORS.primary + '30',
+  },
+  advisoryUpdatedTitle: { fontSize: 16, fontWeight: '800', color: COLORS.primary, marginBottom: 4, lineHeight: 22 },
+  advisoryUpdatedSub: { fontSize: 13, color: COLORS.primary, opacity: 0.8, fontWeight: '600' },
+  
+  secondaryBtn: { marginTop: 10, paddingVertical: 10 },
   secondaryBtnText: { color: COLORS.textSecondary, fontSize: 16, fontWeight: '700' }
 });

@@ -52,7 +52,7 @@ const CARD_DEFS = [
   },
 ];
 
-export default function Advisory() {
+export default function Advisory({ route }) {
   const { t, lang } = useLang();
   const [data,    setData]    = useState(null);
   const [loading, setLoading] = useState(true);
@@ -126,6 +126,16 @@ export default function Advisory() {
           <Text style={styles.timeStamp}>{t('अपडेट:', 'Updated:', 'अपडेट:')} {timeStr}</Text>
         </View>
       </View>
+
+      {/* Recalibrated Banner */}
+      {route?.params?.triggeredByNPK && (
+        <Animated.View style={[styles.recalibratedBanner, { opacity: fadeAnim }]}>
+          <MaterialCommunityIcons name="refresh-circle" size={24} color={COLORS.primary} />
+          <Text style={styles.recalibratedText}>
+            {t('नए NPK डेटा के आधार पर सलाह अपडेट की गई', 'Advisory recalibrated using your new NPK data', 'तुमच्या नवीन NPK डेटाचा वापर करून सल्ला अद्यतनित केला')}
+          </Text>
+        </Animated.View>
+      )}
 
       <Animated.View style={[styles.cardsWrap, { opacity: fadeAnim }]}>
         {CARD_DEFS.map(def => (
@@ -257,6 +267,15 @@ const styles = StyleSheet.create({
   summaryBar:    { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 16, paddingVertical: 12, paddingHorizontal: 16, borderWidth: 1 },
   summaryText:   { flex: 1, fontSize: 13, fontWeight: '700', lineHeight: 18 },
   timeStamp:     { fontSize: 11, color: COLORS.textMuted, fontWeight: '600' },
+
+  recalibratedBanner: { 
+    flexDirection: 'row', alignItems: 'center', gap: 10, 
+    backgroundColor: COLORS.primaryPale, 
+    marginHorizontal: 20, marginBottom: 10, 
+    padding: 14, borderRadius: 16, 
+    borderWidth: 1, borderColor: COLORS.primary + '30' 
+  },
+  recalibratedText: { flex: 1, fontSize: 13, color: COLORS.primary, fontWeight: '700', lineHeight: 18 },
 
   cardsWrap:     { paddingHorizontal: 20, paddingTop: 4, gap: 20 },
 
