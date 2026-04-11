@@ -10,8 +10,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, SHADOWS, RADIUS, SPACING, TEXT_STYLES } from '../theme';
 import { useLang } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
+import * as WebBrowser from 'expo-web-browser';
+import * as Google from 'expo-auth-session/providers/google';
 
-export default function LoginScreen({ navigation, onOpenAdmin }) {
+WebBrowser.maybeCompleteAuthSession();
+
+export default function LoginScreen({ navigation, onOpenAdmin, onLogin }) {
   const { t, lang, setLanguage } = useLang();
   const { showToast } = useToast();
   const [farmerId, setFarmerId] = useState('farm_001');
@@ -28,6 +32,44 @@ export default function LoginScreen({ navigation, onOpenAdmin }) {
     if (adminTapCount.current >= 5) {
       adminTapCount.current = 0;
       if (onOpenAdmin) onOpenAdmin();
+    }
+  };
+
+  // Google SSO Setup
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || 'dummy_web.apps.googleusercontent.com',
+    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+  });
+
+  React.useEffect(() => {
+    handleGoogleResponse();
+  }, [response]);
+
+  const handleGoogleResponse = async () => {
+    if (response?.type === 'success') {
+      const { authentication } = response;
+      setLoading(true);
+      try {
+        const res = await fetch('https://www.googleapis.com/userinfo/v2/me', {
+          headers: { Authorization: `Bearer ${authentication.accessToken}` },
+        });
+        const profile = await res.json();
+        
+        // Push to context via onLogin
+        onLogin({
+          id: profile.id,
+          name: profile.name,
+          email: profile.email,
+          picture: profile.picture,
+          hasProfile: true, // Auto-skip onboarding if fetched from google
+        });
+
+      } catch (err) {
+        showToast(t('ग़लती हुई', 'Google Sign-In Failed', 'चूक झाली'), 'error');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -145,6 +187,24 @@ export default function LoginScreen({ navigation, onOpenAdmin }) {
               <Text style={[TEXT_STYLES.h4, styles.easyBtnTitle]}>{t('नए किसान? यहाँ से शुरू करें', 'New Farmer? Start Here', 'नवीन शेतकरी? येथून सुरू करा')}</Text>
               <MaterialCommunityIcons name="arrow-right" size={16} color={COLORS.primary} />
             </TouchableOpacity>
+
+            <View style={styles.dividerBox}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerTxt}>{t('या', 'OR', 'किंवा')}</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            <TouchableOpacity 
+              style={styles.googleBtn} 
+              onPress={() => promptAsync()}
+              disabled={!request || loading}
+              activeOpacity={0.8}
+            >
+              <MaterialCommunityIcons name="google" size={22} color="#DB4437" />
+              <Text style={[TEXT_STYLES.h3, styles.googleBtnTxt]}>
+                {t('Google से लॉग इन करें', 'Sign in with Google', 'Google ने लॉग इन करा')}
+              </Text>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.footer}>
@@ -208,5 +268,15 @@ const styles = StyleSheet.create({
   easyBtnTitle: { color: COLORS.primary },
   footer: { marginTop: 40, alignItems: 'center' },
   version: { color: COLORS.textMuted, marginBottom: 6 },
-  footerHelp: { color: COLORS.textMuted }
+  footerHelp: { color: COLORS.textMuted },
+  dividerBox: { flexDirection: 'row', alignItems: 'center', marginVertical: 20 },
+  dividerLine: { flex: 1, height: 1, backgroundColor: COLORS.divider },
+  dividerTxt: { marginHorizontal: 10, color: COLORS.textMuted, fontSize: 12, fontWeight: '700' },
+  googleBtn: { 
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: COLORS.surfaceLight, borderRadius: RADIUS.lg, 
+    borderWidth: 1, borderColor: COLORS.divider, paddingVertical: 16, gap: 12,
+    ...SHADOWS.sm
+  },
+  googleBtnTxt: { color: COLORS.text, fontWeight: '700' }
 });

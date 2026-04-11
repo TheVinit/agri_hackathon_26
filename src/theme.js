@@ -70,7 +70,7 @@ export const CARD = {
   padding: SPACING.xl,
   ...SHADOWS.md,
   // NO borderWidth, NO borderColor — shadows do the job
->>>>>>> origin/vinit-collab
+
 };
 
 export const GAPS = {

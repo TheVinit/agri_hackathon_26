@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, Platform,
-  StyleSheet, Animated, Dimensions,
+  StyleSheet, Animated, Dimensions, Image
 } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -226,9 +226,13 @@ function AppHeader({ navigation, farmer, onLogout }) {
 
           {/* Profile / logout */}
           <TouchableOpacity style={ah.avatarBtn} onPress={toggleMenu}>
-            <LinearGradient colors={[COLORS.primary, COLORS.primaryLight]} style={ah.avatarGrad}>
-              <Text style={ah.avatarTxt}>{(farmer?.name || 'F')[0].toUpperCase()}</Text>
-            </LinearGradient>
+            {farmer?.picture ? (
+              <Image source={{ uri: farmer.picture }} style={ah.avatarImg} />
+            ) : (
+              <LinearGradient colors={[COLORS.primary, COLORS.primaryLight]} style={ah.avatarGrad}>
+                <Text style={ah.avatarTxt}>{(farmer?.name || 'F')[0].toUpperCase()}</Text>
+              </LinearGradient>
+            )}
           </TouchableOpacity>
         </View>
       </LinearGradient>
@@ -274,6 +278,7 @@ const ah = StyleSheet.create({
   notifBadgeTxt: { fontSize: 8, fontWeight: '900', color: '#fff' },
   avatarBtn: { marginLeft: 4 },
   avatarGrad: { width: 38, height: 38, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  avatarImg: { width: 38, height: 38, borderRadius: 12 },
   avatarTxt: { fontSize: 16, fontWeight: '900', color: '#fff' },
   menu: {
     position: 'absolute', top: Platform.OS === 'ios' ? 108 : 96, right: 16,

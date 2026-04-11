@@ -278,8 +278,9 @@ function VoiceWave({ active }) {
 }
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
-export default function AIAssistant({ navigation }) {
+export default function AIAssistant({ route, navigation }) {
   const { lang, t } = useLang();
+  const initialQuestion = route?.params?.initialQuestion;
   const [messages,     setMessages]     = useState([]);
   const [input,        setInput]        = useState('');
   const [thinking,     setThinking]     = useState(false);
@@ -316,8 +317,11 @@ export default function AIAssistant({ navigation }) {
         setAnalysis(result);
         setSuggestions(result.dynamicSuggestions || []);
 
-        // Auto-speak the greeting
-        if (result.greeting && autoSpeak) {
+        if (initialQuestion) {
+          // If we came from voice modal with a question, send it!
+          setTimeout(() => sendMessage(initialQuestion), 400);
+        } else if (result.greeting && autoSpeak) {
+          // Otherwise do normal greeting
           setTimeout(() => speak(result.greeting, lang), 400);
         }
       } catch (e) {

@@ -296,10 +296,10 @@ function ProfileStep({ t, lang, data, set, crops }) {
   };
 
   const voiceLabel = lang === 'hi'
-    ? 'माइक दबाएं और बोलें:\n"मेरा नाम राम है, पुणे से हूँ, गेहूं उगाता हूँ"'
+    ? 'माइक दबाएं और बोलें:\n(अपना नाम, गाँव, और फसल बताएं)'
     : lang === 'mr'
-    ? 'माईक दाबा आणि बोला:\n"माझे नाव राम आहे, पुण्याचा आहे, गहू पिकवतो"'
-    : 'Press mic and say:\n"My name is Ram, I am from Pune, I grow wheat"';
+    ? 'माईक दाबा आणि बोला:\n(आपले नाव, गाव, आणि पीक सांगा)'
+    : 'Press mic and say:\n(State your name, village, and crop)';
 
   return (
     <View style={ps.container}>
@@ -323,10 +323,10 @@ function ProfileStep({ t, lang, data, set, crops }) {
       <View style={ps.divider}><View style={ps.divLine} /><Text style={ps.divTxt}>{t('या टाइप करें', 'or type', 'किंवा टाइप करा')}</Text><View style={ps.divLine} /></View>
 
       {/* Manual fields */}
-      <Field icon="account" label={t('नाम *', 'Full Name *', 'नाव *')} placeholder={t('रामराव शिंदे', 'Ramrao Shinde', 'रामराव शिंदे')} value={data.name} onChange={v => set('name', v)} />
-      <Field icon="phone" label={t('मोबाइल', 'Mobile', 'मोबाईल')} placeholder="9876543210" value={data.phone} onChange={v => set('phone', v)} keyboardType="phone-pad" />
-      <Field icon="home-city" label={t('गाँव', 'Village', 'गाव')} placeholder={t('औरंगाबाद', 'Aurangabad', 'औरंगाबाद')} value={data.village} onChange={v => set('village', v)} />
-      <Field icon="map-marker" label={t('जिला', 'District', 'जिल्हा')} placeholder={t('पुणे', 'Pune', 'पुणे')} value={data.district} onChange={v => set('district', v)} />
+      <Field icon="account" label={t('नाम *', 'Full Name *', 'नाव *')} placeholder={t('पूरा नाम दर्ज करें', 'Enter full name', 'संपूर्ण नाव प्रविष्ट करा')} value={data.name} onChange={v => set('name', v)} />
+      <Field icon="phone" label={t('मोबाइल', 'Mobile', 'मोबाईल')} placeholder={t('मोबाइल नंबर दर्ज करें', 'Enter mobile number', 'मोबाईल नंबर प्रविष्ट करा')} value={data.phone} onChange={v => set('phone', v)} keyboardType="phone-pad" />
+      <Field icon="home-city" label={t('गाँव', 'Village', 'गाव')} placeholder={t('गाँव का नाम दर्ज करें', 'Enter village name', 'गावाचे नाव प्रविष्ट करा')} value={data.village} onChange={v => set('village', v)} />
+      <Field icon="map-marker" label={t('जिला', 'District', 'जिल्हा')} placeholder={t('जिले का नाम दर्ज करें', 'Enter district name', 'जिल्ह्याचे नाव प्रविष्ट करा')} value={data.district} onChange={v => set('district', v)} />
 
       <Text style={ps.cropLabel}>{t('मुख्य फसल', 'Main Crop', 'मुख्य पीक')}</Text>
       <View style={ps.cropGrid}>
@@ -502,10 +502,10 @@ function HistoryStep({ t, lang, data, set, sizes, seasons }) {
   };
 
   const voiceLabel = lang === 'hi'
-    ? 'बोलें: "मेरी 3 एकड़ जमीन है, काली मिट्टी है, पिछले साल गेहूं और सोयाबीन उगाया"'
+    ? 'बोलकर अपनी ज़मीन, मिट्टी और फसलों की जानकारी दें'
     : lang === 'mr'
-    ? 'बोला: "माझी 3 एकर जमीन आहे, काळी माती आहे, गेल्या वर्षी गहू व सोयाबीन घेतले"'
-    : 'Say: "I have 3 acres, black soil, last year I grew wheat and soybean"';
+    ? 'बोलून आपली जमीन, माती आणि पिकांची माहिती द्या'
+    : 'Speak to provide details about your land, soil, and crops';
 
   return (
     <View style={hs.container}>

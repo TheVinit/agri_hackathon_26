@@ -367,9 +367,16 @@ function VoiceCommandModal({ visible, onClose, lang, onIntent, t }) {
       onResult: ({ transcript: tr, intent }) => {
         setTranscript(tr); setListening(false);
         pulseLoop.current?.stop(); pulseAnim.setValue(1);
+        
         if (intent?.action && intent.action !== 'unknown') {
           setFeedback(t('समझ गया!', 'Got it!', 'समजलो!'));
           setTimeout(() => { onIntent(intent); onClose(); }, 500);
+        } else if (tr && tr.trim().length > 0) {
+          setFeedback(t('AI को भेज रहे हैं...', 'Sending to AI Assistant...', 'AI ला पाठवत आहे...'));
+          setTimeout(() => { 
+            onIntent({ action: 'forward_to_ai', transcript: tr.trim() }); 
+            onClose(); 
+          }, 800);
         } else {
           setFeedback(t('फिर कोशिश करें', 'Try again', 'पुन्हा प्रयत्न करा'));
           setTimeout(onClose, 1500);
@@ -493,9 +500,10 @@ export default function Dashboard({ navigation, virtualNodes = [] }) {
 
   const handleVoiceIntent = useCallback((intent) => {
     switch (intent.action) {
-      case 'navigate_advisory': navigation.navigate('Advisory'); break;
-      case 'navigate_soil':     navigation.navigate('NPKTest');  break;
-      case 'navigate_map':      navigation.navigate('Map');      break;
+      case 'forward_to_ai': navigation.navigate('AITab', { initialQuestion: intent.transcript }); break;
+      case 'navigate_advisory': navigation.navigate('AdvisoryTab'); break;
+      case 'navigate_soil':     navigation.navigate('MoreTab');     break;
+      case 'navigate_map':      navigation.navigate('MapTab');      break;
       case 'speak_report':      handleSpeak(); break;
       case 'check_moisture': {
         const avg = Math.round((data?.nodes || []).reduce((s, n) => s + n.moisture, 0) / (data?.nodes?.length || 1));
