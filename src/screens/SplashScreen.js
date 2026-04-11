@@ -4,7 +4,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, TEXT_STYLES } from '../theme';
 
-export default function SplashScreen({ navigation }) {
+export default function SplashScreen() {
   const scaleAnim = useRef(new Animated.Value(0.6)).current;
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
@@ -22,15 +22,8 @@ export default function SplashScreen({ navigation }) {
         duration: 400,
         useNativeDriver: true,
       })
-    ]).start(async () => {
-      const auth = await AsyncStorage.getItem('authFarmer');
-      if (auth) {
-        navigation.replace('App');
-      } else {
-        navigation.replace('Login');
-      }
-    });
-  }, [navigation, scaleAnim, fadeAnim]);
+    ]).start();
+  }, [scaleAnim, fadeAnim]);
 
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>

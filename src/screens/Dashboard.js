@@ -540,6 +540,29 @@ export default function Dashboard({ navigation, virtualNodes = [] }) {
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
 
+      {/* ── HEADER ── */}
+      <View style={styles.headerContainer}>
+        <View>
+          <Text style={styles.greetText}>{t('नमस्ते,', 'Hello,', 'नमस्ते,')} {data?.farmerName || 'Farmer'}</Text>
+          <Text style={styles.userName}>{t('आपका खेत', 'Your Farm', 'तुमची शेती')}</Text>
+        </View>
+        <View style={styles.headerActions}>
+          <TouchableOpacity 
+            style={styles.headerIconBtn}
+            onPress={() => navigation.navigate('Notifications')}
+          >
+            <MaterialCommunityIcons name="bell-outline" size={24} color={COLORS.text} />
+            {alertsCount > 0 && <View style={styles.notifBadge} />}
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.headerIconBtn}
+            onPress={() => navigation.navigate('Admin')}
+          >
+            <MaterialCommunityIcons name="cog-outline" size={24} color={COLORS.text} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
       <ScrollView
         contentContainerStyle={{ paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
@@ -557,7 +580,12 @@ export default function Dashboard({ navigation, virtualNodes = [] }) {
 
         {/* ── 1. PRIMARY FARMER ACTION: MIC ORB (VOICE FIRST) ── */}
         <Animated.View style={[styles.section, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-          <LinearGradient colors={[COLORS.surface, COLORS.surfaceLight]} style={styles.orbCard} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+          <LinearGradient 
+            colors={COLORS.gradients.surface} 
+            style={styles.orbCard} 
+            start={{ x: 0, y: 0 }} 
+            end={{ x: 1, y: 1 }}
+          >
             <Text style={styles.orbTitle}>
               {speaking ? t('सुन रहे हैं...', 'Audio Playing...', 'ऐकत आहे...') : t('अपनी खेत की रिपोर्ट सुनें', 'Listen to your Farm Report', 'तुमचा शेती अहवाल ऐका')}
             </Text>
@@ -567,7 +595,7 @@ export default function Dashboard({ navigation, virtualNodes = [] }) {
               {speaking && <Animated.View style={[styles.orbPulse, { transform: [{ scale: pulseAnim }] }]} />}
               <TouchableOpacity style={[styles.orbButton, speaking && { shadowColor: COLORS.danger }]} onPress={handleSpeak} activeOpacity={0.9}>
                 <LinearGradient
-                  colors={speaking ? [COLORS.danger, '#B71C1C'] : [COLORS.primary, '#0ea5e9']}
+                  colors={speaking ? COLORS.gradients.rose : COLORS.gradients.primary}
                   style={styles.orbGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
                 >
                   <MaterialCommunityIcons name={speaking ? 'stop' : 'microphone'} size={56} color="#fff" />
@@ -597,9 +625,9 @@ export default function Dashboard({ navigation, virtualNodes = [] }) {
         <Animated.View style={[styles.section, styles.actionGrid, { opacity: fadeAnim }]}>
           {[
             { icon: 'leaf', color: COLORS.primary, bg: COLORS.primaryPale, label: t('सलाह', 'Advice', 'सल्ला'), sub: t('सिंचाई / खाद', 'Water & Food', 'पाणी/खत'), screen: 'AdvisoryTab' },
-            { icon: 'flask', color: '#6366F1', bg: 'rgba(99,102,241,0.1)', label: t('मिट्टी', 'Soil', 'माती'), sub: t('जाँच रिपोर्ट', 'Test Report', 'तपासणी'), screen: 'AnalyticsTab' },
-            { icon: 'map-marker-radius', color: '#F59E0B', bg: '#FFF8EC', label: t('नक्शा', 'Map', 'नकाशा'), sub: t('खेत देखें', 'View Farm', 'शेत पहा'), screen: 'MapTab' },
-            { icon: 'robot-happy', color: '#059669', bg: '#ECFDF5', label: t('AI सहायक', 'AI Talk', 'AI सहाय्यक'), sub: t('सवाल पूछें', 'Ask AI', 'AI विचारा'), screen: 'AITab' },
+            { icon: 'flask', color: COLORS.accent, bg: 'rgba(99,102,241,0.1)', label: t('मिट्टी', 'Soil', 'माती'), sub: t('जाँच रिपोर्ट', 'Test Report', 'तपासणी'), screen: 'AnalyticsTab' },
+            { icon: 'map-marker-radius', color: COLORS.warning, bg: '#FFF8EC', label: t('नक्शा', 'Map', 'नकाशा'), sub: t('खेत देखें', 'View Farm', 'शेत पहा'), screen: 'MapTab' },
+            { icon: 'robot-happy', color: COLORS.success, bg: '#ECFDF5', label: t('AI सहायक', 'AI Talk', 'AI सहाय्यक'), sub: t('सवाल पूछें', 'Ask AI', 'AI विचारा'), screen: 'AITab' },
           ].map((a, i) => (
             <Pressable 
               key={i} 
@@ -692,7 +720,7 @@ export default function Dashboard({ navigation, virtualNodes = [] }) {
 function LoadingScreen() {
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={styles.headerContainer}>
         <Skeleton width={120} height={20} style={{ marginBottom: 10 }} />
         <Skeleton width={200} height={30} style={{ marginBottom: 20 }} />
       </View>
@@ -711,48 +739,122 @@ function LoadingScreen() {
 
 const styles = StyleSheet.create({
   container:   { flex: 1, backgroundColor: COLORS.background },
+  headerContainer: {
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingHorizontal: 24,
+    paddingBottom: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.divider,
+    ...SHADOWS.soft,
+  },
   section:     { paddingHorizontal: 24, marginTop: 16 },
-  headerRow:   { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  nameRow:     { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
-  greetText:   { fontSize: 15, color: COLORS.textSecondary, fontWeight: '500' },
-  badge:       { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, gap: 5 },
-  badgeDot:    { width: 6, height: 6, borderRadius: 3 },
-  badgeTxt:    { fontSize: 10, fontWeight: '800', textTransform: 'uppercase' },
-  userName:    { fontSize: 26, fontWeight: '900', color: COLORS.text, letterSpacing: -0.5 },
-  location:    { fontSize: 12, color: COLORS.textMuted, fontWeight: '600', marginTop: 2 },
-  headerActions: { flexDirection: 'row', gap: 8, alignItems: 'center' },
-  langBtn:     { backgroundColor: COLORS.surface, paddingVertical: 7, paddingHorizontal: 14, borderRadius: 18, borderWidth: 1, borderColor: COLORS.divider, ...SHADOWS.soft },
-  langTxt:     { color: COLORS.primary, fontWeight: '700', fontSize: 13 },
-  adminBtn:    { paddingVertical: 4, paddingHorizontal: 4 },
-  logoutBtn:   { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#FFF1F1', paddingVertical: 7, paddingHorizontal: 12, borderRadius: 18, borderWidth: 1, borderColor: '#FECACA' },
-  logoutTxt:   { color: COLORS.danger, fontWeight: '700', fontSize: 12 },
+  greetText:   { ...TEXT_STYLES.small, color: COLORS.textSecondary },
+  userName:    { ...TEXT_STYLES.h2, color: COLORS.text, marginTop: -2 },
+  headerActions: { flexDirection: 'row', gap: 12 },
+  headerIconBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: COLORS.background,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.divider,
+  },
+  notifBadge: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: COLORS.danger,
+    borderWidth: 2,
+    borderColor: COLORS.background,
+  },
 
   healthRow:   { flexDirection: 'row', gap: 14 },
-  healthCard:  { flex: 1, backgroundColor: COLORS.surface, borderRadius: 24, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: COLORS.divider, ...SHADOWS.soft },
-  healthLabel: { fontSize: 11, fontWeight: '800', color: COLORS.textMuted, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 },
-  healthStatus:{ fontSize: 12, fontWeight: '800', marginTop: 6 },
+  healthCard:  { 
+    flex: 1, 
+    backgroundColor: COLORS.surface, 
+    borderRadius: RADIUS.xl, 
+    padding: 16, 
+    alignItems: 'center', 
+    borderWidth: 1, 
+    borderColor: COLORS.divider, 
+    ...SHADOWS.card 
+  },
+  healthLabel: { ...TEXT_STYLES.tiny, color: COLORS.textMuted, marginBottom: 8 },
+  healthStatus:{ ...TEXT_STYLES.small, fontWeight: '800', marginTop: 6 },
   statsCol:    { flex: 1, gap: 10 },
-  statPill:    { backgroundColor: COLORS.surface, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderColor: COLORS.divider, ...SHADOWS.soft },
-  statVal:     { fontSize: 15, fontWeight: '900', color: COLORS.text, letterSpacing: -0.3 },
-  statLbl:     { fontSize: 9, color: COLORS.textMuted, fontWeight: '700', textTransform: 'uppercase' },
+  statPill:    { 
+    backgroundColor: COLORS.surface, 
+    borderRadius: RADIUS.lg, 
+    paddingHorizontal: 14, 
+    paddingVertical: 10, 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    gap: 10, 
+    borderWidth: 1, 
+    borderColor: COLORS.divider, 
+    ...SHADOWS.soft 
+  },
+  statVal:     { ...TEXT_STYLES.bodySemi, color: COLORS.text, letterSpacing: -0.3 },
+  statLbl:     { ...TEXT_STYLES.tiny, color: COLORS.textMuted },
 
-  orbCard:     { borderRadius: 32, paddingVertical: 32, alignItems: 'center', borderWidth: 1, borderColor: COLORS.divider, ...SHADOWS.premium },
+  orbCard:     { 
+    borderRadius: RADIUS.xxl, 
+    paddingVertical: 32, 
+    alignItems: 'center', 
+    borderWidth: 1, 
+    borderColor: COLORS.divider, 
+    ...SHADOWS.premium 
+  },
   orbInner:    { width: 150, height: 150, justifyContent: 'center', alignItems: 'center', marginBottom: 18 },
-  orbPulse:    { position: 'absolute', width: 150, height: 150, borderRadius: 75, backgroundColor: 'rgba(11,138,68,0.1)' },
-  orbButton:   { width: 112, height: 112, borderRadius: 56, backgroundColor: COLORS.surface, justifyContent: 'center', alignItems: 'center', ...SHADOWS.premium },
+  orbPulse:    { position: 'absolute', width: 150, height: 150, borderRadius: 75, backgroundColor: 'rgba(5, 150, 105, 0.1)' },
+  orbButton:   { 
+    width: 112, 
+    height: 112, 
+    borderRadius: 56, 
+    backgroundColor: COLORS.surface, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    ...SHADOWS.premium 
+  },
   orbGradient: { width: 92, height: 92, borderRadius: 46, justifyContent: 'center', alignItems: 'center' },
-  orbTitle:    { fontSize: 18, fontWeight: '700', color: COLORS.text, marginBottom: 6, textAlign: 'center', letterSpacing: -0.3 },
-  orbSub:      { fontSize: 13, color: COLORS.textSecondary, fontWeight: '500', marginBottom: 16 },
-  voiceCtrlBtn:{ flexDirection: 'row', alignItems: 'center', gap: 7, backgroundColor: COLORS.primaryPale, paddingHorizontal: 18, paddingVertical: 10, borderRadius: 14, borderWidth: 1, borderColor: 'rgba(11,138,68,0.2)' },
-  voiceCtrlTxt:{ fontSize: 13, fontWeight: '700', color: COLORS.primary },
+  orbTitle:    { ...TEXT_STYLES.h3, color: COLORS.text, marginBottom: 6, textAlign: 'center' },
+  orbSub:      { ...TEXT_STYLES.body, color: COLORS.textSecondary, marginBottom: 16 },
+  voiceCtrlBtn:{ 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    gap: 7, 
+    backgroundColor: COLORS.primaryPale, 
+    paddingHorizontal: 18, 
+    paddingVertical: 10, 
+    borderRadius: RADIUS.md, 
+    borderWidth: 1, 
+    borderColor: 'rgba(5, 150, 105, 0.2)' 
+  },
+  voiceCtrlTxt:{ ...TEXT_STYLES.small, color: COLORS.primary, fontWeight: '700' },
 
   actionGrid:  { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  actionCard:  { width: '47%', backgroundColor: COLORS.surface, borderRadius: 20, padding: 16, borderWidth: 1, borderColor: COLORS.divider, ...SHADOWS.soft },
+  actionCard:  { 
+    width: '47%', 
+    backgroundColor: COLORS.surface, 
+    borderRadius: RADIUS.lg, 
+    padding: 16, 
+    borderWidth: 1, 
+    borderColor: COLORS.divider, 
+    ...SHADOWS.card 
+  },
   actionIcon:  { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
-  actionLabel: { fontSize: 15, fontWeight: '700', color: COLORS.text, marginBottom: 3 },
-  actionSub:   { fontSize: 11, color: COLORS.textSecondary, lineHeight: 16 },
+  actionLabel: { ...TEXT_STYLES.h4, color: COLORS.text, marginBottom: 3 },
+  actionSub:   { ...TEXT_STYLES.small, color: COLORS.textSecondary, fontSize: 11 },
 
   sectionHdr:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 24, marginTop: 24, marginBottom: 12 },
-  sectionTitle:{ fontSize: 17, fontWeight: '800', color: COLORS.text, letterSpacing: -0.3 },
-  sectionBadge:{ fontSize: 11, fontWeight: '700', color: COLORS.primary, backgroundColor: COLORS.primaryPale, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
+  sectionTitle:{ ...TEXT_STYLES.h3, color: COLORS.text },
 });

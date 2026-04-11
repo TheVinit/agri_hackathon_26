@@ -8,6 +8,20 @@ import {
   setDoc, 
   serverTimestamp 
 } from 'firebase/firestore';
+import { createClient } from '@supabase/supabase-js';
+
+// ── Configuration ────────────────────────────────────────────────────────
+const RENDER_BASE_URL = 'https://agri-hackathon-26.onrender.com';
+const CLOUD_RUN_URL   = 'https://agri-hackathon-26-58884879245.europe-west1.run.app';
+
+// Supabase Setup
+const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
+const SUPABASE_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+
+export const getAdminSupabase = () => {
+  if (!SUPABASE_URL || !SUPABASE_KEY) return null;
+  return createClient(SUPABASE_URL, SUPABASE_KEY);
+};
 
 // ── Fallback/Demo Data (for robust demo if hardware API sleeps) ────────
 const DEMO_NODES = [
@@ -191,24 +205,6 @@ export function computeAdvisory(nodes = [], npk = DEMO_NPK) {
 
 // ── API Functions ────────────────────────────────────────────────────────
 
-const API_BASE_URL = 'https://agri-hackathon-26.onrender.com';
-
-function buildEmptyResponse(farmId, errorMsg) {
-  return {
-    data: {
-      farmId,
-      farmerName: 'रामराव शिंदे',
-      location:   'Pune, MH',
-      nodes:      [],
-      npk:        DEMO_NPK,
-      alerts:     [],
-      dataSource: 'Error',
-      lastSync:   new Date().toISOString(),
-    },
-    error: errorMsg || 'Unable to load data',
-  };
-}
-
 export const getDashboard = async (farmId) => {
   let farmerName = 'रामराव शिंदे';
   let location = 'Pune, MH';
@@ -227,9 +223,9 @@ export const getDashboard = async (farmId) => {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/sensors/${farmId}`);
+    const response = await fetch(`${RENDER_BASE_URL}/api/sensors/${farmId}`);
     if (!response.ok) {
-      throw new Error(`Render API responded with status: ${response.status}`);
+      throw new Error(`API responded with status: ${response.status}`);
     }
     const apiData = await response.json();
 

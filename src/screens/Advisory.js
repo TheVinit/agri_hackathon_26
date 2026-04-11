@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { COLORS, SHADOWS } from '../theme';
+import { COLORS, SHADOWS, TEXT_STYLES, RADIUS, SPACING } from '../theme';
 import { getTodayAdvisory } from '../services/api';
 import { speak, stopSpeaking } from '../services/tts';
 import { useLang } from '../context/LanguageContext';
@@ -260,56 +260,171 @@ function LoadingScreen() {
 }
 
 const styles = StyleSheet.create({
-  container:     { flex: 1, backgroundColor: COLORS.background },
-  header:        { padding: 24, paddingTop: Platform.OS === 'ios' ? 60 : 50 },
-  headerTitle:   { fontSize: 28, fontWeight: '900', color: COLORS.text, marginBottom: 4 },
-  headerSub:     { fontSize: 15, color: COLORS.textSecondary, fontWeight: '500', marginBottom: 14 },
-  summaryBar:    { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 16, paddingVertical: 12, paddingHorizontal: 16, borderWidth: 1 },
-  summaryText:   { flex: 1, fontSize: 13, fontWeight: '700', lineHeight: 18 },
-  timeStamp:     { fontSize: 11, color: COLORS.textMuted, fontWeight: '600' },
-
-  recalibratedBanner: { 
-    flexDirection: 'row', alignItems: 'center', gap: 10, 
-    backgroundColor: COLORS.primaryPale, 
-    marginHorizontal: 20, marginBottom: 10, 
-    padding: 14, borderRadius: 16, 
-    borderWidth: 1, borderColor: COLORS.primary + '30' 
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
   },
-  recalibratedText: { flex: 1, fontSize: 13, color: COLORS.primary, fontWeight: '700', lineHeight: 18 },
-
-  cardsWrap:     { paddingHorizontal: 20, paddingTop: 4, gap: 20 },
-
-  card:          { backgroundColor: COLORS.surface, borderRadius: 24, overflow: 'hidden', ...SHADOWS.soft, borderWidth: 1, borderColor: COLORS.divider },
-  cardActive:    { borderColor: COLORS.primary, borderWidth: 2 },
-  cardHeader:    { flexDirection: 'row', alignItems: 'center', padding: 18, gap: 12 },
-  cardEmoji:     { fontSize: 30 },
-  cardTitle:     { fontSize: 17, fontWeight: '800', color: '#fff', marginBottom: 6 },
-  sevRow:        { flexDirection: 'row' },
-  sevPill:       { backgroundColor: 'rgba(255,255,255,0.25)', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 8 },
-  sevText:       { fontSize: 12, color: '#fff', fontWeight: '800' },
-  playBtn:       { padding: 2 },
-
-  cardBody:      { padding: 18 },
-  dataCtx:       { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: COLORS.primaryPale, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 10, marginBottom: 12 },
-  dataCtxText:   { fontSize: 12, fontWeight: '700', color: COLORS.primary, flex: 1 },
-  advisoryText:  { fontSize: 15, lineHeight: 26, color: COLORS.text, fontWeight: '500', marginBottom: 16 },
-
-  actionsWrap:   { backgroundColor: COLORS.surfaceLight, borderRadius: 16, padding: 14, marginBottom: 14, borderWidth: 1, borderColor: COLORS.divider },
-  actionsLabel:  { fontSize: 11, fontWeight: '800', color: COLORS.textMuted, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 },
-  actionItem:    { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 8 },
-  actionBullet:  { width: 22, height: 22, borderRadius: 11, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center', marginTop: 1 },
-  actionNum:     { fontSize: 11, fontWeight: '900', color: '#fff' },
-  actionText:    { flex: 1, fontSize: 13, color: COLORS.text, fontWeight: '600', lineHeight: 20 },
-
-  listenRow:     { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: COLORS.primaryPale, paddingVertical: 11, paddingHorizontal: 16, borderRadius: 14 },
-  listenRowActive:{ backgroundColor: COLORS.primary },
-  listenText:    { fontSize: 13, fontWeight: '700', color: COLORS.primary },
-
-  footerTip:     { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 24, marginTop: 24, opacity: 0.6 },
-  footerText:    { fontSize: 12, color: COLORS.textMuted, fontWeight: '500', flex: 1, lineHeight: 18 },
-
-  errorWrap:     { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 },
-  errorText:     { fontSize: 18, fontWeight: '700', color: COLORS.text, marginTop: 16, marginBottom: 24, textAlign: 'center' },
-  retryBtn:      { backgroundColor: COLORS.primaryPale, paddingHorizontal: 24, paddingVertical: 14, borderRadius: 16 },
-  retryTxt:      { color: COLORS.primary, fontWeight: '700', fontSize: 15 },
+  header: {
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingHorizontal: 24,
+    paddingBottom: 24,
+    backgroundColor: COLORS.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.divider,
+    ...SHADOWS.soft,
+  },
+  headerTitle: {
+    ...TEXT_STYLES.h2,
+    color: COLORS.text,
+  },
+  headerSub: {
+    ...TEXT_STYLES.body,
+    color: COLORS.textSecondary,
+    marginTop: 4,
+  },
+  summaryBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: RADIUS.lg,
+    marginTop: 20,
+    borderWidth: 1,
+    gap: 12,
+  },
+  summaryText: {
+    flex: 1,
+    ...TEXT_STYLES.small,
+    fontWeight: '700',
+  },
+  timeStamp: {
+    ...TEXT_STYLES.tiny,
+    color: COLORS.textMuted,
+  },
+  cardsWrap: {
+    padding: 24,
+    gap: 20,
+  },
+  card: {
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.xl,
+    overflow: 'hidden',
+    ...SHADOWS.card,
+    borderWidth: 1,
+    borderColor: COLORS.divider,
+  },
+  cardActive: {
+    borderColor: COLORS.primary,
+    borderWidth: 2,
+    ...SHADOWS.premium,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+  },
+  cardTitle: {
+    ...TEXT_STYLES.h4,
+    color: '#FFFFFF',
+  },
+  sevRow: {
+    flexDirection: 'row',
+    marginTop: 4,
+  },
+  sevPill: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: RADIUS.pill,
+  },
+  sevText: {
+    ...TEXT_STYLES.tiny,
+    color: '#FFFFFF',
+  },
+  playBtn: {
+    marginLeft: 12,
+  },
+  cardBody: {
+    padding: 20,
+  },
+  dataCtx: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 12,
+    backgroundColor: COLORS.primaryPale,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: RADIUS.sm,
+    alignSelf: 'flex-start',
+  },
+  dataCtxText: {
+    ...TEXT_STYLES.tiny,
+    color: COLORS.primary,
+  },
+  advisoryText: {
+    ...TEXT_STYLES.bodySemi,
+    color: COLORS.text,
+    lineHeight: 26,
+  },
+  translationWrap: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 16,
+    backgroundColor: COLORS.background,
+    padding: 14,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    borderColor: COLORS.divider,
+  },
+  translationText: {
+    flex: 1,
+    ...TEXT_STYLES.small,
+    color: COLORS.textSecondary,
+    lineHeight: 20,
+  },
+  footerTip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingHorizontal: 40,
+    marginTop: 20,
+  },
+  footerText: {
+    ...TEXT_STYLES.small,
+    color: COLORS.textMuted,
+    textAlign: 'center',
+  },
+  recalibratedBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.primaryPale,
+    margin: 24,
+    marginBottom: 0,
+    padding: 16,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+    borderColor: COLORS.primaryLight,
+    gap: 12,
+  },
+  recalibratedText: {
+    flex: 1,
+    ...TEXT_STYLES.small,
+    color: COLORS.primaryDark,
+    fontWeight: '700',
+  },
+  cardEmoji: { fontSize: 30 },
+  actionsWrap: { backgroundColor: COLORS.surfaceLight, borderRadius: RADIUS.md, padding: 14, marginBottom: 14, borderWidth: 1, borderColor: COLORS.divider },
+  actionsLabel: { ...TEXT_STYLES.tiny, color: COLORS.textMuted, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 },
+  actionItem: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 8 },
+  actionBullet: { width: 22, height: 22, borderRadius: 11, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center', marginTop: 1 },
+  actionNum: { fontSize: 11, fontWeight: '900', color: '#fff' },
+  actionText: { flex: 1, ...TEXT_STYLES.small, color: COLORS.text, lineHeight: 20 },
+  listenRow: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: COLORS.primaryPale, paddingVertical: 11, paddingHorizontal: 16, borderRadius: RADIUS.md },
+  listenRowActive: { backgroundColor: COLORS.primary },
+  listenText: { ...TEXT_STYLES.small, fontWeight: '700', color: COLORS.primary },
+  errorWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 },
+  errorText: { ...TEXT_STYLES.h3, color: COLORS.text, marginTop: 16, marginBottom: 24, textAlign: 'center' },
+  retryBtn: { backgroundColor: COLORS.primaryPale, paddingHorizontal: 24, paddingVertical: 14, borderRadius: RADIUS.md },
+  retryTxt: { color: COLORS.primary, fontWeight: '700', fontSize: 15 },
 });

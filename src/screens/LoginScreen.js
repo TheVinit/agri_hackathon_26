@@ -219,64 +219,167 @@ export default function LoginScreen({ navigation, onOpenAdmin, onLogin }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  scrollContent: { padding: SPACING.xl, paddingBottom: 60, flexGrow: 1, justifyContent: 'center' },
-  header: { alignItems: 'center', marginBottom: 30 },
-  logoContainer: { alignItems: 'center', marginBottom: 40 },
-  logoCircle: { 
-    width: 90, height: 90, borderRadius: 30, 
-    backgroundColor: COLORS.surface, 
-    justifyContent: 'center', alignItems: 'center',
-    marginBottom: 16, ...SHADOWS.md,
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
   },
-  brandName: { color: COLORS.text, letterSpacing: -1 },
-  brandTag: { color: COLORS.textSecondary, marginTop: 2 },
-  tabBar: { 
-    flexDirection: 'row', backgroundColor: COLORS.surface, 
-    borderRadius: RADIUS.xl, padding: 4, width: '100%',
-    ...SHADOWS.sm,
+  scrollContent: {
+    paddingBottom: 40,
   },
-  tab: { flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: RADIUS.lg },
-  tabActive: { backgroundColor: COLORS.primaryPale },
-  tabText: { ...TEXT_STYLES.data, color: COLORS.textMuted }, 
-  tabTextActive: { color: COLORS.primary },
-  tabIndicator: { 
-    position: 'absolute', bottom: 6, width: 20, height: 3, 
-    backgroundColor: COLORS.primary, borderRadius: RADIUS.sm 
+  header: {
+    paddingTop: Platform.OS === 'ios' ? 80 : 60,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    borderBottomLeftRadius: RADIUS.xxl,
+    borderBottomRightRadius: RADIUS.xxl,
+    ...SHADOWS.soft,
+    paddingBottom: 32,
   },
-  card: { 
-    backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, padding: SPACING.xxl, 
-    ...SHADOWS.lg,
+  logoCircle: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: COLORS.primaryPale,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(5, 150, 105, 0.2)',
+    ...SHADOWS.soft,
   },
-  welcomeText: { color: COLORS.text, marginBottom: 28 },
-  inputBox: { marginBottom: 20 },
-  inputLabel: { color: COLORS.textSecondary, marginBottom: 8, marginLeft: 4, textTransform: 'uppercase' },
-  inputField: { 
-    flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.surfaceLight,
-    borderRadius: RADIUS.lg, paddingHorizontal: 18, paddingVertical: 14,
-    borderWidth: 1, borderColor: COLORS.divider
+  brandName: {
+    ...TEXT_STYLES.h1,
+    color: COLORS.text,
+    letterSpacing: -1,
   },
-  textInput: { flex: 1, marginLeft: 12, color: COLORS.text },
-  errTxt: { color: COLORS.danger, ...TEXT_STYLES.body, fontWeight: '700', marginBottom: 15, textAlign: 'center' },
-  mainBtn: { borderRadius: RADIUS.lg, overflow: 'hidden', marginTop: 10, ...SHADOWS.md },
-  btnGradient: { paddingVertical: 20, alignItems: 'center' },
-  btnTxt: { color: '#fff', letterSpacing: 0.5 },
-  easyBtn: { 
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', 
-    marginTop: 25, gap: 8, paddingVertical: 10
+  brandTag: {
+    ...TEXT_STYLES.body,
+    color: COLORS.textSecondary,
+    marginTop: 4,
   },
-  easyBtnTitle: { color: COLORS.primary },
-  footer: { marginTop: 40, alignItems: 'center' },
-  version: { color: COLORS.textMuted, marginBottom: 6 },
-  footerHelp: { color: COLORS.textMuted },
-  dividerBox: { flexDirection: 'row', alignItems: 'center', marginVertical: 20 },
-  dividerLine: { flex: 1, height: 1, backgroundColor: COLORS.divider },
-  dividerTxt: { marginHorizontal: 10, color: COLORS.textMuted, fontSize: 12, fontWeight: '700' },
-  googleBtn: { 
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: COLORS.surfaceLight, borderRadius: RADIUS.lg, 
-    borderWidth: 1, borderColor: COLORS.divider, paddingVertical: 16, gap: 12,
-    ...SHADOWS.sm
+  tabBar: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.background,
+    padding: 6,
+    borderRadius: RADIUS.xl,
+    marginTop: 32,
+    width: '100%',
+    borderWidth: 1,
+    borderColor: COLORS.divider,
   },
-  googleBtnTxt: { color: COLORS.text, fontWeight: '700' }
+  tab: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderRadius: RADIUS.lg,
+  },
+  tabActive: {
+    backgroundColor: COLORS.surface,
+    ...SHADOWS.card,
+  },
+  tabText: {
+    ...TEXT_STYLES.tiny,
+    color: COLORS.textMuted,
+  },
+  tabTextActive: {
+    color: COLORS.primary,
+    fontWeight: '700',
+  },
+  card: {
+    margin: 24,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.xl,
+    padding: 24,
+    ...SHADOWS.premium,
+    borderWidth: 1,
+    borderColor: COLORS.divider,
+  },
+  welcomeText: {
+    ...TEXT_STYLES.h2,
+    color: COLORS.text,
+    marginBottom: 32,
+    textAlign: 'center',
+  },
+  inputBox: {
+    marginBottom: 20,
+  },
+  inputLabel: {
+    ...TEXT_STYLES.tiny,
+    color: COLORS.textSecondary,
+    marginBottom: 8,
+    marginLeft: 4,
+  },
+  inputField: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.background,
+    borderRadius: RADIUS.lg,
+    paddingHorizontal: 16,
+    height: 56,
+    borderWidth: 1,
+    borderColor: COLORS.divider,
+  },
+  textInput: {
+    flex: 1,
+    marginLeft: 12,
+    color: COLORS.text,
+  },
+  mainBtn: {
+    marginTop: 12,
+    borderRadius: RADIUS.lg,
+    overflow: 'hidden',
+    ...SHADOWS.premium,
+  },
+  btnGradient: {
+    height: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  btnTxt: {
+    ...TEXT_STYLES.h3,
+    color: '#FFFFFF',
+  },
+  easyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+    gap: 8,
+  },
+  easyBtnTitle: {
+    ...TEXT_STYLES.small,
+    color: COLORS.primary,
+    fontWeight: '700',
+  },
+  dividerBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 32,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: COLORS.divider,
+  },
+  dividerTxt: {
+    ...TEXT_STYLES.tiny,
+    color: COLORS.textMuted,
+    marginHorizontal: 16,
+  },
+  googleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 56,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+    borderColor: COLORS.divider,
+    backgroundColor: COLORS.surface,
+    gap: 12,
+  },
+  googleBtnTxt: {
+    ...TEXT_STYLES.bodySemi,
+    color: COLORS.text,
+  },
 });

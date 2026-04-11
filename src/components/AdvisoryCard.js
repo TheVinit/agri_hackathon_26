@@ -3,7 +3,7 @@ import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Text, Surface } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { COLORS, SHADOWS, GAPS, RADIUS } from '../theme';
+import { COLORS, SHADOWS, GAPS, RADIUS, TEXT_STYLES, SPACING } from '../theme';
 
 export default function AdvisoryCard({
   title,
@@ -31,7 +31,7 @@ export default function AdvisoryCard({
   };
 
   return (
-    <Surface style={[styles.card, { backgroundColor: bgColour || COLORS.white }]}>
+    <Surface style={[styles.card, { backgroundColor: bgColour || COLORS.surface }]}>
       <LinearGradient
         colors={[headerColour, headerColour + 'DD']}
         start={{ x: 0, y: 0 }}
@@ -67,16 +67,18 @@ export default function AdvisoryCard({
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: RADIUS.xl, // 20
-    marginBottom: 24,
+    borderRadius: RADIUS.xl,
+    marginBottom: SPACING.xl,
     overflow: 'hidden',
-    ...SHADOWS.md,
+    ...SHADOWS.card,
+    borderWidth: 1,
+    borderColor: COLORS.divider,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 20,
-    paddingHorizontal: 20,
+    paddingVertical: SPACING.xl,
+    paddingHorizontal: SPACING.xl,
   },
   headerIcon: {
     marginRight: 14,
@@ -87,17 +89,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitleHi: {
-    fontSize: 20,
-    fontWeight: '900',
+    ...TEXT_STYLES.h3,
     color: '#FFFFFF',
-    letterSpacing: 0.5,
   },
   headerTitleEn: {
-    fontSize: 10,
-    fontWeight: '800',
+    ...TEXT_STYLES.tiny,
     color: 'rgba(255,255,255,0.8)',
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
     marginTop: 4,
   },
   audioBtn: {
@@ -107,35 +104,30 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.25)',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...SHADOWS.soft,
   },
   body: {
-    padding: 20,
+    padding: SPACING.xl,
   },
   bodyHindi: {
+    ...TEXT_STYLES.bodySemi,
     fontSize: 18,
-    lineHeight: 28,
     color: COLORS.text,
-    fontWeight: '600',
     marginBottom: 16,
   },
   englishWrapper: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: 'rgba(0,0,0,0.04)',
+    backgroundColor: COLORS.background,
     padding: 14,
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    borderColor: COLORS.divider,
   },
   bodyEnglish: {
     flex: 1,
-    fontSize: 13,
-    lineHeight: 22,
+    ...TEXT_STYLES.small,
     color: COLORS.textSecondary,
-    fontWeight: '500',
     marginLeft: 8,
   },
 });
