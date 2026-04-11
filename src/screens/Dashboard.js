@@ -72,15 +72,47 @@ function HealthGauge({ score = 0, size = 130 }) {
 function SensorStrip({ nodes, t }) {
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -24, paddingHorizontal: 24 }} contentContainerStyle={{ gap: 12 }}>
-      {(nodes || []).map(node => {
-        const mColor = moistureColor(node.moisture);
-        const tColor = tempColor(node.temperature);
-        const stMap  = { ok: { label: t('उत्तम','OK','उत्तम'), color: COLORS.success }, warning: { label: t('सतर्क','Warn','सावधान'), color: COLORS.warning }, critical: { label: t('संकट','Crit','गंभीर'), color: COLORS.danger } };
-        const st     = stMap[node.status] || stMap.ok;
+      {(nodes || []).map((node, idx) => {
+        const isOffline  = node.status === 'offline';
+        const isVirtual  = node.status === 'virtual';
+        const isDimmed   = isOffline || isVirtual;
+        const mColor = isDimmed ? COLORS.textMuted : moistureColor(node.moisture);
+        const tColor = isDimmed ? COLORS.textMuted : tempColor(node.temperature);
+        const stMap  = {
+          ok:       { label: t('उत्तम','OK','उत्तम'),             color: COLORS.success },
+          warning:  { label: t('सतर्क','Warn','सावधान'),          color: COLORS.warning },
+          critical: { label: t('संकट','Crit','गंभीर'),            color: COLORS.danger  },
+          offline:  { label: t('ऑफलाइन','Offline','बंद आहे'),     color: COLORS.textMuted },
+          virtual:  { label: t('वर्चुअल','Virtual','व्हर्च्युअल'), color: '#6366F1' },
+        };
+        const st = stMap[node.status] || stMap.ok;
+
+        if (isVirtual) {
+          // Special render for virtual nodes
+          return (
+            <View key={node.node_id ?? idx} style={[strip.card, strip.virtualCard]}>
+              <View style={strip.topRow}>
+                <Text style={strip.nodeLabel}>{node.name || `Node ${node.node_id ?? idx + 1}`}</Text>
+                <View style={[strip.badge, { backgroundColor: '#EEF2FF' }]}>
+                  <MaterialCommunityIcons name="cloud-outline" size={10} color="#6366F1" />
+                  <Text style={[strip.badgeText, { color: '#6366F1' }]}>{st.label}</Text>
+                </View>
+              </View>
+              <View style={strip.virtualBody}>
+                <MaterialCommunityIcons name="router-wireless-off" size={28} color="#A5B4FC" />
+                <Text style={strip.virtualCrop}>{node.crop || '—'}</Text>
+                <Text style={strip.virtualArea}>{node.area ? `${node.area} acres` : ''}</Text>
+              </View>
+              <Text style={strip.virtualHint}>{t('सेंसर प्रतीक्षारत', 'Awaiting sensor', 'सेन्सरची प्रतीक्षा')}</Text>
+              <View style={[strip.accentBar, { backgroundColor: '#6366F1' }]} />
+            </View>
+          );
+        }
+
         return (
-          <View key={node.node_id} style={strip.card}>
+          <View key={node.node_id ?? idx} style={[strip.card, isOffline && { opacity: 0.75 }]}>
             <View style={strip.topRow}>
-              <Text style={strip.nodeLabel}>{t(`नोड ${node.node_id}`, `Node ${node.node_id}`, `नोड ${node.node_id}`)}</Text>
+              <Text style={strip.nodeLabel}>{node.name || t(`नोड ${node.node_id}`, `Node ${node.node_id}`, `नोड ${node.node_id}`)}</Text>
               <View style={[strip.badge, { backgroundColor: st.color + '20' }]}>
                 <View style={[strip.dot, { backgroundColor: st.color }]} />
                 <Text style={[strip.badgeText, { color: st.color }]}>{st.label}</Text>
@@ -89,19 +121,19 @@ function SensorStrip({ nodes, t }) {
             <View style={strip.metricsRow}>
               <View style={strip.metric}>
                 <MaterialCommunityIcons name="water-percent" size={14} color={mColor} />
-                <Text style={[strip.metricVal, { color: mColor }]}>{node.moisture}%</Text>
+                <Text style={[strip.metricVal, { color: mColor }]}>{isDimmed ? '--' : node.moisture + '%'}</Text>
                 <Text style={strip.metricLbl}>{t('नमी','Moist','ओलावा')}</Text>
               </View>
               <View style={strip.divider} />
               <View style={strip.metric}>
                 <MaterialCommunityIcons name="thermometer" size={14} color={tColor} />
-                <Text style={[strip.metricVal, { color: tColor }]}>{node.temperature}°</Text>
+                <Text style={[strip.metricVal, { color: tColor }]}>{isDimmed ? '--' : node.temperature + '°'}</Text>
                 <Text style={strip.metricLbl}>{t('ताप','Temp','ताप')}</Text>
               </View>
               <View style={strip.divider} />
               <View style={strip.metric}>
-                <MaterialCommunityIcons name="lightning-bolt" size={14} color={COLORS.secondary} />
-                <Text style={[strip.metricVal, { color: COLORS.secondary }]}>{node.ec}</Text>
+                <MaterialCommunityIcons name="lightning-bolt" size={14} color={isDimmed ? COLORS.textMuted : COLORS.secondary} />
+                <Text style={[strip.metricVal, { color: isDimmed ? COLORS.textMuted : COLORS.secondary }]}>{isDimmed ? '--' : node.ec}</Text>
                 <Text style={strip.metricLbl}>EC</Text>
               </View>
             </View>
@@ -112,8 +144,15 @@ function SensorStrip({ nodes, t }) {
     </ScrollView>
   );
 }
+
 const strip = StyleSheet.create({
   card: { backgroundColor: COLORS.surface, borderRadius: 20, padding: 14, width: 190, borderWidth: 1, borderColor: COLORS.divider, overflow: 'hidden', ...SHADOWS.soft },
+  // Virtual node card — dashed indigo border
+  virtualCard: { borderColor: '#6366F1', borderWidth: 1.5, borderStyle: Platform.OS === 'web' ? 'dashed' : 'solid', backgroundColor: '#F5F3FF' },
+  virtualBody: { alignItems: 'center', justifyContent: 'center', paddingVertical: 8, gap: 4 },
+  virtualCrop: { fontSize: 13, fontWeight: '800', color: '#6366F1' },
+  virtualArea: { fontSize: 10, color: '#A5B4FC', fontWeight: '600' },
+  virtualHint: { fontSize: 9, color: '#A5B4FC', fontWeight: '700', textAlign: 'center', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 4 },
   topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   nodeLabel: { fontSize: 13, fontWeight: '800', color: COLORS.text, letterSpacing: -0.3 },
   badge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, gap: 4 },
@@ -214,10 +253,11 @@ function TaskChecklist({ nodes, t }) {
   const [checked, setChecked] = useState({});
   const toggle = key => setChecked(prev => ({ ...prev, [key]: !prev[key] }));
 
-  const criticalNode = nodes?.find(n => n.moisture < 25);
-  const warningNode  = nodes?.find(n => n.moisture < 40 && n.moisture >= 25);
-  const hotNode      = nodes?.find(n => n.temperature > 32);
-  const lowBattery   = nodes?.find(n => n.battery < 20);
+  const activeNodes = nodes?.filter(n => n.status !== 'offline') || [];
+  const criticalNode = activeNodes.find(n => n.moisture < 25);
+  const warningNode  = activeNodes.find(n => n.moisture < 40 && n.moisture >= 25);
+  const hotNode      = activeNodes.find(n => n.temperature > 32);
+  const lowBattery   = activeNodes.find(n => n.battery < 20);
 
   const tasks = [
     criticalNode && { key: 't1', icon: 'water-pump', color: COLORS.danger, urgent: true,
@@ -393,8 +433,8 @@ const vc = StyleSheet.create({
 });
 
 // ── MAIN DASHBOARD ─────────────────────────────────────────────
-export default function Dashboard({ navigation }) {
-  const { t, lang, toggleLang } = useLang();
+export default function Dashboard({ navigation, virtualNodes = [] }) {
+  const { t, lang } = useLang();
   const [data, setData]         = useState(null);
   const [loading, setLoading]   = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -474,45 +514,24 @@ export default function Dashboard({ navigation }) {
   const alertsCount  = data?.alerts?.length || 0;
   const voiceSupported = isVoiceSupported();
 
+  // Merge real + virtual nodes for SensorStrip
+  const virtualNodesMapped = (virtualNodes || []).map((vn, i) => ({
+    node_id: `V${i + 1}`, name: vn.name, crop: vn.crop, area: vn.area,
+    status: 'virtual', moisture: null, temperature: null, ec: null,
+  }));
+  const allNodes = [...(data?.nodes || []), ...virtualNodesMapped];
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
 
       <ScrollView
-        contentContainerStyle={{ paddingBottom: 110 }}
+        contentContainerStyle={{ paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchData(true); }} tintColor={COLORS.primary} />
         }
       >
-        {/* ── HEADER ── */}
-        <Animated.View style={[styles.header, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-          <View style={styles.headerRow}>
-            <View>
-              <View style={styles.nameRow}>
-                <Text style={styles.greetText}>{t('नमस्ते,', 'Hello,', 'नमस्कार,')}</Text>
-                <View style={[styles.badge, { backgroundColor: data?.dataSource === 'Live' ? '#E8F5E9' : '#FFF3E0' }]}>
-                  <View style={[styles.badgeDot, { backgroundColor: data?.dataSource === 'Live' ? COLORS.success : '#E65100' }]} />
-                  <Text style={[styles.badgeTxt, { color: data?.dataSource === 'Live' ? COLORS.primary : '#E65100' }]}>{data?.dataSource || 'Demo'}</Text>
-                </View>
-              </View>
-              <Text style={styles.userName}>{data?.farmerName || t('किसान', 'Farmer', 'शेतकरी')}</Text>
-              <Text style={styles.location}><MaterialCommunityIcons name="map-marker" size={12} color={COLORS.textMuted} /> {data?.location || 'Pune, MH'}</Text>
-            </View>
-            <View style={styles.headerActions}>
-              <TouchableOpacity style={styles.langBtn} onPress={toggleLang}>
-                <Text style={styles.langTxt}>{lang.toUpperCase()}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.adminBtn} onPress={() => navigation.navigate('__TOGGLE_DRAWER__')}>
-                <MaterialCommunityIcons name="dots-vertical" size={26} color={COLORS.textSecondary} />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.logoutBtn} onPress={() => navigation.navigate('__LOGOUT__')}>
-                <MaterialCommunityIcons name="logout" size={16} color={COLORS.danger} />
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Animated.View>
-
         {/* ── ALERT BANNER ── */}
         {alertsCount > 0 && (
           <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
@@ -549,13 +568,13 @@ export default function Dashboard({ navigation }) {
           </LinearGradient>
         </Animated.View>
 
-        {/* ── QUICK ACTIONS (BIG ICONS FOR EDUCATION) ── */}
+        {/* ── QUICK ACTIONS ── */}
         <Animated.View style={[styles.section, styles.actionGrid, { opacity: fadeAnim }]}>
           {[
-            { icon: 'leaf', color: COLORS.primary, bg: COLORS.primaryPale, label: t('सलाह', 'Advice', 'सल्ला'), sub: t('सिंचाई / खाद', 'Water & Food', 'पाणी/खत'), screen: 'Advisory' },
-            { icon: 'flask', color: COLORS.secondary, bg: 'rgba(99,102,241,0.1)', label: t('मिट्टी', 'Soil', 'माती'), sub: t('जाँच रिपोर्ट', 'Test Report', 'तपासणी'), screen: 'NPKTest' },
-            { icon: 'map-marker-radius', color: '#F59E0B', bg: '#FFF8EC', label: t('नक्शा', 'Map', 'नकाशा'), sub: t('खेत देखें', 'View Farm', 'शेत पहा'), screen: 'Map' },
-            { icon: 'chart-line', color: '#8B5CF6', bg: 'rgba(139,92,246,0.1)', label: t('सेंसर', 'Sensors', 'सेंसर'), sub: t('लाइव डेटा', 'Live Data', 'डेटा'), screen: 'Home' },
+            { icon: 'leaf', color: COLORS.primary, bg: COLORS.primaryPale, label: t('सलाह', 'Advice', 'सल्ला'), sub: t('सिंचाई / खाद', 'Water & Food', 'पाणी/खत'), screen: 'AdvisoryTab' },
+            { icon: 'flask', color: '#6366F1', bg: 'rgba(99,102,241,0.1)', label: t('मिट्टी', 'Soil', 'माती'), sub: t('जाँच रिपोर्ट', 'Test Report', 'तपासणी'), screen: 'MoreTab' },
+            { icon: 'map-marker-radius', color: '#F59E0B', bg: '#FFF8EC', label: t('नक्शा', 'Map', 'नकाशा'), sub: t('खेत देखें', 'View Farm', 'शेत पहा'), screen: 'MapTab' },
+            { icon: 'robot-happy', color: '#059669', bg: '#ECFDF5', label: t('AI सहायक', 'AI Talk', 'AI सहाय्यक'), sub: t('सवाल पूछें', 'Ask AI', 'AI विचारा'), screen: 'AITab' },
           ].map((a, i) => (
             <TouchableOpacity key={i} style={styles.actionCard} activeOpacity={0.8} onPress={() => navigation.navigate(a.screen)}>
               <View style={[styles.actionIcon, { backgroundColor: a.bg }]}>
@@ -612,7 +631,7 @@ export default function Dashboard({ navigation }) {
           </View>
         </Animated.View>
         <Animated.View style={[{ paddingHorizontal: 24 }, { opacity: fadeAnim }]}>
-          <SensorStrip nodes={data?.nodes} t={t} />
+          <SensorStrip nodes={allNodes} t={t} />
         </Animated.View>
 
         <Animated.View style={[styles.sectionHdr, { opacity: fadeAnim, marginTop: 32 }]}>
@@ -653,7 +672,6 @@ function LoadingScreen() {
 
 const styles = StyleSheet.create({
   container:   { flex: 1, backgroundColor: COLORS.background },
-  header:      { paddingHorizontal: 24, paddingTop: Platform.OS === 'ios' ? 60 : 50, paddingBottom: 8 },
   section:     { paddingHorizontal: 24, marginTop: 16 },
   headerRow:   { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   nameRow:     { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },

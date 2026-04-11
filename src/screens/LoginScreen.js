@@ -35,10 +35,11 @@ export default function LoginScreen({ onLogin, onOpenAdmin }) {
     
     setTimeout(() => {
       if (isQuickAdmin) {
-        // Handle quick admin if needed, but for now just farmer
-        onLogin({ id: 'farm_001', name: 'रामराव शिंदे' });
+        // Quick demo → show onboarding flow (hasProfile: false)
+        onLogin({ id: 'farm_001', name: 'New Farmer', hasProfile: false });
       } else if (farmerId === 'farm_001' && password === 'agri123') {
-        onLogin({ id: 'farm_001', name: 'रामराव शिंदे' });
+        // Returning farmer → skip onboarding (hasProfile: true)
+        onLogin({ id: 'farm_001', name: 'रामराव शिंदे', hasProfile: true });
       } else {
         setError(t('गलत आईडी या पासवर्ड', 'Invalid ID or Password', 'चुकीचा आयडी किंवा पासवर्ड'));
       }
@@ -141,7 +142,7 @@ export default function LoginScreen({ onLogin, onOpenAdmin }) {
               onPress={() => handleLogin(true)}
               activeOpacity={0.7}
             >
-              <Text style={styles.easyBtnTitle}>{t('डेमो के लिए क्लिक करें', 'Quick Demo Access', 'डेमोसाठी येथे टिचकी मारा')}</Text>
+              <Text style={styles.easyBtnTitle}>{t('नए किसान? यहाँ से शुरू करें', 'New Farmer? Start Here', 'नवीन शेतकरी? येथून सुरू करा')}</Text>
               <MaterialCommunityIcons name="arrow-right" size={16} color={COLORS.primary} />
             </TouchableOpacity>
           </View>

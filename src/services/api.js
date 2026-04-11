@@ -25,7 +25,7 @@ const DEMO_NODES = [
   { node_id: 1, moisture: 68, temperature: 24.5, humidity: 45, ec: 1.2, battery: 92, status: 'ok' },
   { node_id: 2, moisture: 72, temperature: 25.0, humidity: 42, ec: 1.1, battery: 85, status: 'ok' },
   { node_id: 3, moisture: 38, temperature: 27.3, humidity: 38, ec: 1.5, battery: 48, status: 'warning' },
-  { node_id: 4, moisture: 18, temperature: 31.7, humidity: 30, ec: 2.8, battery: 12, status: 'critical' },
+  { node_id: 4, moisture: null, temperature: null, humidity: null, ec: null, battery: 0, status: 'offline' },
 ];
 
 const DEMO_NPK = { N: 42, P: 18, K: 65, pH: 6.8 };
@@ -34,7 +34,10 @@ const DEMO_NPK = { N: 42, P: 18, K: 65, pH: 6.8 };
 export function computeHealthScore(nodes) {
   if (!nodes || nodes.length === 0) return 0;
   let score = 100;
-  nodes.forEach(n => {
+  const activeNodes = nodes.filter(n => n.status !== 'offline');
+  if (activeNodes.length === 0) return 0;
+  
+  activeNodes.forEach(n => {
     if (n.moisture < 20)       score -= 20;
     else if (n.moisture < 35)  score -= 10;
     if (n.temperature > 36)    score -= 12;
@@ -52,12 +55,23 @@ export function computeAdvisory(nodes = [], npk = DEMO_NPK) {
   if (!nodes || nodes.length === 0) {
     nodes = DEMO_NODES; // Auto-fallback for advisory if strictly empty
   }
-  const criticalNodes = nodes.filter(n => n.moisture < 25);
-  const warningNodes  = nodes.filter(n => n.moisture >= 25 && n.moisture < 40);
-  const hotNodes      = nodes.filter(n => n.temperature > 32);
-  const avgMoisture   = Math.round(nodes.reduce((s, n) => s + n.moisture, 0) / nodes.length);
-  const avgTemp       = (nodes.reduce((s, n) => s + n.temperature, 0) / nodes.length).toFixed(1);
-  const highEC        = nodes.filter(n => n.ec > 2.0);
+  const activeNodes = nodes.filter(n => n.status !== 'offline');
+  if (activeNodes.length === 0) {
+    // If all nodes are offline, advisory should reflect that
+    return { 
+      irrigation: { severity: 'warning', textEn: '⚠️ All nodes are offline. Check connection.', textHindi: '⚠️ सभी नोड ऑफलाइन हैं। कनेक्शन जाँचें।', textMr: '⚠️ सर्व नोड्स ऑफलाइन आहेत. कनेक्शन तपासा.' },
+      temperature: { severity: 'info', textEn: 'Temperature data unavailable.', textHindi: 'तापमान डेटा उपलब्ध नहीं है।' },
+      nutrients: { severity: 'info', textEn: 'Nutrient data unavailable.', textHindi: 'पोषक तत्व डेटा उपलब्ध नहीं है।' },
+      nextCrop: { severity: 'info', textEn: 'Crop recommendation unavailable.', textHindi: 'फसल सलाह उपलब्ध नहीं है।' }
+    };
+  }
+
+  const criticalNodes = activeNodes.filter(n => n.moisture < 25);
+  const warningNodes  = activeNodes.filter(n => n.moisture >= 25 && n.moisture < 40);
+  const hotNodes      = activeNodes.filter(n => n.temperature > 32);
+  const avgMoisture   = Math.round(activeNodes.reduce((s, n) => s + n.moisture, 0) / activeNodes.length);
+  const avgTemp       = (activeNodes.reduce((s, n) => s + n.temperature, 0) / activeNodes.length).toFixed(1);
+  const highEC        = activeNodes.filter(n => n.ec > 2.0);
 
   // ─ Irrigation Advisory ─
   let irrigation;
@@ -231,10 +245,16 @@ export const getDashboard = async (farmId) => {
     const apiData = await response.json();
 
     const nodes = (apiData.nodes && apiData.nodes.length > 0) ? apiData.nodes : DEMO_NODES;
-    const finalNodes = nodes.map(live => ({
-      ...live,
-      status: live.moisture < 20 ? 'critical' : live.moisture < 35 ? 'warning' : 'ok'
-    }));
+    const finalNodes = nodes.map(live => {
+      const isMissingData = live.moisture === null || live.moisture === undefined || 
+                           live.temperature === null || live.temperature === undefined;
+      return {
+        ...live,
+        status: isMissingData ? 'offline' : 
+                live.moisture < 20 ? 'critical' : 
+                live.moisture < 35 ? 'warning' : 'ok'
+      };
+    });
 
     const alerts = finalNodes
       .filter(n => n.moisture < 25)
