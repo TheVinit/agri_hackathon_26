@@ -143,12 +143,14 @@ function FarmContextBar({ farmData, lang }) {
       <View style={[styles.contextChip, criticals > 0 && { borderColor: COLORS.danger + '40' }]}>
         <MaterialCommunityIcons name="alert-circle" size={13} color={criticals > 0 ? COLORS.danger : COLORS.success} />
         <Text style={[styles.contextChipTxt, { color: criticals > 0 ? COLORS.danger : COLORS.success }]}>
-          {criticals > 0 ? `${criticals} ${lang === 'hi' ? 'ज़ोन गंभीर' : 'zones critical'}` : (lang === 'hi' ? 'सब ठीक' : lang === 'mr' ? 'सर्व ठीक' : 'All good')}
+          {criticals > 0 
+            ? `${criticals} ${lang === 'hi' ? 'ज़ोन गंभीर' : lang === 'mr' ? 'झोन गंभीर' : 'zones critical'}` 
+            : (lang === 'hi' ? 'सब ठीक' : lang === 'mr' ? 'सर्व ठीक' : 'All good')}
         </Text>
       </View>
       <View style={styles.contextChip}>
         <MaterialCommunityIcons name="access-point" size={13} color={COLORS.primary} />
-        <Text style={styles.contextChipTxt}>{nodes.length} {lang === 'hi' ? 'नोड' : 'nodes'}</Text>
+        <Text style={styles.contextChipTxt}>{nodes.length} {lang === 'hi' ? 'नोड' : lang === 'mr' ? 'नोड' : 'nodes'}</Text>
       </View>
     </ScrollView>
   );
@@ -370,7 +372,7 @@ export default function AIAssistant({ route, navigation }) {
 
       if (autoSpeak && resp.text) speak(resp.text, lang);
     } catch (e) {
-      const errText = lang === 'hi' ? 'माफ करें, कुछ गड़बड़ हुई। फिर कोशिश करें।' : lang === 'mr' ? 'माफ करा, काहीतरी चूक झाली.' : 'Sorry, something went wrong. Please try again.';
+      const errText = lang === 'hi' ? 'माफ करें, कुछ गड़बड़ हुई। फिर कोशिश करें।' : lang === 'mr' ? 'क्षमस्व, काहीतरी चूक झाली. पुन्हा प्रयत्न करा.' : 'Sorry, something went wrong. Please try again.';
       setMessages(prev => [...prev, { id: Date.now() + 1, role: 'ai', text: errText, visual: null, time: now() }]);
     }
     setThinking(false);

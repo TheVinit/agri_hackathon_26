@@ -1,52 +1,44 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView, Platform, StatusBar, ScrollView } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { COLORS, TEXT_STYLES, CARD, RADIUS, SPACING, SHADOWS } from '../theme';
-import EmptyState from '../components/EmptyState';
+import { useLang } from '../context/LanguageContext';
 
 const MOCK_ALERTS = [
   {
     id: '1',
     severity: 'critical',
-    title: '🚨 Zone South — Moisture critically low (18%)',
-    message: 'Irrigate immediately',
-    time: '1h ago',
-    action: { label: 'Open Advisory', route: 'Advisory' }
+    titleHi: '🚨 दक्षिण क्षेत्र — नमी गंभीर रूप से कम (18%)',
+    titleEn: '🚨 Zone South — Moisture critically low (18%)',
+    titleMr: '🚨 दक्षिण क्षेत्र — ओलावा गंभीररीत्या कमी (18%)',
+    messageHi: 'तुरंत सिंचाई करें',
+    messageEn: 'Irrigate immediately', 
+    messageMr: 'तातडीने सिंचन करा',
+    timeHi: '1 घंटा पहले',
+    timeEn: '1h ago',
+    timeMr: '1 तासापूर्वी',
+    action: { labelHi: 'सलाह देखें', labelEn: 'Open Advisory', labelMr: 'सल्ला पहा', route: 'Advisory' }
   },
   {
     id: '2',
     severity: 'warning',
-    title: '⚠ Temperature spike — Zone North (38°C)',
-    message: 'Monitor closely',
-    time: '3h ago',
-    action: { label: 'View Map', route: 'Map' }
+    titleHi: '⚠ तापमान बढ़ा — उत्तर क्षेत्र (38°C)',
+    titleEn: '⚠ Temperature spike — Zone North (38°C)',
+    titleMr: '⚠ तापमान वाढले — उत्तर क्षेत्र (38°C)',
+    messageHi: 'बारीकी से निगरानी करें',
+    messageEn: 'Monitor closely',
+    messageMr: 'बारीक लक्ष ठेवा',
+    timeHi: '3 घंटे पहले',
+    timeEn: '3h ago',
+    timeMr: '3 तासांपूर्वी',
+    action: { labelHi: 'नक्शा देखें', labelEn: 'View Map', labelMr: 'नकाशा पहा', route: 'Map' }
   },
-  {
-    id: '3',
-    severity: 'info',
-    title: '✅ NPK levels normal across all zones',
-    message: 'No action needed',
-    time: '1d ago',
-    action: null
-  },
-  {
-    id: '4',
-    severity: 'info',
-    title: '📡 Sensor Node 3 back online',
-    message: 'All 4 nodes active',
-    time: '2d ago',
-    action: null
-  }
 ];
 
 export default function AlertsScreen({ navigation }) {
+  const { t, lang } = useLang();
   const [filter, setFilter] = useState('All');
 
   const filteredAlerts = MOCK_ALERTS.filter(alert => {
     if (filter === 'All') return true;
     if (filter === 'Critical' && alert.severity === 'critical') return true;
     if (filter === 'Warnings' && alert.severity === 'warning') return true;
-    if (filter === 'Info' && alert.severity === 'info') return true;
     return false;
   });
 
@@ -59,45 +51,49 @@ export default function AlertsScreen({ navigation }) {
     }
   };
 
-  const FilterPill = ({ label }) => (
+  const FilterPill = ({ label, translated }) => (
     <TouchableOpacity 
       style={[styles.filterPill, filter === label && styles.filterPillActive]}
       onPress={() => setFilter(label)}
     >
       <Text style={[TEXT_STYLES.small, styles.filterText, filter === label && styles.filterTextActive]}>
-        {label}
+        {translated}
       </Text>
     </TouchableOpacity>
   );
 
-  const renderAlert = ({ item }) => (
-    <View style={[styles.alertCard, { borderLeftColor: getBorderColor(item.severity) }]}>
-      <Text style={[TEXT_STYLES.h4, styles.alertTitle]}>{item.title}</Text>
-      <Text style={[TEXT_STYLES.body, styles.alertMessage]}>{item.message}</Text>
-      
-      <View style={styles.alertFooter}>
-        <Text style={[TEXT_STYLES.small, styles.timeText]}>{item.time}</Text>
+  const renderAlert = ({ item }) => {
+    const title = lang === 'hi' ? item.titleHi : lang === 'mr' ? item.titleMr : item.titleEn;
+    const msg = lang === 'hi' ? item.messageHi : lang === 'mr' ? item.messageMr : item.messageEn;
+    const time = lang === 'hi' ? item.timeHi : lang === 'mr' ? item.timeMr : item.timeEn;
+    const actionLabel = item.action ? (lang === 'hi' ? item.action.labelHi : lang === 'mr' ? item.action.labelMr : item.action.labelEn) : '';
+
+    return (
+      <View style={[styles.alertCard, { borderLeftColor: getBorderColor(item.severity) }]}>
+        <Text style={[TEXT_STYLES.h4, styles.alertTitle]}>{title}</Text>
+        <Text style={[TEXT_STYLES.body, styles.alertMessage]}>{msg}</Text>
         
-        {item.action && (
-          <TouchableOpacity 
-            style={styles.actionBtn}
-            onPress={() => {
-              // Navigate to the tab and possibly trigger an action inside
-              navigation.navigate(item.action.route);
-            }}
-          >
-            <Text style={[TEXT_STYLES.h4, styles.actionBtnText]}>{item.action.label}</Text>
-          </TouchableOpacity>
-        )}
+        <View style={styles.alertFooter}>
+          <Text style={[TEXT_STYLES.small, styles.timeText]}>{time}</Text>
+          
+          {item.action && (
+            <TouchableOpacity 
+              style={styles.actionBtn}
+              onPress={() => navigation.navigate(item.action.route)}
+            >
+              <Text style={[TEXT_STYLES.h4, styles.actionBtnText]}>{actionLabel}</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={TEXT_STYLES.h2}>Alerts</Text>
+        <Text style={TEXT_STYLES.h2}>{t('अलर्ट', 'Alerts', 'सूचना')}</Text>
         <View style={styles.bellContainer}>
           <MaterialCommunityIcons name="bell-outline" size={28} color={COLORS.text} />
           <View style={styles.badge}>
@@ -109,10 +105,9 @@ export default function AlertsScreen({ navigation }) {
       {/* Filters */}
       <View style={styles.filterRow}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
-          <FilterPill label="All" />
-          <FilterPill label="Critical" />
-          <FilterPill label="Warnings" />
-          <FilterPill label="Info" />
+          <FilterPill label="All" translated={t('सभी', 'All', 'सर्व')} />
+          <FilterPill label="Critical" translated={t('गंभीर', 'Critical', 'गंभीर')} />
+          <FilterPill label="Warnings" translated={t('चेतावनी', 'Warnings', 'चेतावणी')} />
         </ScrollView>
       </View>
 

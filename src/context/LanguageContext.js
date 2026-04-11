@@ -15,7 +15,7 @@ export function LanguageProvider({ children }) {
 
   const t = (hiText, enText, mrText) => {
     if (lang === 'hi') return hiText;
-    if (lang === 'mr') return mrText || hiText; // Fallback to Hindi if Marathi missing
+    if (lang === 'mr') return mrText || enText; // Fallback to English if Marathi missing
     return enText;
   };
 

@@ -101,7 +101,7 @@ function SensorStrip({ nodes, t }) {
               <View style={strip.virtualBody}>
                 <MaterialCommunityIcons name="router-wireless-off" size={28} color="#A5B4FC" />
                 <Text style={strip.virtualCrop}>{node.crop || '—'}</Text>
-                <Text style={strip.virtualArea}>{node.area ? `${node.area} acres` : ''}</Text>
+                <Text style={strip.virtualArea}>{node.area ? `${node.area} ${t('एकड़', 'acres', 'एकर')}` : ''}</Text>
               </View>
               <Text style={strip.virtualHint}>{t('सेंसर प्रतीक्षारत', 'Awaiting sensor', 'सेन्सरची प्रतीक्षा')}</Text>
               <View style={[strip.accentBar, { backgroundColor: '#6366F1' }]} />
@@ -267,13 +267,13 @@ function TaskChecklist({ nodes, t }) {
 
   const tasks = [
     criticalNode && { key: 't1', icon: 'water-pump', color: COLORS.danger, urgent: true,
-      text: t(`Node ${criticalNode.node_id} में सिंचाई करें (${criticalNode.moisture}% नमी)`, `Irrigate Node ${criticalNode.node_id} (${criticalNode.moisture}% moisture)`, `Node ${criticalNode.node_id} ला पाणी द्या`) },
+      text: t(`Node ${criticalNode.node_id} में सिंचाई करें (${criticalNode.moisture}% नमी)`, `Irrigate Node ${criticalNode.node_id} (${criticalNode.moisture}% moisture)`, `नोड ${criticalNode.node_id} ला पाणी द्या (${criticalNode.moisture}% ओलावा)`) },
     warningNode  && { key: 't2', icon: 'alert-circle', color: COLORS.warning, urgent: false,
       text: t(`Node ${warningNode.node_id} की निगरानी करें`, `Monitor Node ${warningNode.node_id}`, `Node ${warningNode.node_id} निरीक्षण करा`) },
     hotNode      && { key: 't3', icon: 'thermometer-high', color: COLORS.danger, urgent: false,
-      text: t('शेड नेट लगाएं (ताप: '+hotNode.temperature+'°C)', 'Deploy shade net ('+hotNode.temperature+'°C)', 'शेड नेट लावा') },
+      text: t('शेड नेट लगाएं (ताप: '+hotNode.temperature+'°C)', 'Deploy shade net ('+hotNode.temperature+'°C)', 'शेड नेट लावा (ताप: '+hotNode.temperature+'°C)') },
     lowBattery   && { key: 't4', icon: 'battery-low', color: COLORS.warning, urgent: false,
-      text: t(`Node ${lowBattery.node_id} बैटरी बदलें (${lowBattery.battery}%)`, `Replace Node ${lowBattery.node_id} battery (${lowBattery.battery}%)`, `Node ${lowBattery.node_id} बॅटरी बदला`) },
+      text: t(`Node ${lowBattery.node_id} बैटरी बदलें (${lowBattery.battery}%)`, `Replace Node ${lowBattery.node_id} battery (${lowBattery.battery}%)`, `नोड ${lowBattery.node_id} ची बॅटरी बदला (${lowBattery.battery}%)`) },
     { key: 't5', icon: 'leaf', color: COLORS.primary, urgent: false,
       text: t('फसल स्वास्थ्य जाँचें', 'Check crop health visually', 'पीक आरोग्य तपासा') },
   ].filter(Boolean);
@@ -450,6 +450,7 @@ export default function Dashboard({ navigation, virtualNodes = [] }) {
   const { t, lang } = useLang();
   const [data, setData]         = useState(null);
   const [loading, setLoading]   = useState(true);
+  const [statusMsg, setStatusMsg] = useState(t('डेटा सिंक हो रहा है...', 'Syncing live data...', 'डेटा सिंक होत आहे...'));
   const [refreshing, setRefreshing] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [voiceOpen, setVoiceOpen] = useState(false);
@@ -509,13 +510,13 @@ export default function Dashboard({ navigation, virtualNodes = [] }) {
       case 'check_moisture': {
         const avg = Math.round((data?.nodes || []).reduce((s, n) => s + n.moisture, 0) / (data?.nodes?.length || 1));
         const txt = lang === 'hi' ? `औसत नमी ${avg} प्रतिशत है।` : lang === 'mr' ? `सरासरी ओलावा ${avg} टक्के.` : `Average moisture is ${avg}%.`;
-        speak(txt, lang === 'hi' ? 'hi-IN' : lang === 'mr' ? 'mr-IN' : 'en-IN', {});
+        speak(txt, lang, {});
         break;
       }
       case 'check_temperature': {
         const avg = ((data?.nodes || []).reduce((s, n) => s + n.temperature, 0) / (data?.nodes?.length || 1)).toFixed(1);
         const txt = lang === 'hi' ? `औसत तापमान ${avg} डिग्री।` : lang === 'mr' ? `सरासरी तापमान ${avg} अंश.` : `Average temperature is ${avg}°C.`;
-        speak(txt, lang === 'hi' ? 'hi-IN' : lang === 'mr' ? 'mr-IN' : 'en-IN', {});
+        speak(txt, lang, {});
         break;
       }
       case 'logout': navigation.navigate('__LOGOUT__'); break;

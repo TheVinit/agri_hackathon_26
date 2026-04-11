@@ -24,14 +24,8 @@ export const getAdminSupabase = () => {
 };
 
 // ── Fallback/Demo Data (for robust demo if hardware API sleeps) ────────
-const DEMO_NODES = [
-  { node_id: 1, moisture: 68, temperature: 24.5, humidity: 45, ec: 1.2, battery: 92, status: 'ok' },
-  { node_id: 2, moisture: 72, temperature: 25.0, humidity: 42, ec: 1.1, battery: 85, status: 'ok' },
-  { node_id: 3, moisture: 38, temperature: 27.3, humidity: 38, ec: 1.5, battery: 48, status: 'warning' },
-  { node_id: 4, moisture: null, temperature: null, humidity: null, ec: null, battery: 0, status: 'offline' },
-];
-
-const DEMO_NPK = { N: 42, P: 18, K: 65, pH: 6.8 };
+const DEMO_NODES = [];
+const DEMO_NPK   = { N: 0, P: 0, K: 0, pH: 7.0 };
 
 // ── Farm Health Score (0-100) ─────────────────────────────────────────────
 export function computeHealthScore(nodes) {
@@ -63,9 +57,9 @@ export function computeAdvisory(nodes = [], npk = DEMO_NPK) {
     // If all nodes are offline, advisory should reflect that
     return { 
       irrigation: { severity: 'warning', textEn: '⚠️ All nodes are offline. Check connection.', textHindi: '⚠️ सभी नोड ऑफलाइन हैं। कनेक्शन जाँचें।', textMr: '⚠️ सर्व नोड्स ऑफलाइन आहेत. कनेक्शन तपासा.' },
-      temperature: { severity: 'info', textEn: 'Temperature data unavailable.', textHindi: 'तापमान डेटा उपलब्ध नहीं है।' },
-      nutrients: { severity: 'info', textEn: 'Nutrient data unavailable.', textHindi: 'पोषक तत्व डेटा उपलब्ध नहीं है।' },
-      nextCrop: { severity: 'info', textEn: 'Crop recommendation unavailable.', textHindi: 'फसल सलाह उपलब्ध नहीं है।' }
+      temperature: { severity: 'info', textEn: 'Temperature data unavailable.', textHindi: 'तापमान डेटा उपलब्ध नहीं है।', textMr: 'तापमान डेटा उपलब्ध नाही.' },
+      nutrients: { severity: 'info', textEn: 'Nutrient data unavailable.', textHindi: 'पोषक तत्व डेटा उपलब्ध नहीं है।', textMr: 'पोषक तत्व डेटा उपलब्ध नाही.' },
+      nextCrop: { severity: 'info', textEn: 'Crop recommendation unavailable.', textHindi: 'फसल सलाह उपलब्ध नहीं है।', textMr: 'पीक सल्ला उपलब्ध नाही.' }
     };
   }
 
@@ -132,7 +126,7 @@ export function computeAdvisory(nodes = [], npk = DEMO_NPK) {
       ],
       textHindi: `${ids} में तापमान अधिक है। दोपहर 12-3 बजे सिंचाई बढ़ाएं। शेड नेट लगाएं।`,
       textEn:    `High temp detected in ${ids}. Increase irrigation 12–3 PM. Deploy shade nets.`,
-      textMr:    `${ids} मध्ये तापमान जास्त आहे. दुपारी 12-3 वाजता सिंचन वाढवा.`,
+      textMr:    `${ids} मध्ये तापमान जास्त आहे. दुपारी 12-3 वाजता सिंचन वाढवा. शेड नेट लावा.`,
       dataContext: `Peak temp: ${Math.max(...hotNodes.map(n => n.temperature))}°C`,
     };
   } else {
@@ -256,33 +250,21 @@ export const getDashboard = async (farmId) => {
         dataSource: (apiData.nodes && apiData.nodes.length > 0) ? 'Live' : 'Demo (Fallback)',
         lastSync: apiData.recorded_at || new Date().toISOString(),
       },
-      error: null,
     };
   } catch (error) {
     console.warn('[API] Dashboard fetch failed:', error.message);
-    
-    // Fallback fully to DEMO_NODES so the UI never crashes/breaks
-    const finalNodes = DEMO_NODES.map(live => ({
-      ...live,
-      status: live.moisture < 20 ? 'critical' : live.moisture < 35 ? 'warning' : 'ok'
-    }));
-    
-    const alerts = finalNodes
-      .filter(n => n.moisture < 25)
-      .map(n => ({ node_id: n.node_id, type: 'moisture', severity: 'high', message: 'Low moisture critical!' }));
-
     return {
       data: {
         farmId,
         farmerName,
         location,
-        nodes: finalNodes,
+        nodes: [],
         npk: DEMO_NPK,
-        alerts,
-        dataSource: 'Demo (Fallback)',
+        alerts: [],
+        dataSource: 'API Error',
         lastSync: new Date().toISOString(),
       },
-      error: null
+      error: error.message || 'Connection failed'
     };
   }
 };

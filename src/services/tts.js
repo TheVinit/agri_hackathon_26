@@ -132,21 +132,31 @@ function fallbackSpeak(text, lang, { onDone, onError }) {
     }
   }
 }
-export async function speakAdvisory(nodes, lang = 'hi', options = {}) {
+export async function speakAdvisory(data, lang = 'hi', name = '', options = {}) {
   let text = '';
+  const nodes = data?.nodes || [];
+  const avgMoisture = nodes.length > 0 
+    ? Math.round(nodes.reduce((s, n) => s + (n.moisture || 0), 0) / nodes.length) 
+    : 0;
+  const avgTemp = nodes.length > 0
+    ? (nodes.reduce((s, n) => s + (n.temperature || 0), 0) / nodes.length).toFixed(1)
+    : '0.0';
+
   if (lang === 'hi') {
-    text = `खेत की स्थिति रिपोर्ट: `;
-    const avgMoisture = Math.round(nodes.reduce((s, n) => s + n.moisture, 0) / nodes.length);
+    text = `${name ? 'राम राम ' + name + '! ' : 'नमस्ते! '}खेत की स्थिति रिपोर्ट: `;
     text += `औसत नमी ${avgMoisture} प्रतिशत है। `;
     if (avgMoisture < 45) text += `मिट्टी में नमी कम है, कृपया सिंचाई करें। `;
-    const avgTemp = (nodes.reduce((s, n) => s + n.temperature, 0) / nodes.length).toFixed(1);
-    if (parseFloat(avgTemp) > 32) text += `तापमान अधिक है। `;
+    if (parseFloat(avgTemp) > 32) text += `तापमान अधिक है, पौधों का ध्यान रखें। `;
+  } else if (lang === 'mr') {
+    text = `${name ? 'राम राम ' + name + '! ' : 'नमस्कार! '}शेताची स्थिती अहवाल: `;
+    text += `सरासरी ओलावा ${avgMoisture} टक्के आहे. `;
+    if (avgMoisture < 45) text += `जमिनीत ओलावा कमी आहे, कृपया सिंचन करा. `;
+    if (parseFloat(avgTemp) > 32) text += `तापमान जास्त आहे, पिकांची काळजी घ्या. `;
   } else {
-    text = `Farm status report: `;
-    const avgMoisture = Math.round(nodes.reduce((s, n) => s + n.moisture, 0) / nodes.length);
+    text = `${name ? 'Hello ' + name + '! ' : 'Hello! '}Farm status report: `;
     text += `Average moisture is ${avgMoisture} percent. `;
-    const avgTemp = (nodes.reduce((s, n) => s + n.temperature, 0) / nodes.length).toFixed(1);
-    text += `Average temperature is ${avgTemp} degrees. `;
+    if (avgMoisture < 45) text += `Soil moisture is low, please irrigate. `;
+    if (parseFloat(avgTemp) > 32) text += `Temperature is high. `;
   }
 
   return speak(text, lang, options);

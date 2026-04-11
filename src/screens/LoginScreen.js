@@ -122,7 +122,7 @@ export default function LoginScreen({ navigation, onOpenAdmin, onLogin }) {
                 </View>
               </TouchableOpacity>
               <Text style={[TEXT_STYLES.h1, styles.brandName]}>AgriPulse</Text>
-              <Text style={[TEXT_STYLES.body, styles.brandTag]}>Smart Farming Assistant</Text>
+              <Text style={[TEXT_STYLES.body, styles.brandTag]}>{t('स्मार्ट खेती सहायक', 'Smart Farming Assistant', 'स्मार्ट शेती सहाय्यक')}</Text>
             </View>
 
             {/* Premium 3-Tab Language Selector */}
@@ -208,7 +208,7 @@ export default function LoginScreen({ navigation, onOpenAdmin, onLogin }) {
           </View>
 
           <View style={styles.footer}>
-            <Text style={[TEXT_STYLES.small, styles.version]}>Project AgriPulse v1.2</Text>
+            <Text style={[TEXT_STYLES.small, styles.version]}>{t('प्रोजेक्ट AgriPulse v1.2', 'Project AgriPulse v1.2', 'प्रकल्प AgriPulse v1.2')}</Text>
             <Text style={[TEXT_STYLES.body, styles.footerHelp]}>{t('मदद चाहिए? 1800-AGRI-SAFE', 'Need help? 1800-AGRI-SAFE', 'मदत हवी आहे? १८००-AGRI-SAFE')}</Text>
           </View>
 

@@ -8,7 +8,12 @@ import EmptyState from '../components/EmptyState';
 
 const screenWidth = Dimensions.get("window").width;
 
+import { useLang } from '../context/LanguageContext';
+
+const screenWidth = Dimensions.get("window").width;
+
 export default function AnalyticsScreen({ navigation }) {
+  const { t } = useLang();
   // Mock data for charts
   const moistureData = {
     labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
@@ -18,15 +23,15 @@ export default function AnalyticsScreen({ navigation }) {
       { data: [70, 72, 68, 65, 68, 70, 75], color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`, strokeWidth: 2 }, // East - Blue
       { data: [60, 58, 55, 60, 62, 65, 60], color: (opacity = 1) => `rgba(245, 158, 11, ${opacity})`, strokeWidth: 2 }  // West - Amber
     ],
-    legend: ["North", "South", "East", "West"]
+    legend: [t('उत्तर', 'North', 'उत्तर'), t('दक्षिण', 'South', 'दक्षिण'), t('पूर्व', 'East', 'पूर्व'), t('पश्चिम', 'West', 'पश्चिम')]
   };
 
   const activityLog = [
-    { icon: 'water', color: COLORS.primary, text: "Irrigation triggered — Zone North", time: "2h ago" },
-    { icon: 'flask-outline', color: COLORS.secondary, text: "NPK Test completed", time: "1d ago" },
-    { icon: 'alert-outline', color: COLORS.danger, text: "Low moisture alert — Zone South", time: "1d ago" },
-    { icon: 'robot-outline', color: COLORS.primary, text: "Advisory updated", time: "2d ago" },
-    { icon: 'wifi', color: COLORS.textSecondary, text: "Sensor node 3 reconnected", time: "3d ago" }
+    { icon: 'water', color: COLORS.primary, text: t("सिंचाई शुरू - उत्तर क्षेत्र", "Irrigation triggered — Zone North", "सिंचन सुरू - उत्तर क्षेत्र"), time: t("2 घंटे पहले", "2h ago", "2 तासांपूर्वी") },
+    { icon: 'flask-outline', color: COLORS.secondary, text: t("NPK टेस्ट पूरा हुआ", "NPK Test completed", "NPK चाचणी पूर्ण झाली"), time: t("1 दिन पहले", "1d ago", "1 दिवसापूर्वी") },
+    { icon: 'alert-outline', color: COLORS.danger, text: t("कम नमी अलर्ट - दक्षिण क्षेत्र", "Low moisture alert — Zone South", "कमी ओलावा अलर्ट - दक्षिण क्षेत्र"), time: t("1 दिन पहले", "1d ago", "1 दिवसापूर्वी") },
+    { icon: 'robot-outline', color: COLORS.primary, text: t("सलाह अपडेट की गई", "Advisory updated", "सल्ला अद्यतनित केला"), time: t("2 दिन पहले", "2d ago", "2 दिवसांपूर्वी") },
+    { icon: 'wifi', color: COLORS.textSecondary, text: t("सेंसर नोड 3 फिर से जुड़ा", "Sensor node 3 reconnected", "सेंसर नोड 3 पुन्हा जोडला"), time: t("3 दिन पहले", "3d ago", "3 दिवसांपूर्वी") }
   ];
 
   const tempData = {
@@ -86,25 +91,25 @@ export default function AnalyticsScreen({ navigation }) {
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={TEXT_STYLES.h2}>Farm Analytics</Text>
-          <Text style={[TEXT_STYLES.small, { color: COLORS.textMuted, marginTop: 4 }]}>Last 7 days • Zone A</Text>
+          <Text style={TEXT_STYLES.h2}>{t('खेत विश्लेषण', 'Farm Analytics', 'शेती विश्लेषण')}</Text>
+          <Text style={[TEXT_STYLES.small, { color: COLORS.textMuted, marginTop: 4 }]}>{t('पिछले 7 दिन • क्षेत्र A', 'Last 7 days • Zone A', 'मागील 7 दिवस • क्षेत्र A')}</Text>
         </View>
         <View style={styles.dateBadge}>
-          <Text style={[TEXT_STYLES.small, { color: COLORS.primary, fontWeight: '700' }]}>This Week</Text>
+          <Text style={[TEXT_STYLES.small, { color: COLORS.primary, fontWeight: '700' }]}>{t('यह सप्ताह', 'This Week', 'हा आठवडा')}</Text>
         </View>
       </View>
 
       {/* Section 1 - Summary Grid */}
       <View style={styles.grid}>
-        <MetricCard title="Soil Moisture avg" value="68%" icon="water-percent" iconColor={COLORS.primary} trend="↑" trendColor={COLORS.primary} />
-        <MetricCard title="Temperature avg" value="29°C" icon="thermometer" iconColor={COLORS.warning} trend="→" trendColor={COLORS.warning} />
-        <MetricCard title="NPK Health" value="Good" icon="leaf" iconColor={COLORS.success} trend="✓" trendColor={COLORS.success} />
-        <MetricCard title="Alerts this week" value="2" icon="alert-outline" iconColor={COLORS.danger} trend="⚠" trendColor={COLORS.danger} />
+        <MetricCard title={t("औसत नमी", "Soil Moisture avg", "सरासरी ओलावा")} value="68%" icon="water-percent" iconColor={COLORS.primary} trend="↑" trendColor={COLORS.primary} />
+        <MetricCard title={t("औसत तापमान", "Temperature avg", "सरासरी तापमान")} value="29°C" icon="thermometer" iconColor={COLORS.warning} trend="→" trendColor={COLORS.warning} />
+        <MetricCard title={t("NPK स्वास्थ्य", "NPK Health", "NPK आरोग्य")} value={t("अच्छा", "Good", "चांगले")} icon="leaf" iconColor={COLORS.success} trend="✓" trendColor={COLORS.success} />
+        <MetricCard title={t("इस सप्ताह के अलर्ट", "Alerts this week", "या आठवड्यातील अलर्ट")} value="2" icon="alert-outline" iconColor={COLORS.danger} trend="⚠" trendColor={COLORS.danger} />
       </View>
 
       {/* Section 2 - Moisture Trend */}
       <View style={styles.section}>
-        <Text style={[TEXT_STYLES.h4, styles.sectionTitle]}>Soil Moisture (%)</Text>
+        <Text style={[TEXT_STYLES.h4, styles.sectionTitle]}>{t('मिट्टी की नमी (%)', 'Soil Moisture (%)', 'जमिनीतील ओलावा (%)')}</Text>
         <View style={styles.chartCard}>
           <LineChart
             data={moistureData}
@@ -116,14 +121,14 @@ export default function AnalyticsScreen({ navigation }) {
             withDots={false}
           />
           <View style={[styles.insightChip, { backgroundColor: COLORS.primaryPale }]}>
-            <Text style={[TEXT_STYLES.small, { color: COLORS.primary }]}>💧 Zone South needs water today</Text>
+            <Text style={[TEXT_STYLES.small, { color: COLORS.primary }]}>💧 {t('आज दक्षिण क्षेत्र को पानी की जरूरत है', 'Zone South needs water today', 'आज दक्षिण क्षेत्राला पाण्याची गरज आहे')}</Text>
           </View>
         </View>
       </View>
 
       {/* Section 3 - Temperature Trend */}
       <View style={styles.section}>
-        <Text style={[TEXT_STYLES.h4, styles.sectionTitle]}>Temperature (°C)</Text>
+        <Text style={[TEXT_STYLES.h4, styles.sectionTitle]}>{t('तापमान (°C)', 'Temperature (°C)', 'तापमान (°C)')}</Text>
         <View style={styles.chartCard}>
           <LineChart
             data={tempData}
@@ -137,20 +142,20 @@ export default function AnalyticsScreen({ navigation }) {
             style={styles.chart}
           />
           <View style={[styles.insightChip, { backgroundColor: '#FEF3C7' }]}>
-            <Text style={[TEXT_STYLES.small, { color: COLORS.warning }]}>🌡 Peak heat on Wednesday — check irrigation</Text>
+            <Text style={[TEXT_STYLES.small, { color: COLORS.warning }]}>🌡 {t('बुधवार को भीषण गर्मी - सिंचाई जाँच लें', 'Peak heat on Wednesday — check irrigation', 'बुधवारी प्रचंड उष्णता - सिंचन तपासा')}</Text>
           </View>
         </View>
       </View>
 
       {/* Section 4 - Latest NPK Reading */}
       <View style={styles.section}>
-        <Text style={[TEXT_STYLES.h4, styles.sectionTitle]}>Latest NPK Reading</Text>
+        <Text style={[TEXT_STYLES.h4, styles.sectionTitle]}>{t('नवीनतम NPK रीडिंग', 'Latest NPK Reading', 'नवीनतम NPK रीडिंग')}</Text>
         <View style={styles.npkWrapper}>
           <NPKBar npkValues={{ N: 45, P: 28, K: 60, pH: 6.8 }} />
           <View style={styles.npkFooter}>
-            <Text style={[TEXT_STYLES.small, { color: COLORS.textMuted }]}>Last tested: 2 days ago</Text>
+            <Text style={[TEXT_STYLES.small, { color: COLORS.textMuted }]}>{t('पिछली जांच: 2 दिन पहले', 'Last tested: 2 days ago', 'शेवटची चाचणी: 2 दिवसांपूर्वी')}</Text>
             <TouchableOpacity onPress={() => navigation.navigate('NPKTestMore')}>
-              <Text style={[TEXT_STYLES.h4, { color: COLORS.primary }]}>Run New Test →</Text>
+              <Text style={[TEXT_STYLES.h4, { color: COLORS.primary }]}>{t('नया टेस्ट करें →', 'Run New Test →', 'नवीन चाचणी करा →')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -158,7 +163,7 @@ export default function AnalyticsScreen({ navigation }) {
 
       {/* Section 5 - Activity Log */}
       <View style={[styles.section, { paddingBottom: 100 }]}>
-        <Text style={[TEXT_STYLES.h4, styles.sectionTitle]}>Recent Activity</Text>
+        <Text style={[TEXT_STYLES.h4, styles.sectionTitle]}>{t('हालिया गतिविधि', 'Recent Activity', 'अलीकडील क्रियाकलाप')}</Text>
         {activityLog.length > 0 ? (
           <View style={styles.activityCard}>
             {activityLog.map((item, index) => (

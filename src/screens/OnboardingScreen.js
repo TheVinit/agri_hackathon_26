@@ -290,6 +290,12 @@ function ProfileStep({ t, lang, data, set, crops }) {
       if (extracted.district)    set('district', extracted.district);
       if (extracted.primaryCrop) set('primaryCrop', extracted.primaryCrop);
       setFilled(true);
+      
+      // AUTO-PROGRESS after 1.5s so user can see what was filled
+      if (extracted.name || extracted.village) {
+        speak(lang === 'hi' ? 'ठीक है, आगे बढ़ रहे हैं' : lang === 'mr' ? 'ठीक आहे, पुढे जात आहे' : 'Got it, continuing', lang);
+        setTimeout(() => goNext(), 2000);
+      }
     } catch (e) {
       console.warn('[Groq] Profile extraction failed:', e.message);
     }
@@ -497,6 +503,12 @@ function HistoryStep({ t, lang, data, set, sizes, seasons }) {
       if (extracted.season)                 set('season', extracted.season);
       if (extracted.soilType)              set('soilType', extracted.soilType);
       if (extracted.cropHistory?.length)   set('cropHistory', extracted.cropHistory);
+      
+      // AUTO-COMPLETE on final step
+      if (extracted.landSize || extracted.soilType) {
+        speak(lang === 'hi' ? 'आपका पंजीकरण पूरा हो गया है' : lang === 'mr' ? 'तुमची नोंदणी पूर्ण झाली आहे' : 'Registration complete', lang);
+        setTimeout(() => onComplete(farmerData, lang), 2000);
+      }
     } catch (e) { console.warn('[Groq] History extraction failed:', e.message); }
     setProcessing(false);
   };
