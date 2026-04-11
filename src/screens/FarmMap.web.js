@@ -21,9 +21,11 @@ export default function FarmMap() {
 
   // Build the OpenStreetMap embed URL with markers via iframe
   const zoom = 16;
-  const delta = 0.015;
-  const bbox = `${CENTER_LNG - delta},${CENTER_LAT - delta},${CENTER_LNG + delta},${CENTER_LAT + delta}`;
-  const osmUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${CENTER_LAT},${CENTER_LNG}`;
+  const delta = 0.003; // tighter zoom so marker jumps are visible
+  const currentLat = selectedNode ? selectedNode.lat : CENTER_LAT;
+  const currentLng = selectedNode ? selectedNode.lng : CENTER_LNG;
+  const bbox = `${currentLng - delta},${currentLat - delta},${currentLng + delta},${currentLat + delta}`;
+  const osmUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${currentLat},${currentLng}`;
 
   const statusColor = (s) => s === 'ok' ? COLORS.success : s === 'warning' ? COLORS.warning : s === 'offline' ? COLORS.textMuted : COLORS.danger;
   const statusLabel = (s) => s === 'ok' ? 'Good' : s === 'warning' ? 'Warning' : s === 'offline' ? 'Offline' : 'Critical';
