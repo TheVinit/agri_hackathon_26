@@ -1,9 +1,11 @@
 // src/screens/FarmMap.web.js
-// Full interactive OpenStreetMap for web platform — no native deps needed
-import React, { useState, useEffect } from 'react';
+// Advanced Google Maps integration for Web — Using your new API Key
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS, SHADOWS } from '../theme';
+
+const GOOGLE_MAPS_KEY = 'AIzaSyA3GeBaYJV8ylKwUc5eaCFH4imUsKAhM1g';
 
 const DEMO_NODES = [
   { id: 1, lat: 18.5204, lng: 73.8567, moisture: 68, status: 'ok',       label: 'North Field' },
@@ -18,17 +20,58 @@ const CENTER_LNG = 73.8567;
 export default function FarmMap() {
   const [selectedNode, setSelectedNode] = useState(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const mapRef = useRef(null);
+  const googleMap = useRef(null);
 
-  // Build the OpenStreetMap embed URL with markers via iframe
-  const zoom = 16;
-  const delta = 0.003; // tighter zoom so marker jumps are visible
-  const currentLat = selectedNode ? selectedNode.lat : CENTER_LAT;
-  const currentLng = selectedNode ? selectedNode.lng : CENTER_LNG;
-  const bbox = `${currentLng - delta},${currentLat - delta},${currentLng + delta},${currentLat + delta}`;
-  const osmUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${currentLat},${currentLng}`;
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+
+    // Load Google Maps Script
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_KEY}&callback=initMap`;
+    script.async = true;
+    script.defer = true;
+    window.initMap = () => {
+      setMapLoaded(true);
+    };
+    document.head.appendChild(script);
+
+    return () => {
+      delete window.initMap;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (mapLoaded && mapRef.current && !googleMap.current) {
+      googleMap.current = new window.google.maps.Map(mapRef.current, {
+        center: { lat: CENTER_LAT, lng: CENTER_LNG },
+        zoom: 17,
+        mapTypeId: 'satellite',
+        disableDefaultUI: true,
+        styles: [{ featureType: "all", elementType: "labels", stylers: [{ visibility: "off" }] }]
+      });
+
+      // Add Markers
+      DEMO_NODES.forEach(node => {
+        new window.google.maps.Marker({
+          position: { lat: node.lat, lng: node.lng },
+          map: googleMap.current,
+          title: node.label,
+          label: { text: `N${node.id}`, color: 'white', fontWeight: 'bold' }
+        });
+      });
+    }
+  }, [mapLoaded]);
+
+  useEffect(() => {
+    if (googleMap.current && selectedNode) {
+      googleMap.current.panTo({ lat: selectedNode.lat, lng: selectedNode.lng });
+      googleMap.current.setZoom(19);
+    }
+  }, [selectedNode]);
 
   const statusColor = (s) => s === 'ok' ? COLORS.success : s === 'warning' ? COLORS.warning : s === 'offline' ? COLORS.textMuted : COLORS.danger;
-  const statusLabel = (s) => s === 'ok' ? 'Good' : s === 'warning' ? 'Warning' : s === 'offline' ? 'Offline' : 'Critical';
+  
   return (
     <ScrollView style={styles.root} stickyHeaderIndices={[0]} showsVerticalScrollIndicator={false}>
       {/* Header */}
@@ -36,42 +79,27 @@ export default function FarmMap() {
         <View style={styles.headerLeft}>
           <MaterialCommunityIcons name="map-marker-radius" size={24} color={COLORS.primary} />
           <View>
-            <Text style={styles.headerTitle}>Farm Map</Text>
-            <Text style={styles.headerSub}>रामराव शिंदे — Pune, MH</Text>
+            <Text style={styles.headerTitle}>Premium Farm Map</Text>
+            <Text style={styles.headerSub}>Google Satellite View Enabled</Text>
           </View>
         </View>
         <View style={styles.statusPill}>
           <View style={[styles.dot, { backgroundColor: COLORS.success }]} />
-          <Text style={styles.statusPillTxt}>Live</Text>
+          <Text style={styles.statusPillTxt}>HD Live</Text>
         </View>
       </View>
 
       {/* Map */}
       <View style={[styles.mapContainer, { height: 500 }]}> 
         {Platform.OS === 'web' ? (
-          <>
-            {!mapLoaded && (
-              <View style={styles.mapLoading}>
-                <MaterialCommunityIcons name="map-clock" size={40} color={COLORS.textMuted} />
-                <Text style={styles.mapLoadingTxt}>Loading Map…</Text>
-              </View>
-            )}
-            <iframe
-              title="farm-map"
-              src={osmUrl}
-              onLoad={() => setMapLoaded(true)}
-              style={{
-                width: '100%', height: '100%', border: 'none',
-                opacity: mapLoaded ? 1 : 0,
-                transition: 'opacity 0.4s ease',
-              }}
-              allowFullScreen
-            />
-          </>
+          <View 
+            ref={mapRef} 
+            style={{ width: '100%', height: '100%', backgroundColor: COLORS.surfaceDark }} 
+          />
         ) : (
           <View style={styles.mapLoading}>
-            <MaterialCommunityIcons name="map-marker-check" size={50} color={COLORS.primary} />
-            <Text style={styles.mapLoadingTxt}>Map available on mobile app</Text>
+             <MaterialCommunityIcons name="map-marker-check" size={50} color={COLORS.primary} />
+             <Text style={styles.mapLoadingTxt}>Google Map available on mobile</Text>
           </View>
         )}
 

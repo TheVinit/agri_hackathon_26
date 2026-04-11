@@ -1,24 +1,13 @@
-// src/services/api.js — Smart Advisory Engine + Supabase with graceful demo fallback
-
-const SUPABASE_URL      = process.env.EXPO_PUBLIC_SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
-
-// ── Lazy Supabase client ──────────────────────────────────────────────────
-let _supabase = null;
-function getSupabase() {
-  if (_supabase) return _supabase;
-  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return null;
-  try {
-    const { createClient } = require('@supabase/supabase-js');
-    _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    return _supabase;
-  } catch (e) {
-    console.warn('[API] Supabase init failed, using demo mode:', e.message);
-    return null;
-  }
-}
-
-export const getAdminSupabase = getSupabase;
+// Firebase Imports
+import { db } from './firebaseConfig';
+import { 
+  doc, 
+  getDoc, 
+  collection, 
+  addDoc, 
+  setDoc, 
+  serverTimestamp 
+} from 'firebase/firestore';
 
 // ── Fallback/Demo Data (for robust demo if hardware API sleeps) ────────
 const DEMO_NODES = [
@@ -221,20 +210,20 @@ function buildEmptyResponse(farmId, errorMsg) {
 }
 
 export const getDashboard = async (farmId) => {
-  const supabase = getSupabase();
   let farmerName = 'रामराव शिंदे';
   let location = 'Pune, MH';
 
-  if (supabase) {
-    try {
-      const { data: farm } = await supabase.from('farms').select('*').eq('id', farmId).single();
-      if (farm) {
-        farmerName = farm.farmer_name || farmerName;
-        location = farm.location || location;
-      }
-    } catch (e) {
-      console.warn('[API] Supabase farm fetch failed:', e.message);
+  // ── Firestore Fetch ──
+  try {
+    const farmRef = doc(db, 'farms', farmId);
+    const farmSnap = await getDoc(farmRef);
+    if (farmSnap.exists()) {
+      const farm = farmSnap.data();
+      farmerName = farm.farmer_name || farmerName;
+      location = farm.location || location;
     }
+  } catch (e) {
+    console.warn('[API] Firestore farm fetch failed:', e.message);
   }
 
   try {
@@ -323,16 +312,27 @@ export const getTodayAdvisory = async (farmId, nodes, npk) => {
 };
 
 export const postNPKReading = async (farmId, payload) => {
-  const supabase = getSupabase();
-  if (!supabase) return { data: { id: 'demo', ...payload }, error: null }; // silent demo success
-  const { data, error } = await supabase.from('npk_readings').insert({
-    farm_id: farmId, ...payload, created_at: new Date().toISOString()
-  });
-  return { data, error: error?.message || null };
+  try {
+    const docRef = await addDoc(collection(db, 'npk_readings'), {
+      farm_id: farmId,
+      ...payload,
+      created_at: serverTimestamp()
+    });
+    return { data: { id: docRef.id, ...payload }, error: null };
+  } catch (e) {
+    console.error('[API] Firestore NPK insert failed:', e.message);
+    return { data: null, error: e.message };
+  }
 };
 
 export const onBoardFarmer = async (farmerData) => {
-  const supabase = getSupabase();
-  if (!supabase) return { data: null, error: 'Demo mode' };
-  return await supabase.from('farmers').insert([farmerData]);
+  try {
+    const docRef = await addDoc(collection(db, 'farmers'), {
+      ...farmerData,
+      onboarded_at: serverTimestamp()
+    });
+    return { data: { id: docRef.id }, error: null };
+  } catch (e) {
+    return { data: null, error: e.message };
+  }
 };

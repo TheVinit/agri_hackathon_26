@@ -7,7 +7,9 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "build": "npx expo export --platform web"
+    "build": "npx expo export --platform web",
+    "deploy:gcp-api": "gcloud run deploy agripulse-backend --source ./gcp-backend --allow-unauthenticated",
+    "deploy:web": "npm run build && firebase deploy --only hosting"
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",
@@ -36,6 +38,7 @@
     "expo-speech": "~14.0.8",
     "expo-speech-recognition": "^3.1.2",
     "expo-web-browser": "~15.0.10",
+    "firebase": "^12.12.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-native": "0.81.5",
