@@ -54,7 +54,6 @@ export function computeAdvisory(nodes = [], npk = DEMO_NPK) {
   }
   const activeNodes = nodes.filter(n => n.status !== 'offline');
   if (activeNodes.length === 0) {
-    // If all nodes are offline, advisory should reflect that
     return { 
       irrigation: { severity: 'warning', textEn: '⚠️ All nodes are offline. Check connection.', textHindi: '⚠️ सभी नोड ऑफलाइन हैं। कनेक्शन जाँचें।', textMr: '⚠️ सर्व नोड्स ऑफलाइन आहेत. कनेक्शन तपासा.' },
       temperature: { severity: 'info', textEn: 'Temperature data unavailable.', textHindi: 'तापमान डेटा उपलब्ध नहीं है।', textMr: 'तापमान डेटा उपलब्ध नाही.' },
@@ -77,39 +76,65 @@ export function computeAdvisory(nodes = [], npk = DEMO_NPK) {
     irrigation = {
       decision: 'irrigate_now',
       severity: 'critical',
-      actionItems: [
+      actionItemsEn: [
         `Irrigate ${ids} for 45 minutes immediately`,
         'Check drip/sprinkler nozzles for blockage',
         'Monitor moisture every 2 hours today',
       ],
+      actionItemsHi: [
+        `${ids} में तुरंत 45 मिनट सिंचाई करें`,
+        'ड्रिप/नोजल में रुकावट की जाँच करें',
+        'आज हर 2 घंटे में नमी की निगरानी करें',
+      ],
+      actionItemsMr: [
+        `${ids} मध्ये तात्काळ 45 मिनिटे सिंचन करा`,
+        'ठिबक सिंचन नोजल अडकले आहेत का ते तपासा',
+        'आज दर 2 तासांनी ओलावा तपासा',
+      ],
       textHindi: `🚨 ${ids} में नमी गंभीर स्तर पर है (${criticalNodes.map(n=>n.moisture+'%').join(', ')}). तुरंत 45 मिनट सिंचाई करें। ड्रिप नोजल की जाँच करें।`,
       textEn:    `🚨 Critical moisture in ${ids} (${criticalNodes.map(n=>n.moisture+'%').join(', ')}). Irrigate for 45 minutes immediately. Check drip nozzles.`,
       textMr:    `🚨 ${ids} मध्ये ओलावा गंभीर पातळीवर (${criticalNodes.map(n=>n.moisture+'%').join(', ')}). तात्काळ 45 मिनिटे सिंचन करा.`,
-      dataContext: `Avg moisture: ${avgMoisture}% across ${nodes.length} nodes`,
+      dataContextEn: `Avg moisture: ${avgMoisture}% across ${nodes.length} nodes`,
+      dataContextHi: `औसत नमी: ${avgMoisture}% (${nodes.length} नोड)`,
+      dataContextMr: `सरासरी ओलावा: ${avgMoisture}% (${nodes.length} नोड्स)`,
     };
   } else if (warningNodes.length > 0) {
     const ids = warningNodes.map(n => `Node ${n.node_id}`).join(', ');
     irrigation = {
       decision: 'irrigate_soon',
       severity: 'warning',
-      actionItems: [
+      actionItemsEn: [
         `Schedule irrigation for ${ids} within 24 hours`,
         'Increase monitoring frequency to twice daily',
+      ],
+      actionItemsHi: [
+        `अगले 24 घंटों में ${ids} के लिए सिंचाई निर्धारित करें`,
+        'निगरानी दिन में दो बार बढ़ाएं',
+      ],
+      actionItemsMr: [
+        `पुढील 24 तासांत ${ids} साठी सिंचनाचे नियोजन करा`,
+        'दिवसातून दोनदा ओलावा तपासा',
       ],
       textHindi: `${ids} में नमी कम हो रही है (${warningNodes.map(n=>n.moisture+'%').join(', ')}). अगले 24 घंटों में सिंचाई करें।`,
       textEn:    `Moisture declining in ${ids} (${warningNodes.map(n=>n.moisture+'%').join(', ')}). Schedule irrigation within 24 hours.`,
       textMr:    `${ids} मध्ये ओलावा कमी होत आहे. 24 तासांत सिंचन करा.`,
-      dataContext: `Avg moisture: ${avgMoisture}% — below optimal`,
+      dataContextEn: `Avg moisture: ${avgMoisture}% — below optimal`,
+      dataContextHi: `औसत नमी: ${avgMoisture}% — सामान्य से कम`,
+      dataContextMr: `सरासरी ओलावा: ${avgMoisture}% — अपेक्षित पेक्षा कमी`,
     };
   } else {
     irrigation = {
       decision: 'ok',
       severity: 'good',
-      actionItems: ['No irrigation needed today', 'Check again after 2 days'],
+      actionItemsEn: ['No irrigation needed today', 'Check again after 2 days'],
+      actionItemsHi: ['आज सिंचाई की आवश्यकता नहीं है', '2 दिनों के बाद फिर से जाँचें'],
+      actionItemsMr: ['आज सिंचनाची गरज नाही', '2 दिवसांनंतर पुन्हा तपासा'],
       textHindi: `सभी ${nodes.length} क्षेत्रों में नमी उत्तम है। औसत: ${avgMoisture}%. आज सिंचाई की जरूरत नहीं।`,
       textEn:    `Moisture is optimal across all ${nodes.length} zones. Average: ${avgMoisture}%. No irrigation needed today.`,
       textMr:    `सर्व ${nodes.length} क्षेत्रांत ओलावा उत्तम आहे. सरासरी: ${avgMoisture}%. आज सिंचन नको.`,
-      dataContext: `All nodes above 40% — system healthy`,
+      dataContextEn: `All nodes above 40% — system healthy`,
+      dataContextHi: `सभी नोड 40% से ऊपर — स्थिति उत्तम`,
+      dataContextMr: `सर्व नोड्स 40% च्या वर — स्थिती उत्तम`,
     };
   }
 
@@ -119,55 +144,101 @@ export function computeAdvisory(nodes = [], npk = DEMO_NPK) {
     const ids = hotNodes.map(n => `Node ${n.node_id} (${n.temperature}°C)`).join(', ');
     temperature = {
       severity: 'warning',
-      actionItems: [
+      actionItemsEn: [
         'Provide shade nets over affected zones',
         'Increase irrigation frequency during peak heat (12–3 PM)',
         'Avoid pesticide spraying during hot hours',
       ],
+      actionItemsHi: [
+        'प्रभावित क्षेत्रों पर शेड नेट लगाएं',
+        'पीक गर्मी (दोपहर 12-3 बजे) के दौरान सिंचाई बढ़ाएं',
+        'गर्मी के घंटों के दौरान कीटनाशक छिड़काव से बचें',
+      ],
+      actionItemsMr: [
+        'प्रभावित क्षेत्रांवर शेड नेट लावा',
+        'दुपारी 12-3 वाजेदरम्यान सिंचन वाढवा',
+        'उन्हाच्या वेळी कीटकनाशक फवारणी टाळा',
+      ],
       textHindi: `${ids} में तापमान अधिक है। दोपहर 12-3 बजे सिंचाई बढ़ाएं। शेड नेट लगाएं।`,
       textEn:    `High temp detected in ${ids}. Increase irrigation 12–3 PM. Deploy shade nets.`,
       textMr:    `${ids} मध्ये तापमान जास्त आहे. दुपारी 12-3 वाजता सिंचन वाढवा. शेड नेट लावा.`,
-      dataContext: `Peak temp: ${Math.max(...hotNodes.map(n => n.temperature))}°C`,
+      dataContextEn: `Peak temp: ${Math.max(...hotNodes.map(n => n.temperature))}°C`,
+      dataContextHi: `अधिकतम तापमान: ${Math.max(...hotNodes.map(n => n.temperature))}°C`,
+      dataContextMr: `जास्तीत जास्त तापमान: ${Math.max(...hotNodes.map(n => n.temperature))}°C`,
     };
   } else {
     temperature = {
       severity: 'good',
-      actionItems: ['Temperature is ideal for crop growth', 'Continue normal farm operations'],
+      actionItemsEn: ['Temperature is ideal for crop growth', 'Continue normal farm operations'],
+      actionItemsHi: ['तापमान फसल की वृद्धि के लिए आदर्श है', 'सामान्य खेती कार्य जारी रखें'],
+      actionItemsMr: ['तापमान पीक वाढीसाठी आदर्श आहे', 'शेतीची कामे चालू ठेवा'],
       textHindi: `सभी क्षेत्रों में तापमान आदर्श है। औसत: ${avgTemp}°C. फसल वृद्धि के लिए अनुकूल परिस्थितियाँ।`,
       textEn:    `Temperature is ideal across all zones. Average: ${avgTemp}°C. Great conditions for crop growth.`,
       textMr:    `सर्व क्षेत्रांत तापमान आदर्श आहे. सरासरी: ${avgTemp}°C. पीक वाढीसाठी अनुकूल.`,
-      dataContext: `Avg temp: ${avgTemp}°C — within safe range`,
+      dataContextEn: `Avg temp: ${avgTemp}°C — within safe range`,
+      dataContextHi: `औसत तापमान: ${avgTemp}°C — सुरक्षित सीमा में`,
+      dataContextMr: `सरासरी तापमान: ${avgTemp}°C — सुरक्षित मर्यादेत`,
     };
   }
 
   // ─ Nutrient Advisory ─
   const deficits = [];
-  const actions  = [];
-  if (npk.N < 50) { deficits.push(`N: ${npk.N}`); actions.push('Apply 50kg Urea per hectare'); }
-  if (npk.P < 25) { deficits.push(`P: ${npk.P}`); actions.push('Apply 25kg DAP per hectare'); }
-  if (npk.K < 50) { deficits.push(`K: ${npk.K}`); actions.push('Apply 20kg MOP per hectare'); }
-  if (highEC.length > 0) actions.push(`Flush ${highEC.map(n=>'Node '+n.node_id).join(', ')} with fresh water — EC too high`);
+  const actionsEn  = [];
+  const actionsHi  = [];
+  const actionsMr  = [];
+  if (npk.N < 50) { 
+    deficits.push(`N: ${npk.N}`); 
+    actionsEn.push('Apply 50kg Urea per hectare'); 
+    actionsHi.push('प्रति हेक्टेयर 50 किलो यूरिया लगाएं'); 
+    actionsMr.push('प्रति हेक्टर 50 किलो युरिया द्या'); 
+  }
+  if (npk.P < 25) { 
+    deficits.push(`P: ${npk.P}`); 
+    actionsEn.push('Apply 25kg DAP per hectare'); 
+    actionsHi.push('प्रति हेक्टेयर 25 किलो डीएपी लगाएं'); 
+    actionsMr.push('प्रति हेक्टर 25 किलो डीएपी द्या'); 
+  }
+  if (npk.K < 50) { 
+    deficits.push(`K: ${npk.K}`); 
+    actionsEn.push('Apply 20kg MOP per hectare'); 
+    actionsHi.push('प्रति हेक्टेयर 20 किलो एमओपी लगाएं'); 
+    actionsMr.push('प्रति हेक्टर 20 किलो एमओपी द्या'); 
+  }
+  if (highEC.length > 0) {
+    const ecIds = highEC.map(n=>'Node '+n.node_id).join(', ');
+    actionsEn.push(`Flush ${ecIds} with fresh water — EC too high`);
+    actionsHi.push(`${ecIds} को साफ पानी से धोएं — EC बहुत अधिक है`);
+    actionsMr.push(`${ecIds} स्वच्छ पाण्याने धुवून घ्या — EC खूप जास्त आहे`);
+  }
 
   let nutrients;
   if (deficits.length > 0) {
     nutrients = {
       status: 'low',
       severity: 'warning',
-      actionItems: actions,
-      textHindi: `मिट्टी में ${deficits.join(', ')} की कमी है। ${actions.slice(0,2).map(a=>'• '+a).join('. ')}`,
-      textEn:    `Soil deficient in ${deficits.join(', ')}. ${actions.slice(0,2).join('. ')}.`,
-      textMr:    `जमिनीत ${deficits.join(', ')} ची कमतरता आहे. ${actions.slice(0,2).join('. ')}.`,
-      dataContext: `N:${npk.N} P:${npk.P} K:${npk.K} pH:${npk.pH}`,
+      actionItemsEn: actionsEn,
+      actionItemsHi: actionsHi,
+      actionItemsMr: actionsMr,
+      textHindi: `मिट्टी में ${deficits.join(', ')} की कमी है। ${actionsHi.slice(0,2).map(a=>'• '+a).join('. ')}`,
+      textEn:    `Soil deficient in ${deficits.join(', ')}. ${actionsEn.slice(0,2).join('. ')}.`,
+      textMr:    `जमिनीत ${deficits.join(', ')} ची कमतरता आहे. ${actionsMr.slice(0,2).join('. ')}.`,
+      dataContextEn: `N:${npk.N} P:${npk.P} K:${npk.K} pH:${npk.pH}`,
+      dataContextHi: `N:${npk.N} P:${npk.P} K:${npk.K} pH:${npk.pH}`,
+      dataContextMr: `N:${npk.N} P:${npk.P} K:${npk.K} pH:${npk.pH}`,
     };
   } else {
     nutrients = {
       status: 'ok',
       severity: 'good',
-      actionItems: ['All nutrients at optimal levels', `Maintain current fertilization schedule`],
+      actionItemsEn: ['All nutrients at optimal levels', `Maintain current fertilization schedule`],
+      actionItemsHi: ['सभी पोषक तत्व अनुकूल स्तर पर हैं', 'वर्तमान उर्वरक कार्यक्रम जारी रखें'],
+      actionItemsMr: ['सर्व पोषक घटक उत्तम स्तरावर आहेत', 'खत व्यवस्थापन चालू ठेवा'],
       textHindi: `मिट्टी के सभी पोषक तत्व उत्तम स्तर पर हैं। N:${npk.N} P:${npk.P} K:${npk.K} pH:${npk.pH}`,
       textEn:    `All soil nutrients are at optimal levels. N:${npk.N} P:${npk.P} K:${npk.K} pH:${npk.pH}`,
       textMr:    `मातीतील सर्व पोषक घटक उत्तम पातळीवर. N:${npk.N} P:${npk.P} K:${npk.K} pH:${npk.pH}`,
-      dataContext: `N:${npk.N} P:${npk.P} K:${npk.K} pH:${npk.pH}`,
+      dataContextEn: `N:${npk.N} P:${npk.P} K:${npk.K} pH:${npk.pH}`,
+      dataContextHi: `N:${npk.N} P:${npk.P} K:${npk.K} pH:${npk.pH}`,
+      dataContextMr: `N:${npk.N} P:${npk.P} K:${npk.K} pH:${npk.pH}`,
     };
   }
 
@@ -183,15 +254,27 @@ export function computeAdvisory(nodes = [], npk = DEMO_NPK) {
   const nextCrop = {
     crop,
     severity: 'info',
-    actionItems: [
+    actionItemsEn: [
       `Prepare seed beds for ${crop} cultivation`,
       'Add 2 tonnes/hectare organic compost before sowing',
       `pH ${npk.pH} is ${npk.pH >= 6 && npk.pH <= 7.5 ? 'ideal' : 'needs correction'} for ${crop}`,
     ],
+    actionItemsHi: [
+      `${cropHi} की खेती के लिए क्यारियां तैयार करें`,
+      'बुआई से पहले 2 टन/हेक्टेयर जैविक खाद मिलाएं',
+      `pH ${npk.pH} ${cropHi} के लिए ${npk.pH >= 6 && npk.pH <= 7.5 ? 'आदर्श' : 'सुधार की आवश्यकता'} है`,
+    ],
+    actionItemsMr: [
+      `${cropMr} लागवडीसाठी वाफे तैयार करा`,
+      'पेरणीपूर्वी 2 टन/हेक्टर सेंद्रिय खत टाका',
+      `pH ${npk.pH} हा ${cropMr} साठी ${npk.pH >= 6 && npk.pH <= 7.5 ? 'आदर्श' : 'दुरुस्तीची गरज'} आहे`,
+    ],
     textHindi: `मिट्टी (pH ${npk.pH}) और मौसम के आधार पर ${cropHi} की खेती उत्तम रहेगी। बुआई से पहले 2 टन/हेक्टेयर जैविक खाद मिलाएं।`,
     textEn:    `Based on soil pH (${npk.pH}) and season, ${crop} is recommended. Add 2 tonnes/ha organic compost before sowing.`,
     textMr:    `माती (pH ${npk.pH}) आणि हंगामावर आधारित ${cropMr} ची शिफारस. पेरणीआधी 2 टन/हेक्टर सेंद्रिय खत घाला.`,
-    dataContext: `pH ${npk.pH} | Season: ${month < 6 ? 'Kharif' : 'Rabi'}`,
+    dataContextEn: `pH ${npk.pH} | Season: ${month < 6 ? 'Kharif' : 'Rabi'}`,
+    dataContextHi: `pH ${npk.pH} | मौसम: ${month < 6 ? 'खरीफ' : 'रबी'}`,
+    dataContextMr: `pH ${npk.pH} | हंगाम: ${month < 6 ? 'खरीप' : 'रब्बी'}`,
   };
 
   return { irrigation, temperature, nutrients, nextCrop, generatedAt: new Date().toISOString() };

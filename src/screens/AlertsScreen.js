@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, SafeAreaView, Platform, StatusBar } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { COLORS, SPACING, TEXT_STYLES } from '../theme';
+import { COLORS, SPACING, TEXT_STYLES, RADIUS, CARD } from '../theme';
 import EmptyState from '../components/EmptyState';
 import { useLang } from '../context/LanguageContext';
 
@@ -126,8 +126,8 @@ export default function AlertsScreen({ navigation }) {
         ListEmptyComponent={
           <EmptyState 
             emoji="📭" 
-            title="कोई अलर्ट नहीं" 
-            subtitle="आपके पास कोई नया अलर्ट नहीं है।" 
+            title={t('कोई अलर्ट नहीं', 'No Alerts', 'कोणतीही सूचना नाही')} 
+            subtitle={t('आपके पास कोई नया अलर्ट नहीं है।', 'You have no new alerts.', 'तुमच्याकडे कोणतीही नवीन सूचना नाही.')} 
           />
         }
       />

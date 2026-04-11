@@ -86,13 +86,12 @@ export default function Advisory({ route }) {
     await stopSpeaking();
     if (!data) return;
     setPlaying(key);
-    const langMap = { hi: 'hi-IN', en: 'en-IN', mr: 'mr-IN' };
     const text =
       lang === 'hi' ? data[key]?.textHindi :
       lang === 'mr' ? (data[key]?.textMr || data[key]?.textHindi) :
       data[key]?.textEn;
 
-    await speak(text || '', langMap[lang], {
+    await speak(text || '', lang, {
       onDone:  () => setPlaying(null),
       onError: () => setPlaying(null),
     });
@@ -191,10 +190,12 @@ function SmartAdvisoryCard({ def, data, isPlaying, onPress, t, lang }) {
       {/* Body */}
       <View style={styles.cardBody}>
         {/* Context source */}
-        {data?.dataContext && (
+        {(data?.dataContextEn || data?.dataContextHi || data?.dataContextMr || data?.dataContext) && (
           <View style={styles.dataCtx}>
             <MaterialCommunityIcons name="access-point" size={12} color={COLORS.primary} />
-            <Text style={styles.dataCtxText}>{data.dataContext}</Text>
+            <Text style={styles.dataCtxText}>
+              {lang === 'hi' ? data.dataContextHi : lang === 'mr' ? (data.dataContextMr || data.dataContextHi) : (data.dataContextEn || data.dataContext)}
+            </Text>
           </View>
         )}
 
@@ -202,10 +203,10 @@ function SmartAdvisoryCard({ def, data, isPlaying, onPress, t, lang }) {
         <Text style={styles.advisoryText}>{text}</Text>
 
         {/* Action Items */}
-        {data?.actionItems?.length > 0 && (
+        {(data?.actionItemsEn || data?.actionItemsHi || data?.actionItemsMr || data?.actionItems)?.length > 0 && (
           <View style={styles.actionsWrap}>
             <Text style={styles.actionsLabel}>{t('करने योग्य काम', 'Action Steps', 'करण्याची कामे')}</Text>
-            {data.actionItems.map((item, i) => (
+            {(lang === 'hi' ? data.actionItemsHi : lang === 'mr' ? (data.actionItemsMr || data.actionItemsHi) : (data.actionItemsEn || data.actionItems)).map((item, i) => (
               <View key={i} style={styles.actionItem}>
                 <View style={styles.actionBullet}>
                   <Text style={styles.actionNum}>{i + 1}</Text>

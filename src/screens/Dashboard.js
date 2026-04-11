@@ -68,76 +68,107 @@ function HealthGauge({ score = 0, size = 130 }) {
   );
 }
 
-// ── Compact Sensor Strip (horizontal scroll) ───────────────────
+// ── 4-Zone Field Grid (The "Authentic" Overview) ───────────────────
+function FieldGrid({ nodes, t, navigation }) {
+  const primaryNodes = (nodes || []).slice(0, 4);
+  
+  return (
+    <View style={grid.container}>
+      {primaryNodes.map((node, idx) => {
+        const isOffline = node.status === 'offline';
+        const mColor = isOffline ? COLORS.textMuted : moistureColor(node.moisture);
+        const tColor = isOffline ? COLORS.textMuted : tempColor(node.temperature);
+        
+        return (
+          <TouchableOpacity 
+            key={node.node_id ?? idx} 
+            style={[grid.card, isOffline && grid.cardOffline]}
+            onPress={() => navigation.navigate('ZoneDetail', { node })}
+            activeOpacity={0.8}
+          >
+            <View style={grid.cardHeader}>
+              <Text style={grid.zoneName}>{node.name || t(`नोड ${node.node_id}`, `Node ${node.node_id}`, `नोड ${node.node_id}`)}</Text>
+              {isOffline ? (
+                <View style={[grid.statusPill, { backgroundColor: '#F1F5F9' }]}>
+                  <Text style={[grid.statusText, { color: COLORS.textMuted }]}>{t('बंद', 'OFF', 'बंद')}</Text>
+                </View>
+              ) : (
+                <View style={[grid.statusPill, { backgroundColor: mColor + '15' }]}>
+                  <View style={[grid.dot, { backgroundColor: mColor }]} />
+                  <Text style={[grid.statusText, { color: mColor }]}>Live</Text>
+                </View>
+              )}
+            </View>
+
+            <View style={grid.readingRow}>
+              <View style={grid.reading}>
+                <MaterialCommunityIcons name="water" size={16} color={mColor} />
+                <Text style={[grid.readingVal, { color: mColor }]}>{isOffline ? '--' : node.moisture + '%'}</Text>
+              </View>
+              <View style={grid.reading}>
+                <MaterialCommunityIcons name="thermometer" size={16} color={tColor} />
+                <Text style={[grid.readingVal, { color: tColor }]}>{isOffline ? '--' : node.temperature + '°'}</Text>
+              </View>
+            </View>
+            
+            <View style={[grid.accent, { backgroundColor: mColor }]} />
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+}
+
+const grid = StyleSheet.create({
+  container: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, justifyContent: 'space-between' },
+  card: { 
+    width: '48%', 
+    backgroundColor: COLORS.surface, 
+    borderRadius: 20, 
+    padding: 16, 
+    borderWidth: 1.5, 
+    borderColor: COLORS.divider, 
+    ...SHADOWS.card, 
+    position: 'relative', 
+    overflow: 'hidden' 
+  },
+  cardOffline: { opacity: 0.8, backgroundColor: '#F8FAFC' },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  zoneName: { fontSize: 13, fontWeight: '800', color: COLORS.text, letterSpacing: -0.3 },
+  statusPill: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
+  dot: { width: 4, height: 4, borderRadius: 2 },
+  statusText: { fontSize: 8, fontWeight: '900', textTransform: 'uppercase' },
+  readingRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  reading: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  readingVal: { fontSize: 18, fontWeight: '900', letterSpacing: -0.5 },
+  accent: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 4 },
+});
+
+// ── Compact Sensor Strip (horizontal scroll for extra/virtual nodes) ───────────
 function SensorStrip({ nodes, t }) {
+  if (!nodes || nodes.length === 0) return null;
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -24, paddingHorizontal: 24 }} contentContainerStyle={{ gap: 12 }}>
-      {(nodes || []).map((node, idx) => {
-        const isOffline  = node.status === 'offline';
+      {nodes.map((node, idx) => {
         const isVirtual  = node.status === 'virtual';
-        const isDimmed   = isOffline || isVirtual;
-        const mColor = isDimmed ? COLORS.textMuted : moistureColor(node.moisture);
-        const tColor = isDimmed ? COLORS.textMuted : tempColor(node.temperature);
-        const stMap  = {
-          ok:       { label: t('उत्तम','OK','उत्तम'),             color: COLORS.success },
-          warning:  { label: t('सतर्क','Warn','सावधान'),          color: COLORS.warning },
-          critical: { label: t('संकट','Crit','गंभीर'),            color: COLORS.danger  },
-          offline:  { label: t('ऑफलाइन','Offline','बंद आहे'),     color: COLORS.textMuted },
-          virtual:  { label: t('वर्चुअल','Virtual','व्हर्च्युअल'), color: '#6366F1' },
-        };
-        const st = stMap[node.status] || stMap.ok;
-
-        if (isVirtual) {
-          // Special render for virtual nodes
-          return (
-            <View key={node.node_id ?? idx} style={[strip.card, strip.virtualCard]}>
-              <View style={strip.topRow}>
-                <Text style={strip.nodeLabel}>{node.name || `Node ${node.node_id ?? idx + 1}`}</Text>
-                <View style={[strip.badge, { backgroundColor: '#EEF2FF' }]}>
-                  <MaterialCommunityIcons name="cloud-outline" size={10} color="#6366F1" />
-                  <Text style={[strip.badgeText, { color: '#6366F1' }]}>{st.label}</Text>
-                </View>
-              </View>
-              <View style={strip.virtualBody}>
-                <MaterialCommunityIcons name="router-wireless-off" size={28} color="#A5B4FC" />
-                <Text style={strip.virtualCrop}>{node.crop || '—'}</Text>
-                <Text style={strip.virtualArea}>{node.area ? `${node.area} ${t('एकड़', 'acres', 'एकर')}` : ''}</Text>
-              </View>
-              <Text style={strip.virtualHint}>{t('सेंसर प्रतीक्षारत', 'Awaiting sensor', 'सेन्सरची प्रतीक्षा')}</Text>
-              <View style={[strip.accentBar, { backgroundColor: '#6366F1' }]} />
-            </View>
-          );
-        }
+        const st = isVirtual ? { label: t('वर्चुअल','Virtual','व्हर्च्युअल'), color: '#6366F1' } : { label: 'Online', color: COLORS.success };
 
         return (
-          <View key={node.node_id ?? idx} style={[strip.card, isOffline && { opacity: 0.75 }]}>
+          <View key={node.node_id ?? idx} style={[strip.card, strip.virtualCard]}>
             <View style={strip.topRow}>
-              <Text style={strip.nodeLabel}>{node.name || t(`नोड ${node.node_id}`, `Node ${node.node_id}`, `नोड ${node.node_id}`)}</Text>
-              <View style={[strip.badge, { backgroundColor: st.color + '20' }]}>
-                <View style={[strip.dot, { backgroundColor: st.color }]} />
-                <Text style={[strip.badgeText, { color: st.color }]}>{st.label}</Text>
+              <Text style={strip.nodeLabel}>{node.name || `Node ${node.node_id ?? idx + 1}`}</Text>
+              <View style={[strip.badge, { backgroundColor: '#EEF2FF' }]}>
+                <MaterialCommunityIcons name="cloud-outline" size={10} color="#6366F1" />
+                <Text style={[strip.badgeText, { color: '#6366F1' }]}>{st.label}</Text>
               </View>
             </View>
-            <View style={strip.metricsRow}>
-              <View style={strip.metric}>
-                <MaterialCommunityIcons name="water-percent" size={14} color={mColor} />
-                <Text style={[strip.metricVal, { color: mColor }]}>{isDimmed ? '--' : node.moisture + '%'}</Text>
-                <Text style={strip.metricLbl}>{t('नमी','Moist','ओलावा')}</Text>
-              </View>
-              <View style={strip.divider} />
-              <View style={strip.metric}>
-                <MaterialCommunityIcons name="thermometer" size={14} color={tColor} />
-                <Text style={[strip.metricVal, { color: tColor }]}>{isDimmed ? '--' : node.temperature + '°'}</Text>
-                <Text style={strip.metricLbl}>{t('ताप','Temp','ताप')}</Text>
-              </View>
-              <View style={strip.divider} />
-              <View style={strip.metric}>
-                <MaterialCommunityIcons name="lightning-bolt" size={14} color={isDimmed ? COLORS.textMuted : COLORS.secondary} />
-                <Text style={[strip.metricVal, { color: isDimmed ? COLORS.textMuted : COLORS.secondary }]}>{isDimmed ? '--' : node.ec}</Text>
-                <Text style={strip.metricLbl}>EC</Text>
-              </View>
+            <View style={strip.virtualBody}>
+              <MaterialCommunityIcons name="router-wireless-off" size={28} color="#A5B4FC" />
+              <Text style={strip.virtualCrop}>{node.crop || '—'}</Text>
+              <Text style={strip.virtualArea}>{node.area ? `${node.area} ${t('एकड़', 'acres', 'एकर')}` : ''}</Text>
             </View>
-            <View style={[strip.accentBar, { backgroundColor: mColor }]} />
+            <Text style={strip.virtualHint}>{t('सेंसर प्रतीक्षारत', 'Awaiting sensor', 'सेन्सरची प्रतीक्षा')}</Text>
+            <View style={[strip.accentBar, { backgroundColor: '#6366F1' }]} />
           </View>
         );
       })}
@@ -146,23 +177,16 @@ function SensorStrip({ nodes, t }) {
 }
 
 const strip = StyleSheet.create({
-  card: { backgroundColor: COLORS.surface, borderRadius: 20, padding: 14, width: 190, borderWidth: 1, borderColor: COLORS.divider, overflow: 'hidden', ...SHADOWS.soft },
-  // Virtual node card — dashed indigo border
+  card: { backgroundColor: COLORS.surface, borderRadius: 20, padding: 14, width: 170, borderWidth: 1, borderColor: COLORS.divider, overflow: 'hidden' },
   virtualCard: { borderColor: '#6366F1', borderWidth: 1.5, borderStyle: Platform.OS === 'web' ? 'dashed' : 'solid', backgroundColor: '#F5F3FF' },
   virtualBody: { alignItems: 'center', justifyContent: 'center', paddingVertical: 8, gap: 4 },
   virtualCrop: { fontSize: 13, fontWeight: '800', color: '#6366F1' },
   virtualArea: { fontSize: 10, color: '#A5B4FC', fontWeight: '600' },
   virtualHint: { fontSize: 9, color: '#A5B4FC', fontWeight: '700', textAlign: 'center', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 4 },
   topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
-  nodeLabel: { fontSize: 13, fontWeight: '800', color: COLORS.text, letterSpacing: -0.3 },
+  nodeLabel: { fontSize: 12, fontWeight: '800', color: COLORS.text },
   badge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, gap: 4 },
-  dot: { width: 6, height: 6, borderRadius: 3 },
-  badgeText: { fontSize: 10, fontWeight: '800', textTransform: 'uppercase' },
-  metricsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
-  metric: { flex: 1, alignItems: 'center', gap: 2 },
-  metricVal: { fontSize: 16, fontWeight: '900', letterSpacing: -0.5 },
-  metricLbl: { fontSize: 9, color: COLORS.textMuted, fontWeight: '700', textTransform: 'uppercase' },
-  divider: { width: 1, height: 36, backgroundColor: COLORS.divider },
+  badgeText: { fontSize: 9, fontWeight: '800', textTransform: 'uppercase' },
   accentBar: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 3 },
 });
 
@@ -681,16 +705,30 @@ export default function Dashboard({ navigation, virtualNodes = [] }) {
           </View>
         </Animated.View>
 
-        {/* ── ADVANCED DATA (SENSORS & TASKS) ── */}
+        {/* ── ADVANCED DATA (FIELD OVERVIEW & VIRTUAL SENSORS) ── */}
         <Animated.View style={[styles.sectionHdr, { opacity: fadeAnim, marginTop: 32 }]}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <MaterialCommunityIcons name="access-point" size={18} color={COLORS.primary} />
-            <Text style={styles.sectionTitle}>{t('विस्तृत सेंसर डेटा', 'Detailed Sensor Data', 'तपशीलवार डेटा')}</Text>
+            <MaterialCommunityIcons name="grid-large" size={18} color={COLORS.primary} />
+            <Text style={styles.sectionTitle}>{t('खेत विवरण (4 ज़ोन)', 'Field Overview (4 Zones)', 'शेताचा तपशील (4 झोन)')}</Text>
           </View>
         </Animated.View>
         <Animated.View style={[{ paddingHorizontal: 24 }, { opacity: fadeAnim }]}>
-          <SensorStrip nodes={allNodes} t={t} />
+          <FieldGrid nodes={data?.nodes} t={t} navigation={navigation} />
         </Animated.View>
+
+        {virtualNodesMapped.length > 0 && (
+          <>
+            <Animated.View style={[styles.sectionHdr, { opacity: fadeAnim, marginTop: 24 }]}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <MaterialCommunityIcons name="access-point" size={18} color={COLORS.secondary} />
+                <Text style={styles.sectionTitle}>{t('अन्य सेंसर', 'Other Sensors', 'इतर सेन्सर्स')}</Text>
+              </View>
+            </Animated.View>
+            <Animated.View style={[{ paddingHorizontal: 24 }, { opacity: fadeAnim }]}>
+              <SensorStrip nodes={virtualNodesMapped} t={t} />
+            </Animated.View>
+          </>
+        )}
 
         <Animated.View style={[styles.sectionHdr, { opacity: fadeAnim, marginTop: 32 }]}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
