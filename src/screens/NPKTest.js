@@ -96,7 +96,7 @@ export default function NPKTest() {
           <Text style={styles.doneSub}>{t('मिट्टी का परीक्षण सफलतापूर्वक किया गया', 'Soil test completed successfully', 'माती परीक्षण यशस्वीरित्या पूर्ण झाले')}</Text>
           <Text style={styles.doneSummary}>{getSummaryText(t)}</Text>
           
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.advisoryUpdatedCard, { ...SHADOWS.soft }]} 
             onPress={() => navigation.navigate('Advisory', { triggeredByNPK: true })}
           >

@@ -50,7 +50,6 @@ function BottomTabNav({ handleLogout, handleAdmin }) {
                 </View>
               );
             }
-            
             return <MaterialCommunityIcons name={iconName} size={focused ? 28 : 24} color={color} />;
           },
           tabBarActiveTintColor: COLORS.primary,
