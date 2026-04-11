@@ -10,8 +10,6 @@ const screenWidth = Dimensions.get("window").width;
 
 import { useLang } from '../context/LanguageContext';
 
-const screenWidth = Dimensions.get("window").width;
-
 export default function AnalyticsScreen({ navigation }) {
   const { t } = useLang();
   // Mock data for charts
