@@ -11,7 +11,8 @@ import { COLORS, SHADOWS, RADIUS, SPACING, TEXT_STYLES } from '../theme';
 import { useLang } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
 import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { auth as firebaseAuth } from '../services/firebaseConfig';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -35,41 +36,31 @@ export default function LoginScreen({ navigation, onOpenAdmin, onLogin }) {
     }
   };
 
-  // Google SSO Setup
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || 'dummy_web.apps.googleusercontent.com',
-    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID || 'dummy_android.apps.googleusercontent.com',
-    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || 'dummy_ios.apps.googleusercontent.com',
-  });
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(firebaseAuth, provider);
+      const user = result.user;
 
-  React.useEffect(() => {
-    handleGoogleResponse();
-  }, [response]);
+      onLogin({
+        id: user.uid,
+        name: user.displayName,
+        email: user.email,
+        picture: user.photoURL,
+        hasProfile: true,
+      });
 
-  const handleGoogleResponse = async () => {
-    if (response?.type === 'success') {
-      const { authentication } = response;
-      setLoading(true);
-      try {
-        const res = await fetch('https://www.googleapis.com/userinfo/v2/me', {
-          headers: { Authorization: `Bearer ${authentication.accessToken}` },
-        });
-        const profile = await res.json();
-        
-        // Push to context via onLogin
-        onLogin({
-          id: profile.id,
-          name: profile.name,
-          email: profile.email,
-          picture: profile.picture,
-          hasProfile: true, // Auto-skip onboarding if fetched from google
-        });
-
-      } catch (err) {
+      showToast(t('सफल लॉगिन', 'Login Successful', 'लॉगिन यशस्वी'), 'success');
+    } catch (err) {
+      console.error(err);
+      if (err.code === 'auth/popup-closed-by-user') {
+        showToast(t('साइन-इन रद्द किया गया', 'Sign-in cancelled', 'साइन-इन रद्द केले'), 'info');
+      } else {
         showToast(t('ग़लती हुई', 'Google Sign-In Failed', 'चूक झाली'), 'error');
-      } finally {
-        setLoading(false);
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -196,8 +187,8 @@ export default function LoginScreen({ navigation, onOpenAdmin, onLogin }) {
 
             <TouchableOpacity 
               style={styles.googleBtn} 
-              onPress={() => promptAsync()}
-              disabled={!request || loading}
+              onPress={handleGoogleSignIn}
+              disabled={loading}
               activeOpacity={0.8}
             >
               <MaterialCommunityIcons name="google" size={22} color="#DB4437" />

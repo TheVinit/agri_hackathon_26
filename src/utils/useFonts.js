@@ -1,5 +1,5 @@
 import { useFonts } from 'expo-font';
-import { Platform } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { 
   Outfit_400Regular,
   Outfit_600SemiBold, 
@@ -12,15 +12,19 @@ import {
 import { JetBrainsMono_400Regular } from '@expo-google-fonts/jetbrains-mono';
 
 export const useAppFonts = () => {
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     'Outfit-Regular': Outfit_400Regular,
     'Outfit-Bold': Outfit_700Bold,
     'Outfit-SemiBold': Outfit_600SemiBold,
     'Inter-Regular': Inter_400Regular,
     'Inter-Medium': Inter_500Medium,
     'JetBrainsMono-Regular': JetBrainsMono_400Regular,
+    ...MaterialCommunityIcons.font,
   });
 
-  // On web, fonts are typically handled by CSS/CDN or browser defaults if not strictly bundled
-  return { fontsLoaded: Platform.OS === 'web' ? true : fontsLoaded };
+  if (fontError) {
+    console.error('Font Load Error:', fontError);
+  }
+
+  return { fontsLoaded };
 };

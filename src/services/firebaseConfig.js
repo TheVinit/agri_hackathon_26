@@ -6,12 +6,13 @@ import { getAuth } from 'firebase/auth';
 // TODO: Replace with your actual Firebase Project keys
 // You can get these from the Firebase Console -> Project Settings
 const firebaseConfig = {
-  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || "",
-  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || "agripulse-7fee6.firebaseapp.com",
-  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID || "agripulse-7fee6",
-  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET || "agripulse-7fee6.appspot.com",
-  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "",
-  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID || ""
+  apiKey: "AIzaSyCzuuiljTKHYrMw6VEMFlZ4YcefoPvZOuA",
+  authDomain: "agripulse-7fee6.firebaseapp.com",
+  projectId: "agripulse-7fee6",
+  storageBucket: "agripulse-7fee6.firebasestorage.app",
+  messagingSenderId: "893221034422",
+  appId: "1:893221034422:web:578ff1827b0e9a54df8917",
+  measurementId: "G-2ESLFW07GL"
 };
 
 const app = initializeApp(firebaseConfig);

@@ -20,5 +20,13 @@
         "destination": "/index.html"
       }
     ]
+  },
+  "auth": {
+    "providers": {
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "AgriPulse",
+        "supportEmail": "vinittalele087@gmail.com"
+      }
+    }
   }
 }
