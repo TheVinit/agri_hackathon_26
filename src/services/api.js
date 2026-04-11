@@ -332,3 +332,37 @@ export const onBoardFarmer = async (farmerData) => {
     return { data: null, error: e.message };
   }
 };
+
+export const checkSystemHealth = async () => {
+  const status = {
+    firebase: false,
+    supabase: false,
+    renderApi: false,
+    cloudRun: false,
+  };
+
+  // Check Firebase (Simple check if initialized)
+  try {
+    if (db) status.firebase = true;
+  } catch (e) {}
+
+  // Check Supabase
+  try {
+    const supabase = getAdminSupabase();
+    if (supabase) status.supabase = true;
+  } catch (e) {}
+
+  // Check Render API
+  try {
+    const res = await fetch(`${RENDER_BASE_URL}/api/sensors/farm_001`, { method: 'HEAD' });
+    if (res.ok) status.renderApi = true;
+  } catch (e) {}
+
+  // Check Cloud Run (AI Engine)
+  try {
+    const res = await fetch(`${CLOUD_RUN_URL}/`, { method: 'HEAD' });
+    if (res.ok) status.cloudRun = true;
+  } catch (e) {}
+
+  return status;
+};

@@ -5,8 +5,8 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { COLORS, SHADOWS } from '../theme';
-import { getAdminSupabase } from '../services/api';
+import { COLORS, SHADOWS, RADIUS, TEXT_STYLES } from '../theme';
+import { getAdminSupabase, checkSystemHealth } from '../services/api';
 
 const ADMIN_PASSWORD = 'agri2026';
 
@@ -19,14 +19,23 @@ export default function AdminScreen({ onExitAdmin }) {
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [selectedFarmer, setSelectedFarmer] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [systemHealth, setSystemHealth] = useState(null);
 
   const [form, setForm] = useState({
     name: '', village: '', phone: '', crop: '', area: '',
   });
 
   useEffect(() => {
-    if (!loginMode) fetchFarmers();
+    if (!loginMode) {
+      fetchFarmers();
+      fetchHealth();
+    }
   }, [loginMode]);
+
+  const fetchHealth = async () => {
+    const health = await checkSystemHealth();
+    setSystemHealth(health);
+  };
 
   const fetchFarmers = async () => {
     setLoading(true);
@@ -190,6 +199,37 @@ export default function AdminScreen({ onExitAdmin }) {
             color={COLORS.danger}
           />
         </View>
+
+        {/* ── System Health Section ── */}
+        <View style={styles.healthContainer}>
+          <Text style={styles.healthHeader}>Infrastructure Health</Text>
+          <View style={styles.healthGrid}>
+            <HealthItem 
+              label="Firebase" 
+              icon="firebase" 
+              active={systemHealth?.firebase} 
+              color="#FFCA28" 
+            />
+            <HealthItem 
+              label="Supabase" 
+              icon="database" 
+              active={systemHealth?.supabase} 
+              color="#3ECF8E" 
+            />
+            <HealthItem 
+              label="Render API" 
+              icon="server" 
+              active={systemHealth?.renderApi} 
+              color="#46E3B7" 
+            />
+            <HealthItem 
+              label="Cloud Run" 
+              icon="cloud-outline" 
+              active={systemHealth?.cloudRun} 
+              color="#4285F4" 
+            />
+          </View>
+        </View>
       </View>
 
       <ScrollView style={styles.body} showsVerticalScrollIndicator={false}>
@@ -286,6 +326,33 @@ export default function AdminScreen({ onExitAdmin }) {
     </View>
   );
 }
+
+function HealthItem({ label, icon, active, color }) {
+  return (
+    <View style={healthStyles.item}>
+      <View style={[healthStyles.iconCircle, { backgroundColor: active ? color + '20' : '#F1F5F9' }]}>
+        <MaterialCommunityIcons name={icon} size={18} color={active ? color : COLORS.textMuted} />
+      </View>
+      <View style={{ flex: 1, marginLeft: 10 }}>
+        <Text style={healthStyles.label}>{label}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+          <View style={[healthStyles.dot, { backgroundColor: active ? COLORS.success : COLORS.danger }]} />
+          <Text style={[healthStyles.status, { color: active ? COLORS.success : COLORS.danger }]}>
+            {active ? 'Live' : 'Checking...'}
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+const healthStyles = StyleSheet.create({
+  item: { flex: 1, minWidth: '45%', flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 12, padding: 10, margin: 4 },
+  iconCircle: { width: 34, height: 34, borderRadius: 17, justifyContent: 'center', alignItems: 'center' },
+  label: { fontSize: 11, fontWeight: '700', color: '#fff' },
+  dot: { width: 6, height: 6, borderRadius: 3, marginRight: 6 },
+  status: { fontSize: 10, fontWeight: '800', textTransform: 'uppercase' },
+});
 
 function StatPill({ icon, label, value, color }) {
   return (
@@ -423,6 +490,9 @@ const styles = StyleSheet.create({
   exitBtn: { backgroundColor: COLORS.primaryPale, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 },
   exitBtnText: { color: COLORS.primary, fontSize: 13, fontWeight: '800' },
   statsRow: { flexDirection: 'row', gap: 10 },
+  healthContainer: { marginTop: 20, backgroundColor: 'rgba(0,0,0,0.15)', borderRadius: 20, padding: 16 },
+  healthHeader: { fontSize: 11, fontWeight: '800', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', marginBottom: 12, letterSpacing: 0.5 },
+  healthGrid: { flexDirection: 'row', flexWrap: 'wrap' },
   body: { flex: 1 },
   addBtn: { marginHorizontal: 24, marginBottom: 20, borderRadius: 16, overflow: 'hidden', ...SHADOWS.glass },
   addBtnGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 18, gap: 10 },
