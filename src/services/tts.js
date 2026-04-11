@@ -9,10 +9,36 @@ const SARVAM_API_KEY = process.env.EXPO_PUBLIC_SARVAM_API_KEY;
 
 let webAudioInstance = null;
 let nativeSoundInstance = null;
+let isActuallySpeaking = false;
+let onStatusChangeCallback = null;
+
+export function setOnSpeakingStatusChange(callback) {
+  onStatusChangeCallback = callback;
+}
+
+function updateSpeakingStatus(status) {
+  isActuallySpeaking = status;
+  if (onStatusChangeCallback) {
+    onStatusChangeCallback(status);
+  }
+}
 
 export async function speak(text, lang = 'hi', options = {}) {
   const sarvamLangMap = { hi: 'hi-IN', en: 'en-IN', mr: 'mr-IN' };
   const targetLangCode = sarvamLangMap[lang] || 'hi-IN';
+
+  updateSpeakingStatus(true);
+  const originalOnDone = options.onDone;
+  const originalOnError = options.onError;
+
+  options.onDone = () => {
+    updateSpeakingStatus(false);
+    originalOnDone?.();
+  };
+  options.onError = (err) => {
+    updateSpeakingStatus(false);
+    originalOnError?.(err);
+  };
 
   try {
     if (!SARVAM_API_KEY) throw new Error('Key missing');
@@ -30,6 +56,7 @@ export async function speak(text, lang = 'hi', options = {}) {
 }
 
 export function stopSpeaking() {
+  updateSpeakingStatus(false);
   if (Platform.OS === 'web') {
     if (webAudioInstance) { try { webAudioInstance.pause(); } catch(e){} webAudioInstance = null; }
     if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel();

@@ -7,6 +7,7 @@ import { NotificationProvider } from './src/context/NotificationContext';
 import { ToastProvider } from './src/context/ToastContext';
 import { useAppFonts } from './src/utils/useFonts';
 import OfflineBanner from './src/components/OfflineBanner';
+import VoicePlaybackOverlay from './src/components/VoicePlaybackOverlay';
 
 export default function App() {
   const { fontsLoaded } = useAppFonts();
@@ -23,6 +24,7 @@ export default function App() {
             <ToastProvider>
               <OfflineBanner />
               <AppNavigator />
+              <VoicePlaybackOverlay />
             </ToastProvider>
           </NotificationProvider>
         </LanguageProvider>
