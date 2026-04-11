@@ -1,17 +1,26 @@
 import { useFonts } from 'expo-font';
 import { Platform } from 'react-native';
+import { 
+  Outfit_400Regular,
+  Outfit_600SemiBold, 
+  Outfit_700Bold 
+} from '@expo-google-fonts/outfit';
+import { 
+  Inter_400Regular, 
+  Inter_500Medium 
+} from '@expo-google-fonts/inter';
+import { JetBrainsMono_400Regular } from '@expo-google-fonts/jetbrains-mono';
 
 export const useAppFonts = () => {
   const [fontsLoaded] = useFonts({
-    // Native only loading
-    ...(Platform.OS !== 'web' ? {
-      'Outfit-Bold': require('@expo-google-fonts/outfit/Outfit_700Bold.ttf'),
-      'Outfit-SemiBold': require('@expo-google-fonts/outfit/Outfit_600SemiBold.ttf'),
-      'Inter-Regular': require('@expo-google-fonts/inter/Inter_400Regular.ttf'),
-      'Inter-Medium': require('@expo-google-fonts/inter/Inter_500Medium.ttf'),
-      'JetBrainsMono-Regular': require('@expo-google-fonts/jetbrains-mono/JetBrainsMono_400Regular.ttf'),
-    } : {}),
+    'Outfit-Regular': Outfit_400Regular,
+    'Outfit-Bold': Outfit_700Bold,
+    'Outfit-SemiBold': Outfit_600SemiBold,
+    'Inter-Regular': Inter_400Regular,
+    'Inter-Medium': Inter_500Medium,
+    'JetBrainsMono-Regular': JetBrainsMono_400Regular,
   });
 
+  // On web, fonts are typically handled by CSS/CDN or browser defaults if not strictly bundled
   return { fontsLoaded: Platform.OS === 'web' ? true : fontsLoaded };
 };
