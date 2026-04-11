@@ -1,3 +1,8 @@
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, SafeAreaView, Platform, StatusBar } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { COLORS, SPACING, TEXT_STYLES } from '../theme';
+import EmptyState from '../components/EmptyState';
 import { useLang } from '../context/LanguageContext';
 
 const MOCK_ALERTS = [
