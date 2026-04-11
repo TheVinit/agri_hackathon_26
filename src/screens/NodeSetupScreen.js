@@ -177,83 +177,82 @@ function IntroStep({ t }) {
   const bounceAnim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     Animated.loop(Animated.sequence([
-      Animated.timing(bounceAnim, { toValue: -10, duration: 700, useNativeDriver: true }),
-      Animated.timing(bounceAnim, { toValue: 0, duration: 700, useNativeDriver: true }),
+      Animated.timing(bounceAnim, { toValue: -8, duration: 1000, useNativeDriver: true }),
+      Animated.timing(bounceAnim, { toValue: 0, duration: 1000, useNativeDriver: true }),
     ])).start();
   }, []);
 
   const BENEFITS = [
-    { icon: 'water-percent',   color: '#3B82F6', title: t('नमी निगरानी', 'Moisture Monitor', 'ओलावा निरीक्षण'),   desc: t('हर 5 मिनट में लाइव अपडेट', 'Live updates every 5 minutes', 'दर 5 मिनिटांनी थेट अपडेट') },
-    { icon: 'thermometer',     color: '#EF4444', title: t('तापमान ट्रैकिंग', 'Temp Tracking', 'तापमान ट्रॅकिंग'), desc: t('ज़्यादा गर्मी पर तुरंत अलर्ट', 'Instant alert on overheating', 'जास्त उष्णतेवर तत्काळ अलर्ट') },
-    { icon: 'lightning-bolt',  color: '#F59E0B', title: t('EC जाँच', 'EC Check', 'EC तपासणी'),                  desc: t('मिट्टी की लवणता मापें', 'Measure soil salinity', 'मातीची क्षारता मोजा') },
-    { icon: 'battery-charging', color: '#10B981', title: t('बैटरी स्तर', 'Battery Level', 'बॅटरी स्तर'),         desc: t('वायरलेस, सोलर चार्ज', 'Wireless, solar charged', 'वायरलेस, सौर चार्ज') },
+    { icon: 'leak',            color: '#3B82F6', title: t('सटीक निगरानी', 'Precision Monitoring', 'अचूक निरीक्षण'),   desc: t('सेंसर स्तर का डेटा', 'Sensor-level granular data', 'सेन्सर-स्तरीय डेटा') },
+    { icon: 'waves',           color: '#EF4444', title: t('स्मार्ट सिंचाई', 'Smart Irrigation', 'स्मार्ट सिंचन'),     desc: t('पानी की 40% बचत', 'Save 40% more water', '40% पाणी वाचवा') },
+    { icon: 'shield-check',    color: '#10B981', title: t('फसल सुरक्षा', 'Crop Shield', 'पीक सुरक्षा'),          desc: t('बीमारी से बचाव', 'Protect against diseases', 'रोगांपासून संरक्षण') },
+    { icon: 'chart-ppf',       color: '#F59E0B', title: t('अधिक पैदावार', 'Yield Boost', 'उत्पन्न वाढ'),           desc: t('डेटा संचालित खेती', 'Data-driven farming', 'डेटा-आधारित शेती') },
   ];
 
   return (
     <View style={is.container}>
-      {/* Hero animation */}
-      <Animated.View style={[is.heroWrap, { transform: [{ translateY: bounceAnim }] }]}>
-        <LinearGradient colors={[COLORS.primary, COLORS.primaryLight]} style={is.heroGrad}>
-          <MaterialCommunityIcons name="router-wireless" size={64} color="#fff" />
-        </LinearGradient>
-        {/* Signal rings */}
-        {[1, 2, 3].map(i => (
-          <View key={i} style={[is.ring, { width: 60 + i * 40, height: 60 + i * 40, borderRadius: (60 + i * 40) / 2, opacity: 0.15 / i }]} />
-        ))}
-      </Animated.View>
+      <View style={is.imageHero}>
+        <Image 
+          source={{ uri: 'file:///C:/Users/vinit/.gemini/antigravity/brain/38e42d14-2f76-47e2-8818-b8b38053b5a5/farm_zone_landscape_1775913882209.png' }} 
+          style={is.heroImage} 
+          resizeMode="cover"
+        />
+        <LinearGradient colors={['transparent', COLORS.background]} style={is.heroOverlay} />
+        <Animated.View style={[is.floatingIcon, { transform: [{ translateY: bounceAnim }] }]}>
+          <MaterialCommunityIcons name="integrated-circuit-chip" size={32} color="#fff" />
+        </Animated.View>
+      </View>
 
-      <Text style={is.title}>{t('अपना खेत नेटवर्क बनाएं', 'Build Your Farm Network', 'तुमचे शेत नेटवर्क तयार करा')}</Text>
+      <Text style={is.title}>{t('तकनीकी क्रांति की शुरुआत', 'Begin Your Digital Revolution', 'तंत्रज्ञान क्रांतीची सुरुवात')}</Text>
       <Text style={is.sub}>{t(
-        'वर्चुअल नोड सेट करें — जब असली सेंसर लगेंगे, डेटा खुद आ जाएगा',
-        'Set up virtual nodes — when real sensors are installed, data flows in automatically',
-        'व्हर्च्युअल नोड सेट करा — खरे सेन्सर लागल्यावर डेटा आपोआप येतो'
+        'आपका अपना वायरलेस सेंसर नेटवर्क तैयार करने का समय आ गया है। चलिए वर्चुअल नोड्स से शुरुआत करें।',
+        'Time to activate your private wireless sensor mesh. Let\'s begin by defining your virtual nodes.',
+        'तुमचे खाजगी वायरलेस सेन्सर नेटवर्क सक्रिय करण्याची वेळ आली आहे.'
       )}</Text>
 
-      {/* Benefit cards */}
       <View style={is.benefitGrid}>
         {BENEFITS.map((b, i) => (
           <View key={i} style={is.benefitCard}>
-            <View style={[is.benefitIcon, { backgroundColor: b.color + '18' }]}>
-              <MaterialCommunityIcons name={b.icon} size={22} color={b.color} />
+            <View style={[is.benefitIcon, { backgroundColor: b.color + '15' }]}>
+              <MaterialCommunityIcons name={b.icon} size={20} color={b.color} />
             </View>
-            <Text style={is.benefitTitle}>{b.title}</Text>
-            <Text style={is.benefitDesc}>{b.desc}</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={is.benefitTitle}>{b.title}</Text>
+              <Text style={is.benefitDesc}>{b.desc}</Text>
+            </View>
           </View>
         ))}
-      </View>
-
-      {/* Virtual tag */}
-      <View style={is.virtualTag}>
-        <MaterialCommunityIcons name="cloud-outline" size={16} color={COLORS.primary} />
-        <Text style={is.virtualTagTxt}>{t('💡 अभी कोई हार्डवेयर नहीं चाहिए — वर्चुअल नोड से शुरू करें', '💡 No hardware needed yet — start with virtual nodes', '💡 आत्ता हार्डवेअर नको — व्हर्च्युअल नोडने सुरू करा')}</Text>
       </View>
     </View>
   );
 }
 
 const is = StyleSheet.create({
-  container: { paddingTop: 12, alignItems: 'center' },
-  heroWrap: { width: 120, height: 120, justifyContent: 'center', alignItems: 'center', marginBottom: 24, marginTop: 12, position: 'relative' },
-  heroGrad: { width: 100, height: 100, borderRadius: 30, justifyContent: 'center', alignItems: 'center', ...SHADOWS.glass },
-  ring: { position: 'absolute', borderWidth: 2, borderColor: COLORS.primary },
-  title: { fontSize: 24, fontWeight: '900', color: COLORS.text, textAlign: 'center', marginBottom: 10 },
-  sub: { fontSize: 14, color: COLORS.textMuted, textAlign: 'center', lineHeight: 20, marginBottom: 28, paddingHorizontal: 8 },
-  benefitGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, width: '100%', marginBottom: 20 },
-  benefitCard: { width: (W - 48 - 12) / 2, backgroundColor: COLORS.surface, borderRadius: 18, padding: 16, borderWidth: 1, borderColor: COLORS.divider, ...SHADOWS.soft },
-  benefitIcon: { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginBottom: 10 },
-  benefitTitle: { fontSize: 13, fontWeight: '800', color: COLORS.text, marginBottom: 4 },
-  benefitDesc: { fontSize: 11, color: COLORS.textMuted, lineHeight: 16 },
-  virtualTag: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, backgroundColor: COLORS.primaryPale, borderRadius: 16, padding: 14, borderWidth: 1, borderColor: COLORS.primary + '30', width: '100%' },
-  virtualTagTxt: { flex: 1, fontSize: 13, fontWeight: '600', color: COLORS.primary, lineHeight: 18 },
+  container: { paddingTop: 0, alignItems: 'center' },
+  imageHero: { width: '100%', height: 200, borderRadius: 24, overflow: 'hidden', marginBottom: 24, position: 'relative' },
+  heroImage: { width: '100%', height: '100%' },
+  heroOverlay: { ...StyleSheet.absoluteFillObject },
+  floatingIcon: { position: 'absolute', top: '40%', alignSelf: 'center', width: 64, height: 64, borderRadius: 20, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center', ...SHADOWS.premium },
+  title: { fontSize: 22, fontWeight: '900', color: COLORS.text, textAlign: 'center', marginBottom: 12, paddingHorizontal: 10 },
+  sub: { fontSize: 13, color: COLORS.textMuted, textAlign: 'center', lineHeight: 20, marginBottom: 24, paddingHorizontal: 20 },
+  benefitGrid: { width: '100%', gap: 12, marginBottom: 20 },
+  benefitCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.surface, borderRadius: 20, padding: 16, borderWidth: 1, borderColor: COLORS.divider, gap: 14 },
+  benefitIcon: { width: 44, height: 44, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
+  benefitTitle: { fontSize: 14, fontWeight: '800', color: COLORS.text, marginBottom: 2 },
+  benefitDesc: { fontSize: 11, color: COLORS.textMuted, fontWeight: '600' },
 });
 
 // ── Step 2: Choose Node Count ─────────────────────────────────────────────────
 function CountStep({ t, nodeCount, setNodeCount }) {
   return (
     <View style={cs.container}>
-      <MaterialCommunityIcons name="counter" size={52} color={COLORS.primary} style={{ alignSelf: 'center', marginBottom: 16 }} />
-      <Text style={cs.title}>{t('कितने नोड लगाने हैं?', 'How many nodes?', 'किती नोड लावायचे?')}</Text>
-      <Text style={cs.sub}>{t('प्रत्येक नोड एक खेत क्षेत्र की निगरानी करता है', 'Each node monitors one field zone', 'प्रत्येक नोड एक शेत क्षेत्राचे निरीक्षण करतो')}</Text>
+      <View style={cs.headerSection}>
+        <View style={cs.iconBubble}>
+          <MaterialCommunityIcons name="expansion-card-variant" size={32} color={COLORS.primary} />
+        </View>
+        <Text style={cs.title}>{t('कितने नोड लगाने हैं?', 'Sensor Deployment Scale', 'किती नोड लावायचे?')}</Text>
+        <Text style={cs.sub}>{t('अपनी क्षमता चुनें — प्रत्येक नोड आपके खेत के एक निश्चित हिस्से की निगरानी करेगा।', 'Select your scale — each node represents an independent monitoring zone in your field.', 'प्रत्येक नोड आपल्या शेताच्या एका निश्चित भागाचे निरीक्षण करेल.')}</Text>
+      </View>
 
       <View style={cs.grid}>
         {NODE_COUNT_OPTIONS.map(n => (
@@ -265,83 +264,90 @@ function CountStep({ t, nodeCount, setNodeCount }) {
           >
             <Text style={[cs.cardNum, nodeCount === n && cs.cardNumActive]}>{n}</Text>
             <Text style={[cs.cardLabel, nodeCount === n && cs.cardLabelActive]}>
-              {n === 1 ? t('नोड', 'Node', 'नोड') : t('नोड', 'Nodes', 'नोड')}
+              {n === 1 ? t('ज़ोन', 'Zone', 'झोन') : t('ज़ोन', 'Zones', 'झोन')}
             </Text>
             {nodeCount === n && (
-              <View style={cs.checkIcon}>
-                <MaterialCommunityIcons name="check" size={12} color="#fff" />
+              <View style={cs.checkMark}>
+                <MaterialCommunityIcons name="check" size={10} color="#fff" />
               </View>
             )}
           </TouchableOpacity>
         ))}
       </View>
 
-      {/* Land coverage hint */}
-      <View style={cs.hintCard}>
-        <MaterialCommunityIcons name="information-outline" size={18} color={COLORS.primary} />
-        <Text style={cs.hintTxt}>
-          {t(
-            `${nodeCount} नोड ≈ ${nodeCount * 2}–${nodeCount * 3} एकड़ खेत की निगरानी के लिए उपयुक्त`,
-            `${nodeCount} node${nodeCount > 1 ? 's' : ''} ≈ suitable for ${nodeCount * 2}–${nodeCount * 3} acres`,
-            `${nodeCount} नोड ≈ ${nodeCount * 2}–${nodeCount * 3} एकर शेतासाठी योग्य`
-          )}
-        </Text>
+      <View style={cs.coverageCard}>
+        <LinearGradient colors={[COLORS.primary + '10', COLORS.primary + '05']} style={cs.coverageGrad}>
+          <MaterialCommunityIcons name="map-check" size={20} color={COLORS.primary} />
+          <Text style={cs.coverageTxt}>
+            {t(
+              `${nodeCount} ज़ोन ≈ लगभग ${nodeCount * 1.5}—${nodeCount * 2.5} हेक्टेयर की डिजिटल फेंसिंग`,
+              `${nodeCount} active nodes represent digital fencing for ${nodeCount * 1.5}—${nodeCount * 2.5} hectares`,
+              `${nodeCount} नोड ≈ जवळपास ${nodeCount * 1.5}—${nodeCount * 2.5} हेक्टरचे निरीक्षण`
+            )}
+          </Text>
+        </LinearGradient>
       </View>
-
-      {/* Visual farm diagram */}
-      <FarmDiagram count={nodeCount} />
+      
+      {/* Zone Preview instead of a Map */}
+      <ZonePreview count={nodeCount} t={t} />
     </View>
   );
 }
 
-function FarmDiagram({ count }) {
-  const positions = [
-    { top: '20%', left: '20%' }, { top: '20%', right: '20%' },
-    { top: '60%', left: '20%' }, { top: '60%', right: '20%' },
-    { top: '40%', left: '5%'  }, { top: '40%', right: '5%' },
-    { top: '5%',  left: '45%' }, { top: '75%', left: '45%' },
-  ];
+function ZonePreview({ count, t }) {
   return (
-    <View style={fd.wrap}>
-      <LinearGradient colors={['#ECFDF5', '#D1FAE5']} style={fd.farm}>
-        <View style={fd.farmLabel}><Text style={fd.farmLabelTxt}>🌾 {count} nodes</Text></View>
-        {positions.slice(0, count).map((pos, i) => (
-          <View key={i} style={[fd.node, pos]}>
-            <LinearGradient colors={[COLORS.primary, COLORS.primaryLight]} style={fd.nodeGrad}>
-              <MaterialCommunityIcons name="antenna" size={10} color="#fff" />
-            </LinearGradient>
-            <Text style={fd.nodeNum}>N{i + 1}</Text>
+    <View style={zp.container}>
+      <Text style={zp.title}>{t('नेटवर्क टोपोलॉजी रिव्यू', 'Network Topology Preview', 'नेटवर्क टोपोलॉजी पुनरावलोकन')}</Text>
+      <View style={zp.grid}>
+        {Array.from({ length: count }).map((_, i) => (
+          <View key={i} style={zp.card}>
+            <View style={zp.cardIdx}><Text style={zp.cardIdxTxt}>{i + 1}</Text></View>
+            <View style={zp.cardBody}>
+              <View style={zp.signalBar}>
+                <View style={[zp.signalDot, { backgroundColor: COLORS.success }]} />
+                <Text style={zp.signalTxt}>Virtual</Text>
+              </View>
+              <Text style={zp.zoneName}>Zone {i + 1}</Text>
+            </View>
+            <MaterialCommunityIcons name="wifi-star" size={20} color={COLORS.primary + '80'} />
           </View>
         ))}
-      </LinearGradient>
+      </View>
     </View>
   );
 }
 
-const fd = StyleSheet.create({
-  wrap: { width: '100%', marginTop: 20 },
-  farm: { width: '100%', height: 180, borderRadius: 20, position: 'relative', borderWidth: 2, borderColor: COLORS.primary + '30', ...SHADOWS.soft },
-  farmLabel: { position: 'absolute', top: 8, left: 12 },
-  farmLabelTxt: { fontSize: 11, fontWeight: '700', color: COLORS.primary },
-  node: { position: 'absolute', alignItems: 'center' },
-  nodeGrad: { width: 28, height: 28, borderRadius: 8, justifyContent: 'center', alignItems: 'center', ...SHADOWS.soft },
-  nodeNum: { fontSize: 9, fontWeight: '900', color: COLORS.primary, marginTop: 2 },
+const zp = StyleSheet.create({
+  container: { marginTop: 24, paddingVertical: 16 },
+  title: { fontSize: 11, fontWeight: '800', color: COLORS.textMuted, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 16, textAlign: 'center' },
+  grid: { gap: 8 },
+  card: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.surface, borderRadius: 16, padding: 12, borderWidth: 1, borderColor: COLORS.divider, gap: 12 },
+  cardIdx: { width: 32, height: 32, borderRadius: 10, backgroundColor: COLORS.surfaceLight, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: COLORS.divider },
+  cardIdxTxt: { fontSize: 14, fontWeight: '900', color: COLORS.textSecondary },
+  cardBody: { flex: 1 },
+  signalBar: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 2 },
+  signalDot: { width: 6, height: 6, borderRadius: 3 },
+  signalTxt: { fontSize: 8, fontWeight: '800', color: COLORS.textSecondary, textTransform: 'uppercase' },
+  zoneName: { fontSize: 14, fontWeight: '700', color: COLORS.text },
 });
 
 const cs = StyleSheet.create({
-  container: { paddingTop: 20 },
-  title: { fontSize: 26, fontWeight: '900', color: COLORS.text, textAlign: 'center', marginBottom: 8 },
-  sub: { fontSize: 14, color: COLORS.textMuted, textAlign: 'center', marginBottom: 28 },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'center', marginBottom: 20 },
-  card: { width: 72, height: 72, borderRadius: 20, backgroundColor: COLORS.surface, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: COLORS.divider, ...SHADOWS.soft },
+  container: { paddingTop: 10 },
+  headerSection: { alignItems: 'center', marginBottom: 24 },
+  iconBubble: { width: 68, height: 68, borderRadius: 24, backgroundColor: COLORS.primaryPale, justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
+  title: { fontSize: 22, fontWeight: '900', color: COLORS.text, textAlign: 'center', marginBottom: 8 },
+  sub: { fontSize: 13, color: COLORS.textMuted, textAlign: 'center', lineHeight: 18, paddingHorizontal: 10 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'center', marginBottom: 24 },
+  card: { width: W * 0.2, height: W * 0.2, borderRadius: 20, backgroundColor: COLORS.surface, justifyContent: 'center', alignItems: 'center', borderWidth: 1.5, borderColor: COLORS.divider, ...SHADOWS.soft },
   cardActive: { borderColor: COLORS.primary, backgroundColor: COLORS.primaryPale },
-  cardNum: { fontSize: 28, fontWeight: '900', color: COLORS.textMuted },
+  cardNum: { fontSize: 24, fontWeight: '900', color: COLORS.textMuted },
   cardNumActive: { color: COLORS.primary },
-  cardLabel: { fontSize: 10, fontWeight: '700', color: COLORS.textMuted, textTransform: 'uppercase' },
+  cardLabel: { fontSize: 9, fontWeight: '800', color: COLORS.textMuted, textTransform: 'uppercase' },
   cardLabelActive: { color: COLORS.primary },
-  checkIcon: { position: 'absolute', top: 6, right: 6, width: 18, height: 18, borderRadius: 9, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center' },
-  hintCard: { flexDirection: 'row', gap: 8, alignItems: 'center', backgroundColor: COLORS.primaryPale, borderRadius: 14, padding: 14, marginBottom: 8 },
-  hintTxt: { flex: 1, fontSize: 13, color: COLORS.primary, fontWeight: '600', lineHeight: 18 },
+  checkMark: { position: 'absolute', top: 6, right: 6, width: 16, height: 16, borderRadius: 8, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center' },
+  coverageCard: { borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: COLORS.primary + '20' },
+  coverageGrad: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14 },
+  coverageTxt: { flex: 1, fontSize: 12, fontWeight: '700', color: COLORS.primary, lineHeight: 16 },
 });
 
 // ── Step 3: Configure Each Node ───────────────────────────────────────────────
@@ -389,15 +395,15 @@ function ConfigureStep({ t, lang, nodes, updateNode, editingIdx, setEditingIdx, 
           </View>
 
           {/* Zone name */}
-          <Text style={cfg.fieldLabel}>{t('क्षेत्र का नाम', 'Zone Name', 'क्षेत्राचे नाव')}</Text>
+          <Text style={cfg.fieldLabel}>{t('क्षेत्र का नाम', 'Zone Identification', 'क्षेत्राचे नाव')}</Text>
           <View style={cfg.nameRow}>
             <View style={cfg.nameInput}>
-              <MaterialCommunityIcons name="map-marker" size={16} color={COLORS.textMuted} />
+              <MaterialCommunityIcons name="identifier" size={16} color={COLORS.primary} />
               <TextInput
                 style={cfg.nameInputTxt}
                 value={editNode.name}
                 onChangeText={v => updateNode(editingIdx, 'name', v)}
-                placeholder={t('जैसे: उत्तरी खेत', 'e.g. North Field', 'उदा: उत्तर शेत')}
+                placeholder={t('जैसे: गेंहू का खेत', 'e.g. Wheat Sector Alpha', 'उदा: उत्तर शेत')}
                 placeholderTextColor={COLORS.textMuted}
               />
             </View>
